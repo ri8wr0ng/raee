@@ -85,7 +85,7 @@ export function parseArrangements(text: string): SavedArrangements {
       const { identity, label, kind, layout, deviceId, mediaId } = item as Record<string, unknown>;
       const box = (layout ?? {}) as Record<string, unknown>;
       if (typeof identity !== "string" || !identity || seen.has(identity)) continue;
-      if (typeof kind !== "string" || !(kind in KIND_NAMES)) continue;
+      if (typeof kind !== "string" || !Object.hasOwn(KIND_NAMES, kind)) continue;
       const sourceKind = kind as SourceKind;
       if (sourceKind === "video" && (typeof mediaId !== "string" || !mediaId)) continue;
       if (!finite(box.x) || !finite(box.y) || !finite(box.w) || box.w <= 0) continue;

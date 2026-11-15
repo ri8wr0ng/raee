@@ -99,6 +99,8 @@ describe("parseArrangements", () => {
             { identity: "screen:1", kind: "screen", layout: { x: "0", y: 0, w: 1 } },
             { identity: "", kind: "camera", layout },
             { identity: "mic:1", kind: "microphone", layout },
+            { identity: "invalid:1", kind: "constructor", layout },
+            { identity: "invalid:2", kind: "__proto__", layout },
           ],
           two: "nope",
         },

@@ -179,6 +179,7 @@ export function Soundboard({
 
   const playPad = useCallback(
     async (pad: Pad) => {
+      if (!livePadsRef.current.some((item) => item.id === pad.id)) return;
       try {
         let buffer = buffersRef.current.get(pad.id);
         if (!buffer) {
@@ -191,6 +192,8 @@ export function Soundboard({
           buffersRef.current.set(pad.id, buffer);
         }
 
+        // Loading can finish after a scene cut; macros obey the same scene scope.
+        if (!livePadsRef.current.some((item) => item.id === pad.id)) return;
         play(pad.id, buffer, pad.volumeDB, pad.loop);
         setPlayingPads((prev) => new Set(prev).add(pad.id));
 
