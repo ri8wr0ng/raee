@@ -18,7 +18,7 @@ import { RecentClips } from "@sidecut/platform-browser/recent-clips";
 import { recordingLimits } from "@sidecut/platform-browser/recording";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
-import { RadioGroup, RadioGroupItem } from "@sidecut/ui/components/radio-group";
+import { RadioGroup } from "@sidecut/ui/components/radio-group";
 import {
   Select,
   SelectContent,
@@ -1169,7 +1169,7 @@ export default function StudioPanel({
                     data-selected={selected === scene.id || undefined}
                   >
                     <label className="studio-row-main">
-                      <RadioGroupItem value={scene.id} className="sr-only" />
+                      <RadioPrimitive.Root value={scene.id} className="sr-only" />
                       <span className="truncate">{scene.name}</span>
                       {live && <span className="studio-live-badge">Live</span>}
                     </label>
