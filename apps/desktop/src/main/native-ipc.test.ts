@@ -91,3 +91,56 @@ it("refuses the report when the host API is unavailable", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+it("resolves Kick channel slugs to chatroom IDs through trusted IPC", async () => {
+  const root = await mkdtemp(join(tmpdir(), "sidecut-kick-ipc-"));
+  const host = new HostProjectService(new NativeProjectStore(join(root, "project.tandem")));
+  await host.start();
+  const mockFetch: typeof fetch = async (input) => {
+    const url = String(input);
+    if (url.includes("channels/streamer")) {
+      return new Response(JSON.stringify({ id: 101, slug: "streamer", chatroom: { id: 998877 } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (url.includes("channels/notfound")) {
+      return new Response("Not Found", { status: 404 });
+    }
+    return new Response("Server error", { status: 500 });
+  };
+  const close = registerNativeIPC(host, (url) => url === "trusted", undefined, mockFetch);
+  try {
+    const handler = mock.handlers.get(bridgeChannels.kickChannelLookup);
+    assert.ok(handler);
+    const frame = { url: "trusted" };
+    const sender = { mainFrame: frame, isDestroyed: () => false };
+    const event = { senderFrame: frame, sender };
+
+    // Successful lookup
+    const result = await handler(event, "streamer");
+    expect(result).toEqual({ chatroomId: 998877, channelSlug: "streamer" });
+
+    // 404 lookup
+    await expect(handler(event, "notfound")).rejects.toThrow(/not found/);
+
+    // Invalid slug
+    await expect(handler(event, "")).rejects.toThrow(/Invalid Kick channel slug/);
+    await expect(handler(event, "bad/slug?query")).rejects.toThrow(/Invalid Kick channel slug/);
+
+    // Untrusted sender
+    const untrustedFrame = { url: "https://evil.com" };
+    await expect(
+      handler(
+        {
+          senderFrame: untrustedFrame,
+          sender: { mainFrame: untrustedFrame, isDestroyed: () => false },
+        },
+        "streamer",
+      ),
+    ).rejects.toThrow(/Untrusted/);
+  } finally {
+    await close();
+    await rm(root, { recursive: true, force: true });
+  }
+});

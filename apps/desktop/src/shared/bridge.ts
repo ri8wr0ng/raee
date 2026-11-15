@@ -52,6 +52,7 @@ export const bridgeChannels = {
   providerCall: "sidecut:provider-call",
   providerCancel: "sidecut:provider-cancel",
   providerCredential: "sidecut:provider-credential",
+  kickChannelLookup: "sidecut:kick-channel-lookup",
 } as const;
 
 export type DesktopAppInfo = {
@@ -70,5 +71,8 @@ export type DesktopBridge = NativeBridge & {
     action: "set" | "clear",
     secret?: string,
   ) => Promise<void>;
+  readonly kickChannelLookup?: (
+    slug: string,
+  ) => Promise<{ chatroomId: number; channelSlug: string }>;
 };
 import type { NativeBridge } from "@sidecut/contracts/desktop";

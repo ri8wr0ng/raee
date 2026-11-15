@@ -100,6 +100,7 @@ const bridge: DesktopBridge = {
   providerCancel: (requestID) => ipcRenderer.invoke(bridgeChannels.providerCancel, requestID),
   providerCredential: (provider, action, secret) =>
     ipcRenderer.invoke(bridgeChannels.providerCredential, provider, action, secret),
+  kickChannelLookup: (slug) => ipcRenderer.invoke(bridgeChannels.kickChannelLookup, slug),
 };
 
 contextBridge.exposeInMainWorld("sidecutDesktop", bridge);

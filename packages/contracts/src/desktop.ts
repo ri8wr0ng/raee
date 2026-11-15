@@ -109,6 +109,7 @@ export interface NativeBridge {
   ) => Promise<Uint8Array>;
   nativeCancel: (id: string) => Promise<void>;
   nativeProgress: (listener: (id: string, progress: number) => void) => () => void;
+  kickChannelLookup?: (slug: string) => Promise<{ chatroomId: number; channelSlug: string }>;
 }
 export type RendererServiceRequest =
   | { id: string; type: "cancel" }
