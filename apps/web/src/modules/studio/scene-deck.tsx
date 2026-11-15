@@ -35,6 +35,8 @@ export function SceneDeck({
   const onSwitchRef = useRef(onSwitch);
   onSwitchRef.current = onSwitch;
 
+  const pulseTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(pulseTimer.current), []);
   const goLive = useCallback((scene: SceneDeckScene) => {
     if (scene.id === activeRef.current) return;
     nonce.current += 1;
@@ -43,7 +45,8 @@ export function SceneDeck({
     if (liveRef.current) {
       setPulse({ id: scene.id, nonce: mark });
       // Reduced motion never fires animationend; drop the ring on a timer too.
-      setTimeout(() => setPulse((p) => (p?.nonce === mark ? null : p)), 800);
+      clearTimeout(pulseTimer.current);
+      pulseTimer.current = setTimeout(() => setPulse((p) => (p?.nonce === mark ? null : p)), 800);
     }
     onSwitchRef.current(scene.id);
   }, []);

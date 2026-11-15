@@ -233,7 +233,10 @@ export function useLiveChatController(): LiveChatController {
   // Teardown all transports on unmount
   useEffect(() => {
     const activeTransports = transports.current;
+    const activeGenerations = generations.current;
     return () => {
+      for (const [provider, generation] of activeGenerations) chat.disconnect(provider, generation);
+      activeGenerations.clear();
       for (const stop of activeTransports.values()) {
         try {
           stop();
@@ -241,7 +244,7 @@ export function useLiveChatController(): LiveChatController {
       }
       activeTransports.clear();
     };
-  }, []);
+  }, [chat]);
 
   return {
     chat,

@@ -8,10 +8,19 @@ export function sceneHotkeyIndex(key: string, sceneCount: number): number | null
 /** Typing digits into a field must never cut the program to another scene. */
 export function isEditableHotkeyTarget(target: unknown): boolean {
   if (!target || typeof target !== "object") return false;
-  const element = target as { tagName?: unknown; isContentEditable?: unknown };
+  const element = target as {
+    tagName?: unknown;
+    isContentEditable?: unknown;
+    closest?: (selector: string) => unknown;
+  };
   if (element.isContentEditable === true) return true;
-  return (
-    element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.tagName === "SELECT"
+  if (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.tagName === "SELECT")
+    return true;
+  // Digits typed inside an open menu, listbox or dialog belong to it, not to the program.
+  return Boolean(
+    element.closest?.(
+      '[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[role="combobox"],[role="option"]',
+    ),
   );
 }
 
@@ -23,9 +32,11 @@ export function sceneHotkeyScene(
     altKey: boolean;
     shiftKey: boolean;
     target: unknown;
+    defaultPrevented?: boolean;
   },
   sceneCount: number,
 ): number | null {
+  if (event.defaultPrevented) return null;
   if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return null;
   if (isEditableHotkeyTarget(event.target)) return null;
   return sceneHotkeyIndex(event.key, sceneCount);

@@ -178,15 +178,21 @@ export function LiveChatPanel({
     }
   };
 
+  const lastSeenId = useRef<string | null>(null);
+  const newestId = messages.at(-1)?.id ?? null;
   useEffect(() => {
     const el = feedRef.current;
-    if (!el) return;
+    const previous = lastSeenId.current;
+    lastSeenId.current = newestId;
+    if (!el || newestId === previous) return;
     if (isAtBottomRef.current) {
       el.scrollTop = el.scrollHeight;
-    } else {
-      setUnreadCount((prev) => prev + 1);
+      return;
     }
-  }, [messages.length]);
+    const from = previous ? messages.findIndex((item) => item.id === previous) : -1;
+    const added = from >= 0 ? messages.length - 1 - from : 1;
+    if (added > 0) setUnreadCount((prev) => prev + added);
+  }, [newestId, messages]);
 
   const scrollToBottom = () => {
     const el = feedRef.current;

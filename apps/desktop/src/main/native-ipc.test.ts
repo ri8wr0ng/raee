@@ -104,6 +104,9 @@ it("resolves Kick channel slugs to chatroom IDs through trusted IPC", async () =
         headers: { "Content-Type": "application/json" },
       });
     }
+    if (url.includes("channels/noroom")) {
+      return new Response(JSON.stringify({ id: 101, slug: "noroom" }), { status: 200 });
+    }
     if (url.includes("channels/notfound")) {
       return new Response("Not Found", { status: 404 });
     }
@@ -120,6 +123,9 @@ it("resolves Kick channel slugs to chatroom IDs through trusted IPC", async () =
     // Successful lookup
     const result = await handler(event, "streamer");
     expect(result).toEqual({ chatroomId: 998877, channelSlug: "streamer" });
+
+    // A channel without a chatroom never falls back to the channel id
+    await expect(handler(event, "noroom")).rejects.toThrow(/chatroom ID/);
 
     // 404 lookup
     await expect(handler(event, "notfound")).rejects.toThrow(/not found/);

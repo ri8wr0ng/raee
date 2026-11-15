@@ -247,9 +247,8 @@ export class YouTubeChatTransport implements ChatTransport<YouTubeConfig> {
           emptyPageCount,
         );
         this.scheduleNext(poll, interval);
-      } catch (err) {
+      } catch {
         if (this.stopped) return;
-        console.warn("YouTube poll error:", err);
         onStatus("reconnecting", "Network error, retrying...");
         this.scheduleNext(poll, backoffMs);
         backoffMs = Math.min(30000, backoffMs * 2);

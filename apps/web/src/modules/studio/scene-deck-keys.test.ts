@@ -58,4 +58,12 @@ describe("sceneHotkeyScene", () => {
       sceneHotkeyScene(key({ target: { tagName: "DIV", isContentEditable: true } }), 4),
     ).toBeNull();
   });
+
+  it("leaves keys to open menus, listboxes and dialogs", () => {
+    const inside = { tagName: "DIV", closest: () => ({}) };
+    expect(sceneHotkeyScene(key({ target: inside }), 4)).toBeNull();
+    expect(sceneHotkeyScene({ ...key({}), defaultPrevented: true }, 4)).toBeNull();
+    const outside = { tagName: "DIV", closest: () => null };
+    expect(sceneHotkeyScene(key({ target: outside }), 4)).not.toBeNull();
+  });
 });
