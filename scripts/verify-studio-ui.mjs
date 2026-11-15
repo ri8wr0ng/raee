@@ -312,6 +312,25 @@ try {
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
   result.checks.reloadRecovery = true;
 
+  // Reconnecting camera restores its saved position and layout.
+  const sourcesSection = dialog.locator('section[aria-label="Sources"]');
+  await sourcesSection.getByText("Camera 1 · not connected").waitFor();
+  await sourcesSection.getByRole("button", { name: "Reconnect", exact: true }).first().click();
+  await cameraBox.waitFor();
+  await page.waitForTimeout(800);
+  assert.notDeepEqual(
+    (await pixel(0.36, 0.72)).slice(0, 3),
+    [17, 24, 39],
+    "camera restored to dragged position",
+  );
+  const reconnectedBox = await cameraBox.boundingBox();
+  assert.ok(
+    Math.abs(reconnectedBox.width - afterAspect.width) < 2,
+    "camera restored to saved width",
+  );
+  assert.ok(Math.abs(reconnectedBox.x - afterAspect.x) < 2, "camera restored to saved x position");
+  result.checks.cameraArrangementRecovery = true;
+
   // A take cut off by a reload is kept on disk and offered back.
   await button("Start recording").click();
   await button("Stop recording").waitFor();
