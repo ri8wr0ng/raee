@@ -3,6 +3,8 @@ import type { SceneSources } from "./scene-sources";
 export type AudioGateInput = {
   readonly id?: string | undefined;
   readonly sourceId?: string | undefined;
+  /** A scene microphone is placed by its own identity. */
+  readonly identity?: string | undefined;
 };
 
 /**
@@ -42,6 +44,7 @@ export function gateSourceKey(
   input: AudioGateInput,
   sources: readonly { readonly id: string; readonly identity: string }[],
 ): string | undefined {
+  if (input.identity) return input.identity;
   if (!input.sourceId) return undefined;
   return sources.find((source) => source.id === input.sourceId)?.identity ?? input.sourceId;
 }

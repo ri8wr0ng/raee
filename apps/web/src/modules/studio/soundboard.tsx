@@ -35,6 +35,7 @@ import {
   loadSoundAudio,
   loadSoundboardData,
   matchesShortcut,
+  padsForScene,
   saveSoundAudio,
   saveSoundboardData,
   shortcutFromEvent,
@@ -63,6 +64,8 @@ export type SoundboardProps = {
   play: (id: string, buffer: AudioBuffer, volumeDB: number, loop: boolean) => void;
   stop: (id: string | null /* null = all */) => void;
   actions: SoundboardActions;
+  /** The scene on air: pads for other scenes are hidden and silent. */
+  liveSceneId: string | null;
 };
 
 type Tab = "pads" | "macros";
@@ -82,7 +85,15 @@ function isInteractiveElement(target: EventTarget | null): boolean {
   return Boolean(target.closest("input, textarea, select, [contenteditable='true']"));
 }
 
-export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: SoundboardProps) {
+export function Soundboard({
+  open,
+  onOpenChange,
+  decode,
+  play,
+  stop,
+  actions,
+  liveSceneId,
+}: SoundboardProps) {
   const [data, setData] = useState<{ pads: Pad[]; macros: Macro[] }>(() => loadSoundboardData());
   const [activeTab, setActiveTab] = useState<Tab>("pads");
   const [isEditing, setIsEditing] = useState(false);
@@ -119,6 +130,11 @@ export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: 
   // Keep live references for global keydown handler
   const padsRef = useRef(data.pads);
   padsRef.current = data.pads;
+  /** The pads the live scene can play. */
+  const livePads = padsForScene(data.pads, liveSceneId);
+  const livePadsRef = useRef(livePads);
+  livePadsRef.current = livePads;
+  const liveSceneName = actions.scenes.find((scene) => scene.id === liveSceneId)?.name;
   const macrosRef = useRef(data.macros);
   macrosRef.current = data.macros;
   const playingPadsRef = useRef(playingPads);
@@ -163,6 +179,7 @@ export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: 
 
   const playPad = useCallback(
     async (pad: Pad) => {
+      if (!livePadsRef.current.some((item) => item.id === pad.id)) return;
       try {
         let buffer = buffersRef.current.get(pad.id);
         if (!buffer) {
@@ -175,6 +192,8 @@ export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: 
           buffersRef.current.set(pad.id, buffer);
         }
 
+        // Loading can finish after a scene cut; macros obey the same scene scope.
+        if (!livePadsRef.current.some((item) => item.id === pad.id)) return;
         play(pad.id, buffer, pad.volumeDB, pad.loop);
         setPlayingPads((prev) => new Set(prev).add(pad.id));
 
@@ -245,14 +264,22 @@ export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: 
     [actions, playPad, showFlash, stopAll],
   );
 
+  // A scene's own pads fall silent when it goes off air, like its other sources.
+  useEffect(() => {
+    for (const id of playingPadsRef.current) {
+      const pad = padsRef.current.find((item) => item.id === id);
+      if (pad?.scene && pad.scene !== liveSceneId) stopPad(id);
+    }
+  }, [liveSceneId, stopPad]);
+
   // Global keydown listener: always active while Soundboard is mounted, even if closed or collapsed
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (capturingRef.current) return;
       if (isInteractiveElement(event.target)) return;
 
-      // Check pads
-      for (const pad of padsRef.current) {
+      // Check pads the live scene can play
+      for (const pad of livePadsRef.current) {
         if (pad.shortcut && matchesShortcut(event, pad.shortcut)) {
           event.preventDefault();
           event.stopPropagation();
@@ -748,21 +775,40 @@ export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: 
                     )}
 
                     {/* Empty State */}
-                    {data.pads.length === 0 && !isEditing && (
+                    {livePads.length === 0 && !isEditing && (
                       <div className="flex flex-col items-center justify-center py-8 text-center px-4">
                         <RiMusic2Line className="size-10 text-muted-foreground/40 mb-2" />
-                        <p className="text-xs font-medium text-foreground">No sound pads yet</p>
+                        <p className="text-xs font-medium text-foreground">
+                          {data.pads.length ? "No pads for this scene" : "No sound pads yet"}
+                        </p>
                         <p className="text-[11px] text-muted-foreground mt-1 max-w-xs">
-                          Click <strong className="text-foreground">Edit</strong> above to add audio
-                          clips for applause, rimshots, music or sound effects.
+                          {data.pads.length ? (
+                            <>
+                              Pads set to another scene appear when that scene is live. Use{" "}
+                              <strong className="text-foreground">Edit</strong> to set a pad to all
+                              scenes.
+                            </>
+                          ) : (
+                            <>
+                              Click <strong className="text-foreground">Edit</strong> above to add
+                              audio clips for applause, rimshots, music or sound effects.
+                            </>
+                          )}
                         </p>
                       </div>
                     )}
 
+                    {!isEditing && liveSceneName && data.pads.some((pad) => pad.scene) && (
+                      <p className="mb-2 text-[11px] text-muted-foreground">
+                        Pads for <strong className="text-foreground">{liveSceneName}</strong> and
+                        all scenes
+                      </p>
+                    )}
+
                     {/* Pads Grid (Play Mode) */}
-                    {!isEditing && data.pads.length > 0 && (
+                    {!isEditing && livePads.length > 0 && (
                       <div className="grid grid-cols-3 gap-2.5">
-                        {data.pads.map((pad) => {
+                        {livePads.map((pad) => {
                           const isPlaying = playingPads.has(pad.id);
                           return (
                             <button
@@ -912,6 +958,30 @@ export function Soundboard({ open, onOpenChange, decode, play, stop, actions }: 
                                       }}
                                       aria-label={`${pad.name} volume`}
                                     />
+                                  </div>
+
+                                  {/* Scene */}
+                                  <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[11px] text-muted-foreground">
+                                      Plays on
+                                    </span>
+                                    <OptionSelect
+                                      value={pad.scene ?? "all"}
+                                      onValueChange={(value) =>
+                                        updatePad(pad.id, {
+                                          scene: value === "all" ? null : String(value),
+                                        })
+                                      }
+                                      aria-label={`Scene for ${pad.name}`}
+                                      className="h-7 w-auto max-w-[160px] text-xs"
+                                    >
+                                      <SelectItem value="all">All scenes</SelectItem>
+                                      {actions.scenes.map((scene) => (
+                                        <SelectItem key={scene.id} value={scene.id}>
+                                          {scene.name}
+                                        </SelectItem>
+                                      ))}
+                                    </OptionSelect>
                                   </div>
 
                                   {/* Loop & Shortcut Controls */}

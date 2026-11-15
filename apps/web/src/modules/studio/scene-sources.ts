@@ -1,16 +1,28 @@
 import type { SourceLayout } from "./source-layout";
 
-/** One camera or screen as one scene shows it; also the saved form. */
+/** Sources a scene can hold, like OBS: pictures (camera, screen, video) and audio-only inputs. */
+export type SourceKind = "camera" | "screen" | "video" | "audio";
+
+/** One source as one scene shows it; also the saved form. */
 export type Placement = {
-  /** Survives reloads: "camera:<deviceId>" (with "#n" when a device is open twice) or "screen:<n>". */
+  /**
+   * Survives reloads: "camera:<deviceId>" (with "#n" when a device is open twice), "screen:<n>",
+   * "video:<mediaId>" or "audio:<deviceId>".
+   */
   identity: string;
   /** What the Sources panel calls it, e.g. "Camera 1". */
   label: string;
-  kind: "camera" | "screen";
+  kind: SourceKind;
+  /** Where the picture sits. Audio sources have no picture and keep the full frame here. */
   layout: SourceLayout;
-  /** The camera to reopen on Reconnect. */
+  /** The camera or microphone to reopen on Reconnect. */
   deviceId?: string | undefined;
+  /** The project media a video source plays. */
+  mediaId?: string | undefined;
 };
+
+/** Whether a source kind draws a picture on the program. */
+export const hasPicture = (kind: SourceKind) => kind !== "audio";
 
 export type SavedArrangements = {
   sourceNumbers: { camera: number; screen: number };

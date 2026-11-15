@@ -24,7 +24,10 @@ import { RadioGroup } from "@sidecut/ui/components/radio-group";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@sidecut/ui/components/select";
@@ -38,6 +41,8 @@ import {
   RiCloseLine,
   RiComputerLine,
   RiDeleteBinLine,
+  RiFilmLine,
+  RiMicLine,
   RiFlagLine,
   RiFullscreenExitLine,
   RiFullscreenLine,
@@ -85,28 +90,40 @@ import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
-import { PRE_SCENE, SceneSources, type SavedArrangements } from "./scene-sources";
+import {
+  PRE_SCENE,
+  SceneSources,
+  hasPicture,
+  type Placement,
+  type SavedArrangements,
+} from "./scene-sources";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
 import { activeLiveSceneKey, gateSourceKey, isAudioInputOpen } from "./audio-gate";
 import "./studio.css";
 
+/** A source with a picture: a live camera or screen, or a project video playing on loop. */
 type VideoSource = {
   id: string;
   identity: string;
-  kind: "camera" | "screen";
+  kind: "camera" | "screen" | "video";
   label: string;
   video: HTMLVideoElement;
-  stream: MediaStream;
+  /** Live capture; video files play from `url` instead. */
+  stream: MediaStream | null;
+  url?: string | undefined;
   deviceId?: string | undefined;
+  mediaId?: string | undefined;
 };
 type AudioInput = {
   id: string;
   label: string;
-  kind: "microphone" | "screen" | "camera";
+  kind: "microphone" | "screen" | "camera" | "video";
   /** The video source this audio belongs to; it is removed with that source. */
   sourceId?: string;
-  stream: MediaStream;
+  /** Set for a microphone that belongs to scenes rather than every scene. */
+  identity?: string;
+  stream: MediaStream | null;
   channel: LiveAudioChannel;
 };
 type Recovered = TakeInfo & { bytes: number };
@@ -122,6 +139,16 @@ const readSaveTo = (): SaveTo => {
 };
 const message = (cause: unknown, fallback: string) =>
   cause instanceof Error ? cause.message : fallback;
+
+function SourceIcon({ kind }: { kind: Placement["kind"] }) {
+  if (kind === "camera") return <RiVideoOnLine />;
+  if (kind === "video") return <RiFilmLine />;
+  if (kind === "audio") return <RiMicLine />;
+  return <RiComputerLine />;
+}
+
+/** A file name to show for a project video. */
+const mediaName = (path: string) => path.split(/[\\/]/).pop() || "Video";
 
 const sourceAspect = (video: HTMLVideoElement) =>
   video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
@@ -184,8 +211,10 @@ export default function StudioPanel({
   const output = useRef<LiveStudioOutput | null>(null);
   const previewOutput = useRef<LiveStudioOutput | null>(null);
   const mixer = useRef<LiveAudioMixer | null>(null);
-  /** Every open camera and screen; scenes share these streams. */
+  /** Every open camera, screen and video; scenes share these. */
   const sources = useRef<VideoSource[]>([]);
+  /** This render's video opener, for the long-lived load effect. */
+  const latestOpenVideo = useRef<((mediaId: string) => Promise<VideoSource>) | null>(null);
   /** Which open sources each scene shows, and where. */
   const arrangement = useRef(new SceneSources()).current;
   /** The sources a scene shows, bottom layer first. */
@@ -259,6 +288,8 @@ export default function StudioPanel({
   const { devices: audioDevices } = useAudioInputDevices();
   const { devices: cameraDevices, refresh: refreshCameraDevices } = useCameraDevices();
   const [cameraSelectKey, setCameraSelectKey] = useState(0);
+  const [mediaSelectKey, setMediaSelectKey] = useState(0);
+  const projectVideos = snapshot.project.media.filter((media) => media.kind === "video");
   const usedCameraDeviceIds = new Set(
     sources.current
       .filter((s) => s.kind === "camera" && s.deviceId)
@@ -440,6 +471,14 @@ export default function StudioPanel({
             ),
           ),
         );
+        // Project videos need no permission prompt, so saved ones come back on their own.
+        const savedVideos = new Set(
+          Object.values(arrangement.serialize())
+            .flat()
+            .flatMap((placement) => (placement.kind === "video" ? [placement.mediaId] : [])),
+        );
+        for (const mediaId of savedVideos)
+          if (mediaId) void latestOpenVideo.current?.(mediaId).catch(() => {});
         const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
         if (initialSelected) {
           try {
@@ -542,8 +581,12 @@ export default function StudioPanel({
       previewOutput.current?.close();
       previewOutput.current = null;
       for (const source of [...sources.current, ...audioInputs.current])
-        for (const track of source.stream.getTracks()) track.stop();
-      for (const source of sources.current) source.video.onresize = null;
+        for (const track of source.stream?.getTracks() ?? []) track.stop();
+      for (const source of sources.current) {
+        source.video.onresize = null;
+        source.video.pause();
+        if (source.url) URL.revokeObjectURL(source.url);
+      }
       sources.current = [];
       arrangement.clear();
       audioInputs.current = [];
@@ -593,6 +636,9 @@ export default function StudioPanel({
   const scenePlacements = arrangement.of(editKey);
   const otherSources = sources.current.filter(
     (source) => !arrangement.has(editKey, source.identity),
+  );
+  const otherMics = audioInputs.current.filter(
+    (input) => input.identity && !arrangement.has(editKey, input.identity),
   );
   /** Sources can be dragged only while a canvas shows the scene being arranged. */
   const editingProgram = Boolean(active && active.id === editKey);
@@ -647,10 +693,7 @@ export default function StudioPanel({
       const current = studio.current;
       if (!current) return;
       current.remove({ id, expectedRevision: current.currentRevision });
-      for (const orphan of arrangement.drop(id)) {
-        const live = sources.current.find((item) => item.identity === orphan || item.id === orphan);
-        if (live) closeSource(live.id);
-      }
+      for (const orphan of arrangement.drop(id)) disconnectSource(orphan);
       commitArrangements();
       if (selected === id) setSelected(current.activeScene?.id ?? current.list()[0]?.id ?? null);
       commit();
@@ -674,39 +717,45 @@ export default function StudioPanel({
   /** Stops an open source's media resources and removes it from active sources. */
   const disconnectSource = (id: string) => {
     const source = sources.current.find((item) => item.id === id || item.identity === id);
-    if (!source) return;
+    if (!source) {
+      // A scene microphone has no picture; close its input instead.
+      const mic = audioInputs.current.find((input) => input.identity === id);
+      if (mic) removeInput(mic.id);
+      return;
+    }
     sources.current = sources.current.filter((item) => item.id !== source.id);
-    for (const track of source.stream.getTracks()) track.stop();
+    for (const track of source.stream?.getTracks() ?? []) track.stop();
     source.video.onresize = null;
+    source.video.pause();
     source.video.srcObject = null;
+    if (source.url) {
+      source.video.removeAttribute("src");
+      URL.revokeObjectURL(source.url);
+    }
     for (const input of audioInputs.current)
       if (input.sourceId === source.id) removeInput(input.id);
     setSelectedSource((current) => (current === source.id ? null : current));
     refresh();
   };
 
-  /** Stops an open source and takes it off every scene permanently. */
-  const closeSource = (id: string) => {
-    const source = sources.current.find((item) => item.id === id || item.identity === id);
-    const targetId = source ? source.identity : id;
-    arrangement.forget(targetId);
-    commitArrangements();
-    disconnectSource(id);
-  };
   /** Places a source on a scene, screens under cameras so a share never hides the presenter. */
   const placeOnScene = (scene: string, source: VideoSource) => {
     // Count sources that are not connected too, so a new one never takes their slot or layer.
-    const placed = arrangement.of(scene);
-    const same = placed.filter((item) => item.kind === source.kind);
+    // Videos fill the frame like screens and go under the cameras with them.
+    const role = source.kind === "camera" ? "camera" : "screen";
+    const roleOf = (kind: string) => (kind === "camera" ? "camera" : "screen");
+    const placed = arrangement.of(scene).filter((item) => hasPicture(item.kind));
+    const same = placed.filter((item) => roleOf(item.kind) === role);
     const onProgram = scene === (studio.current?.activeScene?.id ?? "");
     const layout = defaultLayout(
-      source.kind,
+      role,
       same.length,
       onProgram ? canvasAspect() : previewAspect(),
       sourceAspect(source.video),
     );
-    const firstCamera = placed.findIndex((item) => item.kind === "camera");
-    const at = source.kind === "screen" && firstCamera >= 0 ? firstCamera : placed.length;
+    const all = arrangement.of(scene);
+    const firstCamera = all.findIndex((item) => item.kind === "camera");
+    const at = role === "screen" && firstCamera >= 0 ? firstCamera : all.length;
     arrangement.add(
       scene,
       {
@@ -714,6 +763,7 @@ export default function StudioPanel({
         label: source.label,
         kind: source.kind,
         deviceId: source.deviceId,
+        mediaId: source.mediaId,
         layout,
       },
       at,
@@ -726,11 +776,23 @@ export default function StudioPanel({
     const targetId = source ? source.identity : id;
     const removedLast = arrangement.remove(editKey, targetId);
     commitArrangements();
-    if (removedLast && source) disconnectSource(source.id);
+    if (removedLast) disconnectSource(source ? source.id : targetId);
     setSelectedSource((current) => (current === id || current === targetId ? null : current));
     refresh();
   };
   const addExisting = (id: string) => {
+    const mic = audioInputs.current.find((input) => input.identity && input.identity === id);
+    if (mic?.identity) {
+      arrangement.add(editKey, {
+        identity: mic.identity,
+        label: mic.label,
+        kind: "audio",
+        deviceId: mic.identity.slice("audio:".length) || undefined,
+        layout: { x: 0, y: 0, w: 1 },
+      });
+      commitArrangements();
+      return;
+    }
     const source = sources.current.find((item) => item.id === id || item.identity === id);
     if (!source) return;
     placeOnScene(editKey, source);
@@ -873,6 +935,139 @@ export default function StudioPanel({
       refresh();
     }, `Could not start the ${kind}.`);
 
+  /** Opens a project video as a looping source; scenes that saved it show it again. */
+  const openVideo = async (mediaId: string) => {
+    const identity = `video:${mediaId}`;
+    const open = sources.current.find((item) => item.identity === identity);
+    if (open) return open;
+    const media = session.getSnapshot().project.media.find((item) => item.id === mediaId);
+    const local = await session.resource(mediaId);
+    if (!media || local?.state !== "available")
+      throw new Error("This video is not available on this device.");
+    const url = URL.createObjectURL(local.file);
+    const video = document.createElement("video");
+    video.playsInline = true;
+    video.loop = true;
+    video.src = url;
+    try {
+      await video.play();
+    } catch {
+      // Without a click to allow sound, start muted and unmute on the next interaction.
+      video.muted = true;
+      try {
+        await video.play();
+      } catch (cause) {
+        URL.revokeObjectURL(url);
+        throw cause;
+      }
+      const unmute = () => {
+        video.muted = false;
+        void video.play().catch(() => {});
+      };
+      window.addEventListener("pointerdown", unmute, { once: true });
+    }
+    // A slower add may have opened the same video meanwhile.
+    const raced = sources.current.find((item) => item.identity === identity);
+    if (raced) {
+      video.pause();
+      URL.revokeObjectURL(url);
+      return raced;
+    }
+    const id = crypto.randomUUID();
+    const label = mediaName(media.path);
+    const source: VideoSource = { id, identity, kind: "video", label, video, stream: null, url };
+    source.mediaId = mediaId;
+    sources.current = [...sources.current, source];
+    video.onresize = refresh;
+    if (media.hasAudio) {
+      // The mixer takes the element's sound, so it plays in the program, not the speakers.
+      void ensureMixer()
+        .then((audio) => {
+          if (!sources.current.includes(source)) return;
+          const audioID = `${id}:audio`;
+          const channel = audio.addNode(audioID, audio.context.createMediaElementSource(video));
+          setSettings((current) => ({ ...current, [audioID]: DEFAULT_LIVE_AUDIO }));
+          audioInputs.current = [
+            ...audioInputs.current,
+            { id: audioID, label, kind: "video", sourceId: id, stream: null, channel },
+          ];
+          refresh();
+        })
+        .catch(() => setError(`The sound of ${label} could not be added.`));
+    }
+    refresh();
+    return source;
+  };
+  latestOpenVideo.current = openVideo;
+  const addVideo = (mediaId: string) =>
+    attempt(async () => {
+      const scene = selectedRef.current ?? PRE_SCENE;
+      const source = await openVideo(mediaId);
+      if (!arrangement.has(scene, source.identity)) placeOnScene(scene, source);
+      setSelectedSource(source.id);
+      refresh();
+    }, "Could not add the video.");
+
+  /** Opens a microphone that only the scenes holding it hear. */
+  const openSceneAudio = async (deviceId: string | undefined, identity: string, label: string) => {
+    const open = audioInputs.current.find((input) => input.identity === identity);
+    if (open) return open;
+    const audio = await ensureMixer();
+    const stream = await openAudioInput(deviceId ?? null);
+    const raced = audioInputs.current.find((input) => input.identity === identity);
+    if (raced) {
+      for (const track of stream.getTracks()) track.stop();
+      return raced;
+    }
+    const id = crypto.randomUUID();
+    const channel = audio.addStream(id, stream, DEFAULT_LIVE_AUDIO);
+    stream.getAudioTracks()[0]?.addEventListener("ended", () => removeInput(id), { once: true });
+    setSettings((current) => ({ ...current, [id]: DEFAULT_LIVE_AUDIO }));
+    const input: AudioInput = { id, label, kind: "microphone", identity, stream, channel };
+    audioInputs.current = [...audioInputs.current, input];
+    refresh();
+    return input;
+  };
+  const addSceneAudio = (deviceId: string) =>
+    attempt(async () => {
+      const scene = selectedRef.current ?? PRE_SCENE;
+      const identity = `audio:${deviceId || "default"}`;
+      const deviceLabel =
+        audioDevices.find((device) => device.deviceId === deviceId)?.label || "Microphone";
+      const input = await openSceneAudio(deviceId || undefined, identity, deviceLabel);
+      if (!arrangement.has(scene, identity)) {
+        arrangement.add(scene, {
+          identity,
+          label: input.label,
+          kind: "audio",
+          deviceId: deviceId || undefined,
+          layout: { x: 0, y: 0, w: 1 },
+        });
+        commitArrangements();
+      }
+      refresh();
+    }, "Could not start the microphone.");
+  /** Reopens a saved source that is not connected, wherever it was saved. */
+  const reconnect = (placement: Placement) => {
+    const { identity, label, kind } = placement;
+    if (kind === "video" && placement.mediaId) {
+      const mediaId = placement.mediaId;
+      return attempt(() => openVideo(mediaId), "Could not open the video.");
+    }
+    if (kind === "audio")
+      return attempt(
+        () => openSceneAudio(placement.deviceId, identity, label),
+        "Could not start the microphone.",
+      );
+    if (kind === "camera") {
+      const deviceId =
+        placement.deviceId ??
+        (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
+      return addSource("camera", deviceId === "default" ? undefined : deviceId, identity, label);
+    }
+    return addSource("screen", undefined, identity, label);
+  };
+
   const switchingCameras = useRef(new Set<string>());
   const switchCameraDevice = (id: string, newDeviceId: string) =>
     attempt(async () => {
@@ -906,7 +1101,7 @@ export default function StudioPanel({
         return;
       }
 
-      for (const track of source.stream.getTracks()) track.stop();
+      for (const track of source.stream?.getTracks() ?? []) track.stop();
       source.video.onresize = null;
       source.video.srcObject = null;
 
@@ -954,7 +1149,7 @@ export default function StudioPanel({
     mixer.current?.remove(id);
     for (const input of audioInputs.current)
       if (input.id === id && !input.sourceId)
-        for (const track of input.stream.getTracks()) track.stop();
+        for (const track of input.stream?.getTracks() ?? []) track.stop();
     audioInputs.current = audioInputs.current.filter((input) => input.id !== id);
     refresh();
   };
@@ -1568,10 +1763,10 @@ export default function StudioPanel({
             ) : selectedScene ? (
               <>
                 Arranging <strong className="text-foreground">{selectedScene.name}</strong>. Add a
-                camera or share a screen to place it on the preview.
+                camera, screen, video or audio input to this scene.
               </>
             ) : (
-              "Add a camera or share a screen to put it on this scene."
+              "Add a camera, screen, video or audio input to put it on this scene."
             )
           }
           action={
@@ -1620,10 +1815,63 @@ export default function StudioPanel({
                 <RiComputerLine data-icon="inline-start" />
                 Add screen
               </Button>
+              <Select
+                key={`media-${mediaSelectKey}`}
+                value=""
+                onValueChange={(value) => {
+                  const choice = String(value ?? "");
+                  setMediaSelectKey((key) => key + 1);
+                  if (choice.startsWith("video:")) void addVideo(choice.slice("video:".length));
+                  else if (choice.startsWith("audio:"))
+                    void addSceneAudio(choice.slice("audio:".length));
+                }}
+              >
+                <SelectTrigger
+                  size="sm"
+                  aria-label="Add video or audio"
+                  className="h-7 text-[0.8rem] rounded-[min(var(--radius-md),12px)] px-2.5"
+                >
+                  <RiAddLine data-icon="inline-start" className="size-3.5" />
+                  <span>Video or audio</span>
+                </SelectTrigger>
+                <SelectContent align="end" alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    <SelectLabel>Video from Project media</SelectLabel>
+                    {projectVideos.length ? (
+                      projectVideos.map((media) => (
+                        <SelectItem key={media.id} value={`video:${media.id}`}>
+                          <RiFilmLine className="text-muted-foreground" />
+                          {mediaName(media.path)}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none-video" disabled>
+                        Import a video into the project first
+                      </SelectItem>
+                    )}
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Audio for this scene only</SelectLabel>
+                    {(audioDevices.length
+                      ? audioDevices
+                      : [{ deviceId: "", label: "Default microphone" }]
+                    ).map((device) => (
+                      <SelectItem
+                        key={device.deviceId || "default"}
+                        value={`audio:${device.deviceId}`}
+                      >
+                        <RiMicLine className="text-muted-foreground" />
+                        {device.label || "Microphone"}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </>
           }
         >
-          {otherSources.length > 0 && (
+          {otherSources.length + otherMics.length > 0 && (
             <Select
               value=""
               onValueChange={(value) => {
@@ -1637,8 +1885,14 @@ export default function StudioPanel({
               <SelectContent align="start" alignItemWithTrigger={false}>
                 {otherSources.map((source) => (
                   <SelectItem key={source.id} value={source.id}>
-                    {source.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                    <SourceIcon kind={source.kind} />
                     {source.label}
+                  </SelectItem>
+                ))}
+                {otherMics.map((input) => (
+                  <SelectItem key={input.id} value={input.identity!}>
+                    <RiMicLine />
+                    {input.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1652,6 +1906,31 @@ export default function StudioPanel({
                 const live = sources.current.find(
                   (s) => s.identity === identity || s.id === identity,
                 );
+                const mic =
+                  placement.kind === "audio"
+                    ? audioInputs.current.find((input) => input.identity === identity)
+                    : undefined;
+
+                if (mic) {
+                  return (
+                    <li key={identity} className="studio-row">
+                      <div className="studio-row-main min-w-0">
+                        <RiMicLine />
+                        <span className="truncate">{mic.label}</span>
+                        <span className="text-xs text-muted-foreground">Audio</span>
+                      </div>
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Remove ${mic.label}`}
+                        title="Remove from this scene"
+                        onClick={() => removeSource(identity)}
+                      >
+                        <RiCloseLine />
+                      </Button>
+                    </li>
+                  );
+                }
 
                 if (live) {
                   const isSelected = selectedSource === live.id;
@@ -1671,7 +1950,7 @@ export default function StudioPanel({
                         aria-pressed={isSelected}
                         onClick={() => setSelectedSource(isSelected ? null : live.id)}
                       >
-                        {live.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                        <SourceIcon kind={live.kind} />
                         <span className="truncate">{live.label}</span>
                       </button>
                       {live.kind === "camera" && cameraDevices.length > 0 && (
@@ -1760,32 +2039,14 @@ export default function StudioPanel({
                 }
 
                 const { label, kind } = placement;
-                const deviceId =
-                  placement.deviceId ??
-                  (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
 
                 return (
                   <li key={identity} className="studio-row opacity-60">
                     <div className="studio-row-main min-w-0">
-                      {kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                      <SourceIcon kind={kind} />
                       <span className="truncate">{label} · not connected</span>
                     </div>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      onClick={() => {
-                        if (kind === "camera") {
-                          void addSource(
-                            "camera",
-                            deviceId === "default" ? undefined : deviceId,
-                            identity,
-                            label,
-                          );
-                        } else {
-                          void addSource("screen", undefined, identity, label);
-                        }
-                      }}
-                    >
+                    <Button size="xs" variant="outline" onClick={() => void reconnect(placement)}>
                       Reconnect
                     </Button>
                     <Button
@@ -1852,6 +2113,7 @@ export default function StudioPanel({
         </Section>
       </div>
       <Soundboard
+        liveSceneId={active?.id ?? null}
         open={soundboardOpen}
         onOpenChange={setSoundboardOpen}
         decode={decodeSound}

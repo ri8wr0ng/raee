@@ -195,11 +195,26 @@ try {
   result.checks.perSceneSources = true;
 
   // A selected scene that is not live gets its own preview canvas; the program is untouched.
+  // Wait for the program to repaint Scene 2 (its banner) before reading which scene it shows.
+  for (let tries = 0; ; tries++) {
+    const banner = (await pixel(0.1, 0.86)).slice(0, 3);
+    if (banner.join() === "56,189,248") break;
+    assert.ok(tries < 50, "program never repainted Scene 2");
+    await sleep(100);
+  }
   const programScene = await dialog.getByLabel("Program output").getAttribute("data-scene");
   await dialog.locator("label.studio-row-main", { hasText: "Scene 1" }).click();
   const preview = dialog.getByLabel("Preview output");
   await preview.waitFor();
-  await page.waitForTimeout(600);
+  // The first preview frame decodes the scene's media; wait for it instead of a fixed delay.
+  await page.waitForFunction(
+    (program) => {
+      const scene = document.querySelector('[aria-label="Preview output"]')?.dataset.scene;
+      return Boolean(scene) && scene !== program;
+    },
+    programScene,
+    { timeout: 10_000 },
+  );
   const previewScene = await preview.getAttribute("data-scene");
   assert.ok(previewScene && previewScene !== programScene, "preview must show the selected scene");
   assert.equal(
@@ -251,6 +266,24 @@ try {
   await dialog.locator("label.studio-row-main", { hasText: "Scene 2" }).click();
   await cameraBox.waitFor();
   await preview.waitFor({ state: "hidden" });
+
+  // A scene can own an audio input: heard on Scene 2, gated when Scene 1 is live.
+  await dialog.getByLabel("Add video or audio").click();
+  await page
+    .getByRole("group", { name: "Audio for this scene only" })
+    .getByRole("option")
+    .first()
+    .click();
+  const sceneMicRow = dialog.locator(".studio-row", { hasText: "Audio" }).first();
+  await sceneMicRow.waitFor();
+  const gatedHint = dialog.getByText("Not in live scene", { exact: true });
+  assert.equal(await gatedHint.count(), 0, "scene audio must be heard on its own scene");
+  await button("Switch to Scene 1").click();
+  await gatedHint.first().waitFor();
+  await button("Switch to Scene 2").click();
+  await cameraBox.waitFor();
+  await gatedHint.first().waitFor({ state: "detached" });
+  result.checks.sceneAudio = true;
 
   // Screen source through the real picker path.
   await button("Add screen").click();
@@ -344,6 +377,21 @@ try {
   result.checks.handoff = { placed: true, marker: true };
   await openStudio();
 
+  // The take is now project media, so a scene can play it as a video source.
+  const sources = dialog.locator('section[aria-label="Sources"]');
+  await dialog.getByLabel("Add video or audio").click();
+  await page
+    .getByRole("group", { name: "Video from Project media" })
+    .getByRole("option")
+    .first()
+    .click();
+  const videoRow = sources.locator(".studio-row", { hasText: ".webm" }).first();
+  await videoRow.waitFor();
+  assert.equal(await videoRow.getByText("not connected").count(), 0);
+  const videoBox = dialog.getByRole("group", { name: /\.webm position/ });
+  await videoBox.waitFor();
+  result.checks.videoSource = true;
+
   // Recent clips.
   await button("Arm buffer").click();
   await button("Stop buffer").waitFor();
@@ -370,10 +418,21 @@ try {
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
   result.checks.reloadRecovery = true;
 
+  // Project videos need no permission, so the scene's video comes back without Reconnect.
+  await dialog
+    .locator('section[aria-label="Sources"] .studio-row', { hasText: ".webm" })
+    .first()
+    .waitFor();
+  await dialog.getByRole("group", { name: /\.webm position/ }).waitFor();
+  result.checks.videoRestore = true;
+
   // Reconnecting camera restores its saved position and layout.
   const sourcesSection = dialog.locator('section[aria-label="Sources"]');
   await sourcesSection.getByText("Camera 1 · not connected").waitFor();
-  await sourcesSection.getByRole("button", { name: "Reconnect", exact: true }).first().click();
+  await sourcesSection
+    .locator(".studio-row", { hasText: "Camera 1 · not connected" })
+    .getByRole("button", { name: "Reconnect", exact: true })
+    .click();
   await cameraBox.waitFor();
   await page.waitForTimeout(800);
   assert.notDeepEqual(
