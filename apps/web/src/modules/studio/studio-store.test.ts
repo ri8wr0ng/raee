@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { loadArrangements, saveArrangements } from "./studio-store";
+import { loadArrangements, parseArrangements, saveArrangements } from "./studio-store";
 import type { SavedArrangements } from "./scene-sources";
 
 function setupStorage() {
@@ -71,9 +71,42 @@ describe("studio-store arrangements", () => {
     expect(loaded).toEqual(data);
   });
 
-  it("throws on corrupt JSON so corrupt file is reported", async () => {
+  it("opens a corrupt file as empty arrangements instead of blocking Studio", async () => {
     const { files } = setupStorage();
     files.set("proj-corrupt.arrangements.json", "{ invalid json");
-    await expect(loadArrangements("proj-corrupt")).rejects.toThrow();
+    expect((await loadArrangements("proj-corrupt")).scenes).toEqual({});
+  });
+});
+
+describe("parseArrangements", () => {
+  it("falls back to empty arrangements for a corrupt file", () => {
+    expect(parseArrangements("{not json")).toEqual({
+      sourceNumbers: { camera: 0, screen: 0 },
+      scenes: {},
+    });
+  });
+
+  it("keeps only well-formed, unique placements", () => {
+    const layout = { x: 0.1, y: 0.2, w: 0.3 };
+    const parsed = parseArrangements(
+      JSON.stringify({
+        sourceNumbers: { camera: 2, screen: "x" },
+        scenes: {
+          one: [
+            null,
+            { identity: "camera:a", label: "Camera 1", kind: "camera", layout },
+            { identity: "camera:a", label: "Duplicate", kind: "camera", layout },
+            { identity: "screen:1", kind: "screen", layout: { x: "0", y: 0, w: 1 } },
+            { identity: "", kind: "camera", layout },
+            { identity: "mic:1", kind: "microphone", layout },
+          ],
+          two: "nope",
+        },
+      }),
+    );
+    expect(parsed).toEqual({
+      sourceNumbers: { camera: 2, screen: 0 },
+      scenes: { one: [{ identity: "camera:a", label: "Camera 1", kind: "camera", layout }] },
+    });
   });
 });

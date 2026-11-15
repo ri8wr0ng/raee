@@ -206,7 +206,7 @@ export class SceneSources {
     const result: SavedPlacement[] = [];
     for (const item of this.of(scene)) {
       const id = idOf(item);
-      if (!liveSet.has(id)) {
+      if (id && !liveSet.has(id)) {
         const kind = item.kind ?? (id.startsWith("screen") ? "screen" : "camera");
         const label = item.label ?? (kind === "screen" ? "Screen" : "Camera");
         result.push({

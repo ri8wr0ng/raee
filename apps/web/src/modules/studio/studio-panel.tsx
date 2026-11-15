@@ -88,7 +88,7 @@ import { SceneLookPanel } from "./scene-look-panel";
 import { SceneSources, type SavedArrangements } from "./scene-sources";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
-import { activeLiveSceneKey, isAudioInputOpen } from "./audio-gate";
+import { activeLiveSceneKey, gateSourceKey, isAudioInputOpen } from "./audio-gate";
 import "./studio.css";
 
 type VideoSource = {
@@ -209,7 +209,8 @@ export default function StudioPanel({
     const hasScenes = (studio.current?.list().length ?? 0) > 0;
     const liveKey = activeLiveSceneKey(activeScene, hasScenes);
     for (const input of audioInputs.current) {
-      const open = isAudioInputOpen(input, liveKey, arrangement);
+      const key = gateSourceKey(input, sources.current);
+      const open = isAudioInputOpen({ sourceId: key }, liveKey, arrangement);
       input.channel.setGate(open);
     }
   }, [arrangement]);
@@ -430,7 +431,15 @@ export default function StudioPanel({
         if (!alive || !canvas.current) return;
         studio.current = loaded;
         sourceNumbers.current = { ...loadedArrangements.sourceNumbers };
-        arrangement.restore(loadedArrangements.scenes);
+        // Forget arrangements of scenes that no longer exist, so they never keep a source "used".
+        const sceneIds = new Set(loaded.list().map((scene) => scene.id));
+        arrangement.restore(
+          Object.fromEntries(
+            Object.entries(loadedArrangements.scenes).filter(
+              ([scene]) => sceneIds.has(scene) || (scene === "" && sceneIds.size === 0),
+            ),
+          ),
+        );
         const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
         if (initialSelected) {
           try {
@@ -459,7 +468,9 @@ export default function StudioPanel({
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
           () => {
+            // Recordings and the clip buffer both capture this canvas; neither gets an unsaved look.
             if (captureActiveRef.current) return undefined;
+            if (clips.current && clips.current.state.buffer.kind !== "disarmed") return undefined;
             if (
               selectedRef.current &&
               loaded.activeScene &&
@@ -684,12 +695,14 @@ export default function StudioPanel({
   };
   /** Places a source on a scene, screens under cameras so a share never hides the presenter. */
   const placeOnScene = (scene: string, source: VideoSource) => {
-    const placed = shown(scene);
+    // Count sources that are not connected too, so a new one never takes their slot or layer.
+    const placed = arrangement.of(scene);
     const same = placed.filter((item) => item.kind === source.kind);
+    const onProgram = scene === (studio.current?.activeScene?.id ?? "");
     const layout = defaultLayout(
       source.kind,
       same.length,
-      canvasAspect(),
+      onProgram ? canvasAspect() : previewAspect(),
       sourceAspect(source.video),
     );
     const firstCamera = placed.findIndex((item) => item.kind === "camera");
@@ -1642,7 +1655,10 @@ export default function StudioPanel({
 
                 if (live) {
                   const isSelected = selectedSource === live.id;
-                  const aspects = [canvasAspect(), sourceAspect(live.video)] as const;
+                  const aspects = [
+                    editingProgram ? canvasAspect() : previewAspect(),
+                    sourceAspect(live.video),
+                  ] as const;
                   return (
                     <li
                       key={live.id}

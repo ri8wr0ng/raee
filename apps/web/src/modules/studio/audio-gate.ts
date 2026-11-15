@@ -33,3 +33,15 @@ export function isAudioInputOpen(
   if (liveSceneKey === null || liveSceneKey === undefined) return false;
   return arrangement.has(liveSceneKey, input.sourceId);
 }
+
+/**
+ * Audio inputs point at their video source by its per-session id, while scenes place
+ * sources by their saved identity. Resolves the identity the gate should look up.
+ */
+export function gateSourceKey(
+  input: AudioGateInput,
+  sources: readonly { readonly id: string; readonly identity: string }[],
+): string | undefined {
+  if (!input.sourceId) return undefined;
+  return sources.find((source) => source.id === input.sourceId)?.identity ?? input.sourceId;
+}

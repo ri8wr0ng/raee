@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { SceneSources } from "./scene-sources";
-import { activeLiveSceneKey, isAudioInputOpen } from "./audio-gate";
+import { activeLiveSceneKey, gateSourceKey, isAudioInputOpen } from "./audio-gate";
 
 const layout = { x: 0, y: 0, w: 1 };
 
@@ -68,5 +68,26 @@ describe("audio gate decision logic", () => {
     expect(activeLiveSceneKey({ id: "scene-a" }, false)).toBe("scene-a");
     expect(activeLiveSceneKey(null, false)).toBe("");
     expect(activeLiveSceneKey(null, true)).toBe(null);
+  });
+});
+
+describe("gateSourceKey", () => {
+  it("opens a source's audio by its saved identity, not its session id", () => {
+    const scenes = new SceneSources();
+    scenes.add("live", {
+      identity: "screen:1",
+      label: "Screen 1",
+      kind: "screen",
+      layout: { x: 0, y: 0, w: 1 },
+    });
+    const sources = [{ id: "uuid-1", identity: "screen:1" }];
+    const input = { id: "uuid-1:audio", sourceId: "uuid-1" };
+    expect(isAudioInputOpen({ sourceId: gateSourceKey(input, sources) }, "live", scenes)).toBe(
+      true,
+    );
+    expect(isAudioInputOpen({ sourceId: gateSourceKey(input, sources) }, "other", scenes)).toBe(
+      false,
+    );
+    expect(gateSourceKey({ id: "mic" }, sources)).toBeUndefined();
   });
 });

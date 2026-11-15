@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-15T15:59:01.972Z",
+  "testedAt": "2026-11-15T19:16:09.405Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
@@ -7,9 +7,9 @@
     "scenes": true,
     "camera": {
       "beforeCamera": [
-        28,
-        73,
-        102,
+        17,
+        24,
+        39,
         255
       ],
       "withCamera": [
@@ -27,9 +27,9 @@
         255
       ],
       "afterDrag": [
-        0,
-        135,
-        0,
+        74,
+        255,
+        22,
         255
       ],
       "width": [
@@ -54,7 +54,7 @@
         1920,
         1080
       ],
-      "bytes": 1192043,
+      "bytes": 1105026,
       "audio": 1,
       "banner": [
         55,

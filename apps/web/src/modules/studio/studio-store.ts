@@ -1,5 +1,5 @@
 import { LiveStudio } from "@sidecut/core/live-studio";
-import type { SavedArrangements } from "./scene-sources";
+import type { SavedArrangements, SavedPlacement } from "./scene-sources";
 
 const DIRECTORY = "live-studio";
 const fileName = (projectID: string) => `${encodeURIComponent(projectID)}.json`;
@@ -47,14 +47,53 @@ export async function loadArrangements(projectID: string): Promise<SavedArrangem
     }
     throw error;
   }
-  const text = await (await handle.getFile()).text();
-  const parsed = JSON.parse(text) as SavedArrangements;
+  return parseArrangements(await (await handle.getFile()).text());
+}
+
+const finite = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
+/**
+ * Reads saved arrangements, keeping only well-formed placements. Arrangements are a
+ * convenience, so a corrupt file falls back to empty instead of blocking Studio.
+ */
+export function parseArrangements(text: string): SavedArrangements {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = null;
+  }
+  const root = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+  const numbers = (root.sourceNumbers ?? {}) as Record<string, unknown>;
+  const count = (value: unknown) => (finite(value) && value >= 0 ? Math.floor(value) : 0);
+  const scenes: SavedArrangements["scenes"] = {};
+  const rawScenes = root.scenes && typeof root.scenes === "object" ? root.scenes : {};
+  for (const [scene, list] of Object.entries(rawScenes as Record<string, unknown>)) {
+    if (!Array.isArray(list)) continue;
+    const seen = new Set<string>();
+    const placements: SavedPlacement[] = [];
+    for (const item of list as unknown[]) {
+      if (!item || typeof item !== "object") continue;
+      const { identity, label, kind, layout, deviceId } = item as Record<string, unknown>;
+      const box = (layout ?? {}) as Record<string, unknown>;
+      if (typeof identity !== "string" || !identity || seen.has(identity)) continue;
+      if (kind !== "camera" && kind !== "screen") continue;
+      if (!finite(box.x) || !finite(box.y) || !finite(box.w) || box.w <= 0) continue;
+      seen.add(identity);
+      placements.push({
+        identity,
+        label: typeof label === "string" && label ? label : kind === "camera" ? "Camera" : "Screen",
+        kind,
+        layout: { x: box.x, y: box.y, w: box.w },
+        ...(typeof deviceId === "string" && deviceId ? { deviceId } : {}),
+      });
+    }
+    if (placements.length) scenes[scene] = placements;
+  }
   return {
-    sourceNumbers: {
-      camera: Number(parsed?.sourceNumbers?.camera) || 0,
-      screen: Number(parsed?.sourceNumbers?.screen) || 0,
-    },
-    scenes: parsed?.scenes && typeof parsed.scenes === "object" ? parsed.scenes : {},
+    sourceNumbers: { camera: count(numbers.camera), screen: count(numbers.screen) },
+    scenes,
   };
 }
 
