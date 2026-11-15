@@ -1835,7 +1835,11 @@ export default function StudioPanel({
               kind: input.kind,
               settings: settings[input.id] ?? DEFAULT_LIVE_AUDIO,
               level: meters[input.id] ?? 0,
-              gated: !isAudioInputOpen(input, liveKey, arrangement),
+              gated: !isAudioInputOpen(
+                { sourceId: gateSourceKey(input, sources.current) },
+                liveKey,
+                arrangement,
+              ),
             }))}
             devices={audioDevices}
             onAddInput={(deviceId) => void addMicrophone(deviceId)}
