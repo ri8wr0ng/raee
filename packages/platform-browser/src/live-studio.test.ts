@@ -241,6 +241,83 @@ describe("LiveStudioOutput previewAssets override", () => {
     outputWithOptions.close();
   });
 
+  it("paints a chosen scene for preview and drops the frame when the choice moves", async () => {
+    const overlay = (text: string): LiveAssets => ({
+      ...DEFAULT_LIVE_ASSETS,
+      overlays: [
+        {
+          id: text,
+          kind: "banner",
+          text,
+          x: 0,
+          y: 0,
+          width: 0.5,
+          height: 0.1,
+          color: "#000000",
+          textColor: "#ffffff",
+          opacity: 1,
+          enabled: true,
+          motion: "none",
+          start: 0,
+          duration: 10,
+        },
+      ],
+    });
+    const studio = new LiveStudio();
+    studio.save({
+      id: "s1",
+      name: "One",
+      project: createProject(overlay("Live Scene")),
+      expectedRevision: 0,
+    });
+    studio.save({
+      id: "s2",
+      name: "Two",
+      project: createProject(overlay("Preview Scene")),
+      expectedRevision: 1,
+    });
+    studio.switch({ id: "s1", expectedRevision: 2 });
+
+    const canvas = makeMockCanvas() as unknown as HTMLCanvasElement;
+    let scene: string | undefined = "s2";
+    const output = new LiveStudioOutput(
+      canvas,
+      studio,
+      async () => {
+        throw new Error("No media");
+      },
+      undefined,
+      undefined,
+      1080,
+      undefined,
+      () => scene,
+    );
+    const stagingCtx = (output as unknown as { staging: { ctx: ReturnType<typeof mockContext> } })
+      .staging.ctx;
+
+    // The preview paints the saved scene that is not on air.
+    await output.render(1);
+    expect(stagingCtx.calls).toContain("fillText:Preview Scene");
+    expect(stagingCtx.calls).not.toContain("fillText:Live Scene");
+
+    // A selection change mid-render drops the stale frame instead of committing it.
+    stagingCtx.calls.length = 0;
+    const pending = output.render(1);
+    scene = "s1";
+    expect(await pending).toBeNull();
+    scene = "s2";
+
+    // A studio change mid-render drops the frame too.
+    const pendingSave = output.render(1);
+    studio.save({ id: "s2", name: "Two edited", project: createProject(), expectedRevision: 3 });
+    expect(await pendingSave).toBeNull();
+    stagingCtx.calls.length = 0;
+    await output.render(1);
+    expect(stagingCtx.calls).not.toContain("fillText:Preview Scene");
+
+    output.close();
+  });
+
   it("keeps commitRevision stale-frame check intact", async () => {
     const studio = new LiveStudio();
     studio.save({ id: "s1", name: "Scene 1", project: createProject(), expectedRevision: 0 });

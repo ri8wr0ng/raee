@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-15T15:40:34.725Z",
+  "testedAt": "2026-11-15T15:59:01.972Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
@@ -7,9 +7,9 @@
     "scenes": true,
     "camera": {
       "beforeCamera": [
-        17,
-        24,
-        39,
+        28,
+        73,
+        102,
         255
       ],
       "withCamera": [
@@ -21,15 +21,15 @@
     },
     "sourceLayout": {
       "beforeDrag": [
-        19,
-        36,
-        55,
+        17,
+        24,
+        39,
         255
       ],
       "afterDrag": [
-        74,
-        255,
-        22,
+        0,
+        135,
+        0,
         255
       ],
       "width": [
@@ -40,6 +40,7 @@
     "sourceHitOrder": true,
     "sourceAspectChange": true,
     "perSceneSources": true,
+    "scenePreview": true,
     "screen": {
       "listed": 3
     },
@@ -53,7 +54,7 @@
         1920,
         1080
       ],
-      "bytes": 1151407,
+      "bytes": 1192043,
       "audio": 1,
       "banner": [
         55,
@@ -68,6 +69,7 @@
     },
     "recentClips": true,
     "reloadRecovery": true,
+    "cameraArrangementRecovery": true,
     "takeRecovery": true
   },
   "errors": [],

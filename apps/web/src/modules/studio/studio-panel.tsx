@@ -179,8 +179,10 @@ export default function StudioPanel({
   const canStream = Boolean(nativeBridge()?.nativeRecordingStart);
   const projectID = useRef(snapshot.project.id).current;
   const canvas = useRef<HTMLCanvasElement>(null);
+  const previewCanvas = useRef<HTMLCanvasElement>(null);
   const studio = useRef<LiveStudio | null>(null);
   const output = useRef<LiveStudioOutput | null>(null);
+  const previewOutput = useRef<LiveStudioOutput | null>(null);
   const mixer = useRef<LiveAudioMixer | null>(null);
   /** Every open camera and screen; scenes share these streams. */
   const sources = useRef<VideoSource[]>([]);
@@ -219,6 +221,7 @@ export default function StudioPanel({
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [frame, setFrame] = useState<string | null>(null);
+  const [previewFrame, setPreviewFrame] = useState<string | null>(null);
   const [name, setName] = useState("Scene 1");
   const [selected, setSelected] = useState<string | null>(null);
   const selectedRef = useRef(selected);
@@ -241,6 +244,13 @@ export default function StudioPanel({
   const canvasAspect = () => {
     const element = canvas.current;
     return frame && element?.width && element.height ? element.width / element.height : 16 / 9;
+  };
+  /** The preview canvas's shape; scenes off air may use another output size. */
+  const previewAspect = () => {
+    const element = previewCanvas.current;
+    return previewFrame && element?.width && element.height
+      ? element.width / element.height
+      : 16 / 9;
   };
   /** The look as last saved, to tell the user when the draft has unsaved changes. */
   const [savedLook, setSavedLook] = useState("");
@@ -434,6 +444,12 @@ export default function StudioPanel({
             // Keep default assets
           }
         }
+        // The preview shows the selected scene while it is not the one on air.
+        const previewScene = () => {
+          const id = selectedRef.current;
+          if (!id || id === loaded.activeScene?.id) return undefined;
+          return loaded.list().some((scene) => scene.id === id) ? id : undefined;
+        };
         output.current = new LiveStudioOutput(
           canvas.current,
           loaded,
@@ -454,20 +470,49 @@ export default function StudioPanel({
             return draftRef.current;
           },
         );
+        if (previewCanvas.current) {
+          previewOutput.current = new LiveStudioOutput(
+            previewCanvas.current,
+            loaded,
+            reader,
+            undefined,
+            (context) => {
+              const id = previewScene();
+              if (id) paintSources(context, shown(id));
+            },
+            1080,
+            () => draftRef.current,
+            previewScene,
+          );
+        }
         setSelected(initialSelected);
         setName(`Scene ${loaded.list().length + 1}`);
         const origin = performance.now();
         // An interval, not rAF: a backgrounded window must keep feeding an active recording.
         timer = setInterval(() => {
-          if (!loaded.activeScene) return;
-          output.current
-            ?.render((performance.now() - origin) / 1000)
-            .then((painted) => {
-              if (alive && painted) setFrame(painted.sceneId);
-            })
-            .catch((cause: unknown) => {
-              if (alive) setError(message(cause, "The scene could not be rendered."));
-            });
+          const time = (performance.now() - origin) / 1000;
+          if (loaded.activeScene) {
+            output.current
+              ?.render(time)
+              .then((painted) => {
+                if (alive && painted) setFrame(painted.sceneId);
+              })
+              .catch((cause: unknown) => {
+                if (alive) setError(message(cause, "The scene could not be rendered."));
+              });
+          }
+          const scene = previewScene();
+          if (scene) {
+            previewOutput.current
+              ?.render(time)
+              .then((painted) => {
+                if (alive && painted) setPreviewFrame(painted.sceneId);
+              })
+              .catch((cause: unknown) => {
+                if (alive && previewScene() === scene)
+                  setError(message(cause, "The scene could not be rendered."));
+              });
+          }
         }, 1000 / liveQualityProfiles.standard.framesPerSecond);
       })
       .catch((cause: unknown) => {
@@ -483,6 +528,8 @@ export default function StudioPanel({
       capture.current?.close();
       output.current?.close();
       output.current = null;
+      previewOutput.current?.close();
+      previewOutput.current = null;
       for (const source of [...sources.current, ...audioInputs.current])
         for (const track of source.stream.getTracks()) track.stop();
       for (const source of sources.current) source.video.onresize = null;
@@ -536,8 +583,14 @@ export default function StudioPanel({
   const otherSources = sources.current.filter(
     (source) => !arrangement.has(editKey, source.identity),
   );
-  /** Sources can be dragged only while the preview shows the scene being arranged. */
+  /** Sources can be dragged only while a canvas shows the scene being arranged. */
   const editingProgram = Boolean(active && active.id === editKey);
+  /** The selected scene is not on air, so it gets its own preview canvas. */
+  const previewing = Boolean(selectedScene && selectedScene.id !== active?.id);
+  /** The preview has painted the selected scene at least once. */
+  const previewPainted = previewing && previewFrame === editKey;
+  /** The canvas being arranged has content, so its drag handles can show. */
+  const editReady = editingProgram ? frame !== null : previewPainted;
 
   const saveFromEditor = (existing?: { id: string; name: string }) =>
     attempt(() => {
@@ -1046,53 +1099,76 @@ export default function StudioPanel({
     layout: source.layout,
     aspect: sourceAspect(source.video),
   }));
+  // Drag handles sit on whichever canvas shows the scene being arranged.
+  const editStages = editReady ? (
+    <>
+      <SourceStage
+        sources={stageSources}
+        canvasAspect={editingProgram ? canvasAspect() : previewAspect()}
+        selected={selectedSource}
+        onSelect={setSelectedSource}
+        onChange={placeSource}
+      />
+      {selectedOverlay && (
+        <OverlayStage
+          overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
+          selected={selectedOverlay}
+          onSelect={setSelectedOverlay}
+          onChange={(id, rect) =>
+            setDraft((current) => ({
+              ...current,
+              overlays: current.overlays.map((overlay) =>
+                overlay.id === id ? { ...overlay, ...rect } : overlay,
+              ),
+            }))
+          }
+        />
+      )}
+    </>
+  ) : null;
   const startDisabled =
     !frame || (program.kind !== "idle" && program.kind !== "failed" && program.kind !== "uploaded");
 
   return (
     <div className="studio-layout">
       <div className="grid gap-3">
-        <div className="studio-program-frame">
-          <div
-            className="studio-program"
-            style={{ ["--studio-aspect" as string]: String(canvasAspect()) }}
-            data-recording={recording || undefined}
-          >
-            <canvas ref={canvas} aria-label="Program output" data-scene={frame ?? ""} />
-            {frame && editingProgram && (
-              <SourceStage
-                sources={stageSources}
-                canvasAspect={canvasAspect()}
-                selected={selectedSource}
-                onSelect={setSelectedSource}
-                onChange={placeSource}
+        <div className="studio-frames" data-preview={previewing || undefined}>
+          <div className="studio-program-frame" hidden={!previewing}>
+            <div
+              className="studio-program"
+              style={{ ["--studio-aspect" as string]: String(previewAspect()) }}
+            >
+              <canvas
+                ref={previewCanvas}
+                aria-label="Preview output"
+                data-scene={previewFrame ?? ""}
               />
-            )}
-            {frame && selectedOverlay && (
-              <OverlayStage
-                overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
-                selected={selectedOverlay}
-                onSelect={setSelectedOverlay}
-                onChange={(id, rect) =>
-                  setDraft((current) => ({
-                    ...current,
-                    overlays: current.overlays.map((overlay) =>
-                      overlay.id === id ? { ...overlay, ...rect } : overlay,
-                    ),
-                  }))
-                }
-              />
-            )}
-            {!active && !loading && (
-              <p className="studio-program-empty">
-                Save a scene from the editor, then go live with it to start the program output.
-              </p>
-            )}
-            {recording && (
-              <span className="studio-rec-badge" aria-hidden>
-                REC
+              {previewing && editStages}
+              <span className="studio-canvas-tag">
+                Preview{selectedScene ? ` · ${selectedScene.name}` : ""}
               </span>
-            )}
+            </div>
+          </div>
+          <div className="studio-program-frame">
+            <div
+              className="studio-program"
+              style={{ ["--studio-aspect" as string]: String(canvasAspect()) }}
+              data-recording={recording || undefined}
+            >
+              <canvas ref={canvas} aria-label="Program output" data-scene={frame ?? ""} />
+              {editingProgram && editStages}
+              <span className="studio-canvas-tag">Program</span>
+              {!active && !loading && (
+                <p className="studio-program-empty">
+                  Save a scene from the editor, then go live with it to start the program output.
+                </p>
+              )}
+              {recording && (
+                <span className="studio-rec-badge" aria-hidden>
+                  REC
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <SceneDeck
@@ -1474,13 +1550,13 @@ export default function StudioPanel({
         <Section
           title="Sources"
           description={
-            selectedScene && !editingProgram ? (
+            editSources.length ? (
+              `Drag a source on the ${editingProgram ? "program" : "preview"} to move it, or drag its corners to resize. Hold Alt to stop snapping.`
+            ) : selectedScene ? (
               <>
-                Arranging <strong className="text-foreground">{selectedScene.name}</strong>. Go live
-                with it to drag its sources on the preview.
+                Arranging <strong className="text-foreground">{selectedScene.name}</strong>. Add a
+                camera or share a screen to place it on the preview.
               </>
-            ) : editSources.length ? (
-              "Drag a source on the preview to move it, or drag its corners to resize. Hold Alt to stop snapping."
             ) : (
               "Add a camera or share a screen to put it on this scene."
             )
@@ -1729,7 +1805,7 @@ export default function StudioPanel({
             onDraftChange={setDraft}
             disabled={!selectedScene}
             dirty={JSON.stringify(draft) !== savedLook}
-            canPlace={Boolean(frame)}
+            canPlace={editingProgram ? frame !== null : previewing}
             selectedOverlay={selectedOverlay}
             onSelectOverlay={setSelectedOverlay}
             onSave={(goLive) => void applyLook(goLive)}
