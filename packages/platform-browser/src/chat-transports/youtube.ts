@@ -261,6 +261,8 @@ export class YouTubeChatTransport implements ChatTransport<YouTubeConfig> {
   private scheduleNext(poll: () => Promise<void>, delay: number) {
     if (this.stopped) return;
     if (this.pollTimer) clearTimeout(this.pollTimer);
+    // Every request, retries included, shares one quota: never call faster than every 5 s.
+    delay = Math.max(5000, delay);
     this.pollTimer = setTimeout(() => {
       this.pollTimer = null;
       void poll();

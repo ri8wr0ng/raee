@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 import {
   parseIrcTags,
   unescapeIrcTagValue,
@@ -11,6 +11,7 @@ import {
   calculateNextYouTubeInterval,
   isYouTubeQuotaError,
   normalizeYouTubeMessage,
+  YouTubeChatTransport,
 } from "./youtube";
 import { parseKickPusherFrame, normalizeKickChatMessage } from "./kick";
 
@@ -205,5 +206,35 @@ describe("Kick Pusher frame parsing and message normalization", () => {
       time: Date.parse("2026-11-15T14:30:00.000Z") / 1000,
       emotes: [],
     });
+  });
+});
+
+describe("YouTube transport quota discipline", () => {
+  it("never retries a failed chat page sooner than five seconds", async () => {
+    vi.useFakeTimers();
+    try {
+      const calls: number[] = [];
+      const fetchFn = (async (url: string) => {
+        calls.push(Date.now());
+        if (String(url).includes("/videos?"))
+          return new Response(
+            JSON.stringify({ items: [{ liveStreamingDetails: { activeLiveChatId: "chat" } }] }),
+          );
+        throw new TypeError("network down");
+      }) as unknown as typeof fetch;
+      const stop = new YouTubeChatTransport(fetchFn).start(
+        { apiKey: "key", videoIdOrUrl: "dQw4w9WgXcQ" },
+        () => {},
+        () => {},
+      );
+      await vi.advanceTimersByTimeAsync(20_000);
+      stop();
+      const pages = calls.slice(1);
+      expect(pages.length).toBeGreaterThan(1);
+      for (let i = 1; i < pages.length; i++)
+        expect(pages[i]! - pages[i - 1]!).toBeGreaterThanOrEqual(5000);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

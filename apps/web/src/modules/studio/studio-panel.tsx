@@ -285,8 +285,8 @@ export default function StudioPanel({
     recording ||
     program.kind === "stopping" ||
     program.kind === "saving";
-  const captureActive =
-    program.kind !== "idle" && program.kind !== "failed" && program.kind !== "uploaded";
+  // Only a take being written owns the program; a retained take waiting for a choice does not.
+  const captureActive = capturing;
   const captureActiveRef = useRef(captureActive);
   captureActiveRef.current = captureActive;
   const uploading = program.kind === "saving" && program.cloud;
