@@ -134,10 +134,17 @@
   align-items: center;
   gap: 10px;
 }
-.look-speed output {
+.look-speed output,
+.look-slider output {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+.look-slider {
+  display: grid;
+  grid-template-columns: 1fr 40px;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Overlays */
@@ -243,7 +250,7 @@
 .look-overlay-editor {
   display: grid;
   gap: 12px;
-  padding: 4px 10px 12px;
+  padding: 8px 10px 12px;
 }
 
 .look-segmented {
@@ -259,7 +266,7 @@
 .look-segmented label {
   display: grid;
   place-items: center;
-  height: 26px;
+  height: 34px;
   border-radius: 6px;
   color: var(--muted-foreground);
   font-size: 12px;

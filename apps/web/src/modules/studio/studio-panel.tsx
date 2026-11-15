@@ -6,6 +6,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
 import type { LiveAssets } from "@sidecut/core/live-assets";
 import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
@@ -15,9 +16,11 @@ import { LiveStudioOutput } from "@sidecut/platform-browser/live-studio";
 import { LocalMediaReader } from "@sidecut/platform-browser/preview";
 import { RecentClips } from "@sidecut/platform-browser/recent-clips";
 import { recordingLimits } from "@sidecut/platform-browser/recording";
+import { useLiveChatController } from "./live-chat-controller";
+import { LiveChatPanel } from "./live-chat-panel";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
-import { RadioGroup, RadioGroupItem } from "@sidecut/ui/components/radio-group";
+import { RadioGroup } from "@sidecut/ui/components/radio-group";
 import {
   Select,
   SelectContent,
@@ -78,7 +81,9 @@ import {
 } from "./source-layout";
 import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
+import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
+import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
@@ -91,6 +96,7 @@ type VideoSource = {
   layout: SourceLayout;
   video: HTMLVideoElement;
   stream: MediaStream;
+  deviceId?: string | undefined;
 };
 type AudioInput = {
   id: string;
@@ -162,6 +168,9 @@ export default function StudioPanel({
 }) {
   const { session, snapshot } = useEditorSession();
   const navigate = useNavigate();
+  const liveChat = useLiveChatController();
+  const liveChatRef = useRef(liveChat.chat);
+  liveChatRef.current = liveChat.chat;
   // Live goes through the desktop app's native recorder; browsers cannot reach RTMP.
   const canStream = Boolean(nativeBridge()?.nativeRecordingStart);
   const projectID = useRef(snapshot.project.id).current;
@@ -183,7 +192,11 @@ export default function StudioPanel({
   const [frame, setFrame] = useState<string | null>(null);
   const [name, setName] = useState("Scene 1");
   const [selected, setSelected] = useState<string | null>(null);
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
   const [draft, setDraft] = useState<LiveAssets>(DEFAULT_LIVE_ASSETS);
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   /** While an overlay is selected the preview edits overlays instead of sources. */
   const [selectedOverlay, setSelectedOverlay] = useState<string | null>(null);
@@ -204,6 +217,13 @@ export default function StudioPanel({
   const [savedLook, setSavedLook] = useState("");
   const [settings, setSettings] = useState<Record<string, LiveAudioSettings>>({});
   const { devices: audioDevices } = useAudioInputDevices();
+  const { devices: cameraDevices, refresh: refreshCameraDevices } = useCameraDevices();
+  const [cameraSelectKey, setCameraSelectKey] = useState(0);
+  const usedCameraDeviceIds = new Set(
+    sources.current
+      .filter((s) => s.kind === "camera" && s.deviceId)
+      .map((s) => s.deviceId as string),
+  );
   const [meters, setMeters] = useState<Record<string, number>>({});
   const [mode, setMode] = useState<Mode>("record");
   const [saveTo, setSaveToState] = useState<SaveTo>(readSaveTo);
@@ -265,6 +285,10 @@ export default function StudioPanel({
     recording ||
     program.kind === "stopping" ||
     program.kind === "saving";
+  // Only a take being written owns the program; a retained take waiting for a choice does not.
+  const captureActive = capturing;
+  const captureActiveRef = useRef(captureActive);
+  captureActiveRef.current = captureActive;
   const uploading = program.kind === "saving" && program.cloud;
   const take = program.kind === "retained" || program.kind === "importing" ? program.take : null;
   const markCount = recording ? program.marks : 0;
@@ -355,16 +379,40 @@ export default function StudioPanel({
       .then((loaded) => {
         if (!alive || !canvas.current) return;
         studio.current = loaded;
+        const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
+        if (initialSelected) {
+          try {
+            const saved = liveAssets(
+              loaded.project(initialSelected).liveAssets ?? DEFAULT_LIVE_ASSETS,
+            );
+            draftRef.current = saved;
+            setDraft(saved);
+            setSavedLook(JSON.stringify(saved));
+          } catch {
+            // Keep default assets
+          }
+        }
         output.current = new LiveStudioOutput(
           canvas.current,
           loaded,
           reader,
-          undefined,
+          { target: "stream", chat: liveChatRef.current },
           (context) => paintSources(context, sources.current),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
+          () => {
+            if (captureActiveRef.current) return undefined;
+            if (
+              selectedRef.current &&
+              loaded.activeScene &&
+              selectedRef.current !== loaded.activeScene.id
+            ) {
+              return undefined;
+            }
+            return draftRef.current;
+          },
         );
-        setSelected(loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null);
+        setSelected(initialSelected);
         setName(`Scene ${loaded.list().length + 1}`);
         const origin = performance.now();
         // An interval, not rAF: a backgrounded window must keep feeding an active recording.
@@ -459,6 +507,15 @@ export default function StudioPanel({
       setSelected(id);
       commit();
     }, "The scene could not be switched.");
+  // The deck changes only what is on air; `selected` and its draft stay put so an
+  // unsaved look being edited is never thrown away by a quick scene cut.
+  const switchOnAir = (id: string) =>
+    attempt(() => {
+      const current = studio.current;
+      if (!current || current.activeScene?.id === id) return;
+      current.switch({ id, expectedRevision: current.currentRevision });
+      commit();
+    }, "The scene could not be switched.");
   const remove = (id: string) =>
     attempt(() => {
       const current = studio.current;
@@ -494,11 +551,11 @@ export default function StudioPanel({
     setSelectedSource((current) => (current === id ? null : current));
     refresh();
   };
-  const addSource = (kind: VideoSource["kind"]) =>
+  const addSource = (kind: VideoSource["kind"], chosenDeviceId?: string) =>
     attempt(async () => {
       const stream =
         kind === "camera"
-          ? await navigator.mediaDevices.getUserMedia({ video: true })
+          ? await openCamera(chosenDeviceId)
           : // Tab or system audio comes along when the user ticks "Share audio".
             await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
       const video = document.createElement("video");
@@ -515,13 +572,23 @@ export default function StudioPanel({
       const same = sources.current.filter((item) => item.kind === kind);
       const label = `${kind === "camera" ? "Camera" : "Screen"} ${++sourceNumbers.current[kind]}`;
       const layout = defaultLayout(kind, same.length, canvasAspect(), sourceAspect(video));
-      const source: VideoSource = { id, kind, label, layout, video, stream };
+      const deviceId =
+        kind === "camera"
+          ? chosenDeviceId || stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
+          : undefined;
+      const source: VideoSource = { id, kind, label, layout, video, stream, deviceId };
       // New screens go under the cameras so a share never hides the presenter.
       const firstCamera = sources.current.findIndex((item) => item.kind === "camera");
       const at = kind === "screen" && firstCamera >= 0 ? firstCamera : sources.current.length;
       sources.current = [...sources.current.slice(0, at), source, ...sources.current.slice(at)];
       video.onresize = refresh;
-      stream.getVideoTracks()[0]?.addEventListener("ended", () => removeSource(id), { once: true });
+      const onEnded = () => {
+        const current = sources.current.find((item) => item.id === id);
+        if (current?.stream === stream) {
+          removeSource(id);
+        }
+      };
+      stream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
       if (stream.getAudioTracks().length) {
         const audio = await ensureMixer();
         const audioID = `${id}:audio`;
@@ -533,8 +600,65 @@ export default function StudioPanel({
         ];
       }
       setSelectedSource(id);
+      if (kind === "camera") {
+        void refreshCameraDevices();
+      }
       refresh();
     }, `Could not start the ${kind}.`);
+
+  const switchingCameras = useRef(new Set<string>());
+  const switchCameraDevice = (id: string, newDeviceId: string) =>
+    attempt(async () => {
+      const source = sources.current.find((item) => item.id === id);
+      if (!source || source.kind !== "camera") return;
+      if (source.deviceId === newDeviceId) return;
+      // One switch per source at a time, so overlapping picks can't orphan a stream.
+      if (switchingCameras.current.has(id)) return;
+      switchingCameras.current.add(id);
+      let newStream: MediaStream;
+      let newVideo: HTMLVideoElement;
+      try {
+        newStream = await openCamera(newDeviceId);
+        newVideo = document.createElement("video");
+        newVideo.muted = true;
+        newVideo.playsInline = true;
+        newVideo.srcObject = newStream;
+        try {
+          await newVideo.play();
+        } catch (cause) {
+          for (const track of newStream.getTracks()) track.stop();
+          throw cause;
+        }
+      } finally {
+        switchingCameras.current.delete(id);
+      }
+      // The source may have been removed while the new camera was opening.
+      if (!sources.current.includes(source)) {
+        for (const track of newStream.getTracks()) track.stop();
+        newVideo.srcObject = null;
+        return;
+      }
+
+      for (const track of source.stream.getTracks()) track.stop();
+      source.video.onresize = null;
+      source.video.srcObject = null;
+
+      source.stream = newStream;
+      source.video = newVideo;
+      source.deviceId = newDeviceId || newStream.getVideoTracks()[0]?.getSettings?.()?.deviceId;
+
+      newVideo.onresize = refresh;
+      const onEnded = () => {
+        const current = sources.current.find((item) => item.id === id);
+        if (current?.stream === newStream) {
+          removeSource(id);
+        }
+      };
+      newStream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
+
+      void refreshCameraDevices();
+      refresh();
+    }, "Could not switch camera device.");
   const placeSource = (id: string, layout: SourceLayout) => {
     const source = sources.current.find((item) => item.id === id);
     if (!source) return;
@@ -762,6 +886,12 @@ export default function StudioPanel({
             )}
           </div>
         </div>
+        <SceneDeck
+          scenes={scenes}
+          activeId={active?.id ?? null}
+          live={captureActive || (mode !== "record" && canStream)}
+          onSwitch={(id) => void switchOnAir(id)}
+        />
         {(error || captureFailure) && (
           <p role="alert" className="studio-alert">
             {error || captureFailure}
@@ -786,7 +916,7 @@ export default function StudioPanel({
               ] as const
             ).map(([value, label, Icon]) => (
               <label key={value} data-checked={mode === value || undefined}>
-                <RadioGroupItem value={value} className="sr-only" />
+                <RadioPrimitive.Root value={value} className="sr-only" />
                 <span className="studio-mode-title">
                   <Icon aria-hidden />
                   {label}
@@ -938,6 +1068,7 @@ export default function StudioPanel({
             </>
           )}
         </Section>
+        <LiveChatPanel mode={mode} controller={liveChat} />
         {recovered.length > 0 && (
           <Section
             title="Recovered takes"
@@ -1075,7 +1206,7 @@ export default function StudioPanel({
                     data-selected={selected === scene.id || undefined}
                   >
                     <label className="studio-row-main">
-                      <RadioGroupItem value={scene.id} className="sr-only" />
+                      <RadioPrimitive.Root value={scene.id} className="sr-only" />
                       <span className="truncate">{scene.name}</span>
                       {live && <span className="studio-live-badge">Live</span>}
                     </label>
@@ -1140,10 +1271,46 @@ export default function StudioPanel({
           }
           action={
             <>
-              <Button size="sm" variant="outline" onClick={() => void addSource("camera")}>
-                <RiVideoOnLine data-icon="inline-start" />
-                Add camera
-              </Button>
+              {cameraDevices.length > 1 ? (
+                <Select
+                  key={cameraSelectKey}
+                  value=""
+                  onValueChange={(val) => {
+                    if (!val) return;
+                    void addSource("camera", val);
+                    setCameraSelectKey((k) => k + 1);
+                  }}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    aria-label="Add camera"
+                    className="h-7 text-[0.8rem] rounded-[min(var(--radius-md),12px)] px-2.5"
+                  >
+                    <RiVideoOnLine data-icon="inline-start" className="size-3.5" />
+                    <span>Add camera</span>
+                  </SelectTrigger>
+                  <SelectContent align="end" alignItemWithTrigger={false}>
+                    {cameraDevices.map((device) => {
+                      const isUsed = usedCameraDeviceIds.has(device.deviceId);
+                      return (
+                        <SelectItem key={device.deviceId} value={device.deviceId}>
+                          {device.label}
+                          {isUsed ? " (in use)" : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void addSource("camera", cameraDevices[0]?.deviceId)}
+                >
+                  <RiVideoOnLine data-icon="inline-start" />
+                  Add camera
+                </Button>
+              )}
               <Button size="sm" variant="outline" onClick={() => void addSource("screen")}>
                 <RiComputerLine data-icon="inline-start" />
                 Add screen
@@ -1172,6 +1339,40 @@ export default function StudioPanel({
                       {source.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
                       <span className="truncate">{source.label}</span>
                     </button>
+                    {source.kind === "camera" && cameraDevices.length > 0 && (
+                      <Select
+                        value={source.deviceId || ""}
+                        onValueChange={(val) => {
+                          if (!val || val === source.deviceId) return;
+                          void switchCameraDevice(source.id, val);
+                        }}
+                      >
+                        <SelectTrigger
+                          size="sm"
+                          aria-label={`Switch camera for ${source.label}`}
+                          title="Switch camera device"
+                          className="h-6 max-w-28 px-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                        >
+                          <SelectValue placeholder="Camera">
+                            {cameraDevices.find((d) => d.deviceId === source.deviceId)?.label ??
+                              cameraDevices[0]?.label ??
+                              "Camera"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent align="end" alignItemWithTrigger={false}>
+                          {cameraDevices.map((device) => {
+                            const isCurrent = device.deviceId === source.deviceId;
+                            const isUsed = usedCameraDeviceIds.has(device.deviceId) && !isCurrent;
+                            return (
+                              <SelectItem key={device.deviceId} value={device.deviceId}>
+                                {device.label}
+                                {isUsed ? " (in use)" : ""}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <Button
                       size="icon-xs"
                       variant="ghost"

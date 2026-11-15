@@ -45,7 +45,8 @@
     "./text": "./src/text.ts",
     "./preferences": "./src/preferences.ts",
     "./review-store": "./src/review-store.ts",
-    "./live-engagement": "./src/live-engagement.ts"
+    "./live-engagement": "./src/live-engagement.ts",
+    "./chat-transports": "./src/chat-transports/index.ts"
   },
   "scripts": {
     "typecheck": "vp exec tsc --noEmit"

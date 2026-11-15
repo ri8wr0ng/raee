@@ -1,4 +1,5 @@
 import type { LiveStudio } from "@sidecut/core/live-studio";
+import type { LiveAssets } from "@sidecut/core/live-assets";
 import { paintLiveEngagement, type LiveEngagement } from "./live-engagement";
 import { paintPicture } from "./picture";
 import { paintLiveBackground, paintLiveOverlays } from "./live-assets";
@@ -18,6 +19,7 @@ export class LiveStudioOutput {
     commitRevision: number;
     time: number;
   } | null = null;
+  private previewAssetsOverride: LiveAssets | (() => LiveAssets | undefined) | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -26,7 +28,10 @@ export class LiveStudioOutput {
     private readonly engagement?: LiveEngagement,
     private readonly liveLayers?: (context: CanvasRenderingContext2D, time: number) => void,
     private readonly maxOutputHeight = Number.POSITIVE_INFINITY,
+    /** Paints this look instead of the committed one while it returns a value (the unsaved draft). */
+    previewAssets?: () => LiveAssets | undefined,
   ) {
+    if (previewAssets) this.previewAssetsOverride = previewAssets;
     this.staging = document.createElement("canvas");
     const context = this.staging.getContext("2d");
     const output = canvas.getContext("2d");
@@ -36,6 +41,10 @@ export class LiveStudioOutput {
   }
   get currentFrame() {
     return this.committed ? { ...this.committed } : null;
+  }
+  /** The override also reaches recordings: return undefined from it while capturing. */
+  setPreviewAssets(assets?: LiveAssets | (() => LiveAssets | undefined) | null) {
+    this.previewAssetsOverride = assets ?? null;
   }
   recordingStream(audio?: MediaStream) {
     if (this.closed) throw new Error("Studio output closed.");
@@ -66,7 +75,11 @@ export class LiveStudioOutput {
     try {
       signal?.throwIfAborted();
       const frame = this.studio.frame(time);
-      const assets = frame.assets;
+      const preview =
+        typeof this.previewAssetsOverride === "function"
+          ? this.previewAssetsOverride()
+          : this.previewAssetsOverride;
+      const assets = preview ?? frame.assets;
       const settings = frame.project.settings;
       if (
         settings.width > 3840 ||
@@ -80,7 +93,10 @@ export class LiveStudioOutput {
       // Resizing reallocates and clears the canvas, so only do it when the output size changes.
       if (this.staging.width !== width) this.staging.width = width;
       if (this.staging.height !== height) this.staging.height = height;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reducedMotion =
+        typeof window !== "undefined" && typeof window.matchMedia === "function"
+          ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          : false;
       await paintPicture(
         this.context,
         frame.project,
