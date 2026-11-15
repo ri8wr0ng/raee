@@ -10,6 +10,8 @@ import {
   FieldError,
 } from "@sidecut/ui/components/field";
 import { useEditorSession } from "./editor-session";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function MediaPlacementForm({ item }: { item: MediaItem }) {
   const { session, snapshot, editor } = useEditorSession();
@@ -63,11 +65,11 @@ export function MediaPlacementForm({ item }: { item: MediaItem }) {
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor={`role-${item.id}`}>Source role</FieldLabel>
-            <select
+            <OptionSelect
               id={`role-${item.id}`}
               value={role}
               disabled={disabled}
-              onChange={(e) => setRole(e.target.value)}
+              onValueChange={setRole}
             >
               {[
                 "camera",
@@ -80,11 +82,11 @@ export function MediaPlacementForm({ item }: { item: MediaItem }) {
                 "image",
                 "other",
               ].map((value) => (
-                <option key={value} value={value}>
+                <SelectItem key={value} value={value}>
                   {value}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+            </OptionSelect>
           </Field>
           <Field>
             <FieldLabel htmlFor={`take-${item.id}`}>Take ID</FieldLabel>
@@ -121,26 +123,25 @@ export function MediaPlacementForm({ item }: { item: MediaItem }) {
       <FieldGroup className="editor-trim-form">
         <Field>
           <FieldLabel htmlFor={`mode-${item.id}`}>Placement mode</FieldLabel>
-          <select
+          <OptionSelect
             id={`mode-${item.id}`}
             value={mode}
             disabled={disabled}
-            onChange={(e) => setMode(e.target.value)}
+            onValueChange={setMode}
           >
-            <option value="place">Place in free space</option>
-            <option value="insert">Insert time</option>
-            <option value="overwrite">Overwrite</option>
-          </select>
+            <SelectItem value="place">Place in free space</SelectItem>
+            <SelectItem value="insert">Insert time</SelectItem>
+            <SelectItem value="overwrite">Overwrite</SelectItem>
+          </OptionSelect>
         </Field>
         {item.takeID && (
           <Field orientation="horizontal">
             <FieldLabel htmlFor={`pair-${item.id}`}>Include files from this take</FieldLabel>
-            <input
-              type="checkbox"
+            <Checkbox
               id={`pair-${item.id}`}
               checked={includeTake}
               disabled={disabled}
-              onChange={(e) => setIncludeTake(e.target.checked)}
+              onCheckedChange={(checked) => setIncludeTake(checked)}
             />
           </Field>
         )}

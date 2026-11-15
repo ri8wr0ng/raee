@@ -3,6 +3,7 @@ import { FieldError } from "@sidecut/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { CommitInput } from "./commit-input";
 import { HiddenLabel, Hint, InspectorSection, PropertyPair, PropertyRow } from "./inspector-layout";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 const FRAME_RATES = [
   [24000, 1001, "23.976"],
@@ -85,21 +86,21 @@ export function ProjectSettings() {
           </PropertyPair>
         </PropertyRow>
         <PropertyRow label="Frame rate" htmlFor="frame-rate">
-          <select
+          <OptionSelect
             id="frame-rate"
             disabled={disabled}
             value={`${rate.numerator}/${rate.denominator}`}
-            onChange={(event) => {
-              const [numerator, denominator] = event.target.value.split("/").map(Number);
+            onValueChange={(value) => {
+              const [numerator, denominator] = value.split("/").map(Number);
               settings({ frameRate: { numerator, denominator } });
             }}
           >
             {rates.map(([numerator, denominator, label]) => (
-              <option key={label} value={`${numerator}/${denominator}`}>
+              <SelectItem key={label} value={`${numerator}/${denominator}`}>
                 {label} fps
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </PropertyRow>
         <Hint>
           {project.settings.sampleRate / 1000} kHz audio ·{" "}

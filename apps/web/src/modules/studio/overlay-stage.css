@@ -1,0 +1,122 @@
+/* Overlay handles over the program: same interaction model as sources, violet accent. */
+.studio-overlay-stage {
+  --overlay-accent: #a78bfa;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.studio-overlay-stage[data-disabled] {
+  pointer-events: none;
+}
+.studio-overlay-box {
+  position: absolute;
+  cursor: move;
+  touch-action: none;
+  outline: 1px dashed transparent;
+  outline-offset: -1px;
+  transition: outline-color 120ms ease-out;
+}
+/* A stand-in for the overlay while its new position is not saved yet. */
+.studio-overlay-preview {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 4%;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--overlay-fill) 70%, transparent);
+  color: var(--overlay-text);
+  font-size: clamp(10px, 1.6cqw, 22px);
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.studio-overlay-stage:hover .studio-overlay-box {
+  outline-color: rgb(255 255 255 / 0.35);
+}
+.studio-overlay-box:focus-visible,
+.studio-overlay-box[data-selected] {
+  outline: 2px solid var(--overlay-accent);
+  outline-offset: -2px;
+}
+.studio-overlay-tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
+}
+.studio-overlay-stage:hover .studio-overlay-tag,
+.studio-overlay-box[data-selected] .studio-overlay-tag,
+.studio-overlay-box:focus-visible .studio-overlay-tag {
+  opacity: 1;
+}
+.studio-overlay-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--overlay-accent);
+  border-radius: 3px;
+  background: #fff;
+  touch-action: none;
+}
+.studio-overlay-handle[data-handle="n"] {
+  top: -2px;
+  left: calc(50% - 6px);
+  cursor: ns-resize;
+}
+.studio-overlay-handle[data-handle="s"] {
+  bottom: -2px;
+  left: calc(50% - 6px);
+  cursor: ns-resize;
+}
+.studio-overlay-handle[data-handle="e"] {
+  top: calc(50% - 6px);
+  right: -2px;
+  cursor: ew-resize;
+}
+.studio-overlay-handle[data-handle="w"] {
+  top: calc(50% - 6px);
+  left: -2px;
+  cursor: ew-resize;
+}
+.studio-overlay-handle[data-handle="nw"] {
+  top: -2px;
+  left: -2px;
+  cursor: nwse-resize;
+}
+.studio-overlay-handle[data-handle="ne"] {
+  top: -2px;
+  right: -2px;
+  cursor: nesw-resize;
+}
+.studio-overlay-handle[data-handle="sw"] {
+  bottom: -2px;
+  left: -2px;
+  cursor: nesw-resize;
+}
+.studio-overlay-handle[data-handle="se"] {
+  right: -2px;
+  bottom: -2px;
+  cursor: nwse-resize;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-overlay-box,
+  .studio-overlay-tag {
+    transition: none;
+  }
+}
+.studio-overlay-preview + .studio-overlay-tag {
+  display: none;
+}

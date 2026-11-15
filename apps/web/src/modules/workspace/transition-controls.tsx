@@ -23,6 +23,7 @@ import { useEditorSession } from "./editor-session";
 import { defaultTransitionSound, TransitionSoundControls } from "./transition-sound-controls";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 // The dialog keeps stacked fields; the inspector uses compact property rows.
 function DialogRow({
@@ -119,45 +120,45 @@ function TransitionForm({
       <Group>
         {!transition && (
           <Row label="Clip edge" htmlFor={`transition-side-${id}`}>
-            <select
+            <OptionSelect
               id={`transition-side-${id}`}
               disabled={disabled}
               value={side}
-              onChange={(e) => setSide(e.target.value)}
+              onValueChange={setSide}
             >
-              <option value="head">Head</option>
-              <option value="tail">Tail</option>
-              <option value="next">Cut to next clip</option>
-            </select>
+              <SelectItem value="head">Head</SelectItem>
+              <SelectItem value="tail">Tail</SelectItem>
+              <SelectItem value="next">Cut to next clip</SelectItem>
+            </OptionSelect>
           </Row>
         )}
         <Row label="Transition type" htmlFor={`transition-type-${id}`}>
-          <select
+          <OptionSelect
             id={`transition-type-${id}`}
             disabled={disabled}
             value={type}
-            onChange={(e) => setType(e.target.value)}
+            onValueChange={setType}
           >
             {transitionTypes.map((value) => (
-              <option key={value} value={value}>
+              <SelectItem key={value} value={value}>
                 {value}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </Row>
         <Row label="Direction" htmlFor={`transition-direction-${id}`}>
-          <select
+          <OptionSelect
             id={`transition-direction-${id}`}
             disabled={disabled}
             value={direction}
-            onChange={(e) => setDirection(e.target.value)}
+            onValueChange={setDirection}
           >
             {["left", "right", "up", "down"].map((value) => (
-              <option key={value} value={value}>
+              <SelectItem key={value} value={value}>
                 {value}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </Row>
         <Row label="Transition duration (s)" htmlFor={`transition-duration-${id}`}>
           <Input

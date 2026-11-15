@@ -119,7 +119,7 @@
   font-size: 12px;
   font-weight: 600;
 }
-.editor-dialog label:has(> select) {
+.editor-dialog label:has(> [data-slot="select-trigger"]) {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -144,7 +144,7 @@
 }
 
 .editor-dialog [data-slot="input"],
-.editor-dialog select,
+.editor-dialog [data-slot="select-trigger"],
 .editor-dialog textarea {
   width: 100%;
   min-width: 0;
@@ -159,7 +159,7 @@
   transition-timing-function: var(--dialog-ease);
 }
 .editor-dialog [data-slot="input"],
-.editor-dialog select {
+.editor-dialog [data-slot="select-trigger"] {
   height: 28px;
   padding: 0 8px;
 }
@@ -173,32 +173,16 @@
   color: var(--muted-foreground);
 }
 .editor-dialog [data-slot="input"]:focus-visible,
-.editor-dialog select:focus-visible,
+.editor-dialog [data-slot="select-trigger"]:focus-visible,
 .editor-dialog textarea:focus-visible {
   border-color: var(--ring);
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 50%, transparent);
   outline: none;
 }
 .editor-dialog [data-slot="input"]:disabled,
-.editor-dialog select:disabled,
+.editor-dialog [data-slot="select-trigger"]:disabled,
 .editor-dialog textarea:disabled {
   opacity: 0.5;
-}
-.editor-dialog option {
-  background: var(--popover);
-  color: var(--foreground);
-}
-.editor-dialog input[type="checkbox"],
-.editor-dialog input[type="radio"] {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  accent-color: var(--primary);
-}
-.editor-dialog input[type="checkbox"]:focus-visible,
-.editor-dialog input[type="radio"]:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
 }
 .editor-dialog input[type="color"] {
   width: 32px;

@@ -21,6 +21,8 @@ import { RiHeading } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Textarea } from "@sidecut/ui/components/textarea";
 
 export function TitleDialog() {
   const { session, snapshot, editor } = useEditorSession();
@@ -97,7 +99,7 @@ export function TitleDialog() {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="title-text">Text</FieldLabel>
-              <textarea
+              <Textarea
                 id="title-text"
                 className="editor-text-area"
                 rows={2}
@@ -109,19 +111,19 @@ export function TitleDialog() {
             </Field>
             <Field>
               <FieldLabel htmlFor="title-preset">Preset</FieldLabel>
-              <select
+              <OptionSelect
                 id="title-preset"
                 value={preset}
                 disabled={disabled}
-                onChange={(e) => setPreset(e.target.value)}
+                onValueChange={setPreset}
               >
-                <option value="">None</option>
+                <SelectItem value="">None</SelectItem>
                 {TITLE_PRESETS.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <SelectItem key={p.id} value={p.id}>
                     {p.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
               <FieldDescription>
                 {TITLE_PRESETS.find((p) => p.id === preset)?.summary ??
                   "Default style: 64 pt, weight 800, white, centered."}
@@ -129,21 +131,21 @@ export function TitleDialog() {
             </Field>
             <Field>
               <FieldLabel htmlFor="title-track">Video track</FieldLabel>
-              <select
+              <OptionSelect
                 id="title-track"
                 disabled={disabled}
                 value={trackID}
-                onChange={(e) => setTrackID(e.target.value)}
+                onValueChange={setTrackID}
               >
-                <option value="new">New top track</option>
+                <SelectItem value="new">New top track</SelectItem>
                 {snapshot.project.videoTracks
                   .filter((t) => !t.locked)
                   .map((t) => (
-                    <option key={t.id} value={t.id}>
+                    <SelectItem key={t.id} value={t.id}>
                       {t.name}
-                    </option>
+                    </SelectItem>
                   ))}
-              </select>
+              </OptionSelect>
             </Field>
             <Field>
               <FieldLabel htmlFor="title-duration">Duration (s)</FieldLabel>

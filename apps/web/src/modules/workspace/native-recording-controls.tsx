@@ -12,6 +12,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@sidecut/ui/com
 import { useEditorSession } from "./editor-session";
 import { nativeBridge } from "./host-coordinator";
 import { MediaSection } from "./media-section";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function NativeRecordingControls() {
   const { snapshot } = useEditorSession();
@@ -92,9 +93,9 @@ export function NativeRecordingControls() {
     devices
       .filter((device) => device.kind === kind)
       .map((device) => (
-        <option key={device.id} value={device.id}>
+        <SelectItem key={device.id} value={device.id}>
           {device.name}
-        </option>
+        </SelectItem>
       ));
   return (
     <div
@@ -110,12 +111,11 @@ export function NativeRecordingControls() {
         <FieldGroup className="gap-2">
           <Field>
             <FieldLabel htmlFor="native-source">Source</FieldLabel>
-            <select
+            <OptionSelect
               id="native-source"
               value={source}
               disabled={blocked || !!active}
-              onChange={(event) => {
-                const value = event.target.value;
+              onValueChange={(value) => {
                 if (value === "screen" || value === "camera" || value === "microphone") {
                   setSource(value);
                   setDeviceID("");
@@ -123,10 +123,10 @@ export function NativeRecordingControls() {
                 }
               }}
             >
-              <option value="screen">Entire desktop</option>
-              <option value="camera">Camera</option>
-              <option value="microphone">Microphone</option>
-            </select>
+              <SelectItem value="screen">Entire desktop</SelectItem>
+              <SelectItem value="camera">Camera</SelectItem>
+              <SelectItem value="microphone">Microphone</SelectItem>
+            </OptionSelect>
             <FieldDescription>
               A recording copy stays on local disk. Screen capture records the entire desktop;
               system audio is excluded.
@@ -158,45 +158,44 @@ export function NativeRecordingControls() {
               <FieldLabel htmlFor="native-device">
                 {source === "camera" ? "Camera" : "Microphone"}
               </FieldLabel>
-              <select
+              <OptionSelect
                 id="native-device"
                 value={deviceID}
                 disabled={blocked || !!active}
-                onChange={(event) => setDeviceID(event.target.value)}
+                onValueChange={setDeviceID}
               >
-                <option value="">Select a device</option>
+                <SelectItem value="">Select a device</SelectItem>
                 {options(source)}
-              </select>
+              </OptionSelect>
             </Field>
           )}
           {source !== "microphone" && (
             <Field>
               <FieldLabel htmlFor="native-mic">Microphone (optional)</FieldLabel>
-              <select
+              <OptionSelect
                 id="native-mic"
                 value={microphoneID}
                 disabled={blocked || !!active}
-                onChange={(event) => setMicrophoneID(event.target.value)}
+                onValueChange={setMicrophoneID}
               >
-                <option value="">None</option>
+                <SelectItem value="">None</SelectItem>
                 {options("microphone")}
-              </select>
+              </OptionSelect>
             </Field>
           )}
           <Field>
             <FieldLabel htmlFor="native-encoder">Encoder profile</FieldLabel>
-            <select
+            <OptionSelect
               id="native-encoder"
               value={encoder}
               disabled={blocked || !!active}
-              onChange={(event) => {
-                if (event.target.value === "auto" || event.target.value === "software")
-                  setEncoder(event.target.value);
+              onValueChange={(value) => {
+                if (value === "auto" || value === "software") setEncoder(value);
               }}
             >
-              <option value="auto">Automatic</option>
-              <option value="software">Software</option>
-            </select>
+              <SelectItem value="auto">Automatic</SelectItem>
+              <SelectItem value="software">Software</SelectItem>
+            </OptionSelect>
           </Field>
           {error && <p role="alert">{error}</p>}
           {active ? (

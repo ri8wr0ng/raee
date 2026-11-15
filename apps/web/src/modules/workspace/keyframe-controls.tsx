@@ -10,6 +10,7 @@ import { FieldError } from "@sidecut/ui/components/field";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function KeyframeControls({ clips }: { clips: readonly Clip[] }) {
   const { session, snapshot, editor } = useEditorSession();
@@ -117,27 +118,23 @@ export function KeyframeControls({ clips }: { clips: readonly Clip[] }) {
     <InspectorSection id="effects.keyframes" title="Keyframes">
       {clips.length > 1 && (
         <PropertyRow label="Clip" htmlFor="keyframe-clip">
-          <select id="keyframe-clip" value={clip.id} onChange={(e) => setClipID(e.target.value)}>
+          <OptionSelect id="keyframe-clip" value={clip.id} onValueChange={setClipID}>
             {clips.map((c) => (
-              <option key={c.id} value={c.id}>
+              <SelectItem key={c.id} value={c.id}>
                 {c.name ?? c.id}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </PropertyRow>
       )}
       <PropertyRow label="Parameter" htmlFor="keyframe-parameter">
-        <select
-          id="keyframe-parameter"
-          value={parameter}
-          onChange={(e) => setParameter(e.target.value)}
-        >
+        <OptionSelect id="keyframe-parameter" value={parameter} onValueChange={setParameter}>
           {[...paths].map((p) => (
-            <option key={p} value={p}>
+            <SelectItem key={p} value={p}>
               {p}
-            </option>
+            </SelectItem>
           ))}
-        </select>
+        </OptionSelect>
       </PropertyRow>
       <PropertyRow label="Value (JSON)" htmlFor="keyframe-value">
         <Input
@@ -153,18 +150,18 @@ export function KeyframeControls({ clips }: { clips: readonly Clip[] }) {
         picture effects render animated values. Sound and other effect renderers are planned.
       </Hint>
       <PropertyRow label="Interpolation to next key" htmlFor="keyframe-easing">
-        <select
+        <OptionSelect
           id="keyframe-easing"
           value={interpolation}
           disabled={disabled}
-          onChange={(e) => setInterpolation(e.target.value)}
+          onValueChange={setInterpolation}
         >
           {["linear", "easeIn", "easeOut", "easeInOut", "hold"].map((k) => (
-            <option key={k} value={k}>
+            <SelectItem key={k} value={k}>
               {k}
-            </option>
+            </SelectItem>
           ))}
-        </select>
+        </OptionSelect>
       </PropertyRow>
       <Hint>
         {list.length} keys. Playhead {time.toFixed(3)} s from clip start.

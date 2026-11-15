@@ -5,6 +5,8 @@ import { Button, buttonVariants } from "@sidecut/ui/components/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@sidecut/ui/components/field";
 import { MediaSection } from "./media-section";
 import { useEditorSession } from "./editor-session";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function RecordingControls() {
   const { session, snapshot } = useEditorSession();
@@ -126,19 +128,18 @@ export function RecordingControls() {
       <FieldGroup className="gap-2">
         <Field>
           <FieldLabel htmlFor="recording-source">Source</FieldLabel>
-          <select
+          <OptionSelect
             id="recording-source"
             value={source}
             disabled={active || state.status === "ready" || importing}
-            onChange={(event) => {
-              const next = event.target.value;
+            onValueChange={(next) => {
               if (next === "screen" || next === "camera" || next === "microphone") setSource(next);
             }}
           >
-            <option value="screen">Screen or window</option>
-            <option value="camera">Camera</option>
-            <option value="microphone">Microphone</option>
-          </select>
+            <SelectItem value="screen">Screen or window</SelectItem>
+            <SelectItem value="camera">Camera</SelectItem>
+            <SelectItem value="microphone">Microphone</SelectItem>
+          </OptionSelect>
           <FieldDescription>
             Up to 5 minutes or 128 MiB. Screen recordings exclude system audio. Files stay on this
             device.
@@ -153,37 +154,36 @@ export function RecordingControls() {
           return (
             <Field key={kind}>
               <FieldLabel htmlFor={`recording-${kind}`}>{label}</FieldLabel>
-              <select
+              <OptionSelect
                 id={`recording-${kind}`}
                 value={id}
                 disabled={active || state.status === "ready" || importing}
-                onChange={(event) =>
-                  (kind === "videoinput" ? setCameraID : setMicrophoneID)(event.target.value)
+                onValueChange={(value) =>
+                  (kind === "videoinput" ? setCameraID : setMicrophoneID)(value)
                 }
               >
-                <option value="">System default</option>
+                <SelectItem value="">System default</SelectItem>
                 {id && !available.some((device) => device.deviceId === id) && (
-                  <option value={id}>Disconnected device — choose another</option>
+                  <SelectItem value={id}>Disconnected device — choose another</SelectItem>
                 )}
                 {available
                   .filter((device) => device.deviceId)
                   .map((device, index) => (
-                    <option key={device.deviceId} value={device.deviceId}>
+                    <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label || `${label} ${index + 1}`}
-                    </option>
+                    </SelectItem>
                   ))}
-              </select>
+              </OptionSelect>
             </Field>
           );
         })}
         {source !== "microphone" && (
           <Field orientation="horizontal">
-            <input
+            <Checkbox
               id="recording-microphone"
-              type="checkbox"
               checked={microphone}
               disabled={active || state.status === "ready" || importing}
-              onChange={(event) => setMicrophone(event.target.checked)}
+              onCheckedChange={(checked) => setMicrophone(checked)}
             />
             <FieldLabel htmlFor="recording-microphone">Include microphone</FieldLabel>
           </Field>

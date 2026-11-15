@@ -1,0 +1,182 @@
+/**
+ * Studio Soundboard Styles
+ * Dark studio aesthetic with tactile hardware-inspired MPC/Stream Deck pads.
+ */
+
+.soundboard-panel {
+  background-color: var(--card, #12151c);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  box-shadow:
+    0 12px 36px -4px rgba(0, 0, 0, 0.65),
+    0 4px 16px -2px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.soundboard-header {
+  user-select: none;
+  cursor: grab;
+}
+
+.soundboard-header:active {
+  cursor: grabbing;
+}
+
+/* Tactile hardware pad styling */
+.soundboard-pad {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 96px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  /* Each pad wears its own colour so presenters find it at a glance. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%),
+    color-mix(in oklch, var(--pad-color, #3b82f6) 24%, #181c24);
+  border: 1px solid color-mix(in oklch, var(--pad-color, #3b82f6) 35%, transparent);
+  border-bottom: 3px solid var(--pad-color, #3b82f6);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 0 rgba(0, 0, 0, 0.4);
+  transition:
+    transform 70ms ease,
+    box-shadow 70ms ease,
+    border-color 150ms ease;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.soundboard-pad:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%),
+    color-mix(in oklch, var(--pad-color, #3b82f6) 32%, #1b202a);
+}
+
+.soundboard-pad:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.4),
+    inset 0 2px 3px 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.soundboard-pad:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--card, #12151c),
+    0 0 0 4px var(--ring, #3b82f6),
+    0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* Playing state with accent glow */
+.soundboard-pad[aria-pressed="true"],
+.soundboard-pad.is-playing {
+  border-color: var(--pad-color, #3b82f6);
+  box-shadow:
+    0 0 16px -2px var(--pad-glow, rgba(59, 130, 246, 0.5)),
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    inset 0 0 12px 0 var(--pad-glow, rgba(59, 130, 246, 0.2)),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+  animation: pad-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pad-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 14px -2px var(--pad-glow, rgba(59, 130, 246, 0.45)),
+      0 4px 6px -1px rgba(0, 0, 0, 0.4),
+      inset 0 0 10px 0 var(--pad-glow, rgba(59, 130, 246, 0.2));
+  }
+  50% {
+    box-shadow:
+      0 0 22px 2px var(--pad-glow, rgba(59, 130, 246, 0.7)),
+      0 4px 6px -1px rgba(0, 0, 0, 0.4),
+      inset 0 0 16px 2px var(--pad-glow, rgba(59, 130, 246, 0.35));
+  }
+}
+
+/* LED Indicator in top-right of pad */
+.soundboard-pad-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: var(--pad-color, #3b82f6);
+  opacity: 0.35;
+  transition:
+    opacity 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.soundboard-pad[aria-pressed="true"] .soundboard-pad-led,
+.soundboard-pad.is-playing .soundboard-pad-led {
+  opacity: 1;
+  box-shadow: 0 0 8px 2px var(--pad-color, #3b82f6);
+}
+
+/* Recessed shortcut chip on pad */
+.soundboard-shortcut-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted-foreground, #94a3b8);
+  background-color: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.02em;
+}
+
+/* Inline shortcut flash toast */
+.soundboard-flash-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background-color: rgba(18, 21, 28, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: flash-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes flash-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .soundboard-pad,
+  .soundboard-pad[aria-pressed="true"],
+  .soundboard-pad.is-playing,
+  .soundboard-flash-toast {
+    animation: none !important;
+    transition: none !important;
+  }
+}

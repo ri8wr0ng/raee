@@ -32,6 +32,8 @@ import {
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 const TABS = [
   ["search", "Search"],
@@ -337,14 +339,14 @@ function PausesPanel({ transcripts, disabled }: { transcripts: Transcripts; disa
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="tighten-mode">Keep</FieldLabel>
-          <select
+          <OptionSelect
             id="tighten-mode"
             value={mode}
-            onChange={(event) => setMode(event.target.value as typeof mode)}
+            onValueChange={(value) => setMode(value as typeof mode)}
           >
-            <option value="uniform">The same silence in every pause</option>
-            <option value="punctuation">Silence by what each pause follows</option>
-          </select>
+            <SelectItem value="uniform">The same silence in every pause</SelectItem>
+            <SelectItem value="punctuation">Silence by what each pause follows</SelectItem>
+          </OptionSelect>
         </Field>
         <div className="editor-speech-grid">
           <NumberField
@@ -415,11 +417,10 @@ function PausesPanel({ transcripts, disabled }: { transcripts: Transcripts; disa
           </FieldDescription>
         )}
         <Field orientation="horizontal">
-          <input
+          <Checkbox
             id="tighten-widen"
-            type="checkbox"
             checked={widen}
-            onChange={(event) => setWiden(event.target.checked)}
+            onCheckedChange={(checked) => setWiden(checked)}
           />
           <FieldLabel htmlFor="tighten-widen">
             Widen tight joins between speech clips back to the kept silence

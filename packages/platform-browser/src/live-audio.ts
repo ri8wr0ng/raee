@@ -162,7 +162,14 @@ export class LiveAudioMixer {
     input.channel.close();
     input.cleanup();
   }
-  play(id: string, buffer: AudioBuffer, input: unknown = DEFAULT_LIVE_AUDIO, when?: number) {
+  play(
+    id: string,
+    buffer: AudioBuffer,
+    input: unknown = DEFAULT_LIVE_AUDIO,
+    when?: number,
+    /** Loops until stop(id). */
+    loop = false,
+  ) {
     this.check();
     const startAt = when ?? this.context.currentTime + 0.01;
     if (
@@ -179,6 +186,7 @@ export class LiveAudioMixer {
       );
     const source = this.context.createBufferSource();
     source.buffer = buffer;
+    source.loop = loop;
     const channel = this.addNode(id, source, input);
     this.sounds.set(id, source);
     source.onended = () => {

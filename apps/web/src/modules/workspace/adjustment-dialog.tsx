@@ -14,6 +14,7 @@ import { RiContrast2Line } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 export function AdjustmentDialog() {
   const { session, snapshot, editor } = useEditorSession();
   const [open, setOpen] = useState(false),
@@ -88,21 +89,21 @@ export function AdjustmentDialog() {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="adjustment-track">Video track</FieldLabel>
-              <select
+              <OptionSelect
                 id="adjustment-track"
                 disabled={disabled}
                 value={trackID}
-                onChange={(e) => setTrackID(e.target.value)}
+                onValueChange={setTrackID}
               >
-                <option value="new">New top track</option>
+                <SelectItem value="new">New top track</SelectItem>
                 {snapshot.project.videoTracks
                   .filter((t) => !t.locked)
                   .map((t) => (
-                    <option key={t.id} value={t.id}>
+                    <SelectItem key={t.id} value={t.id}>
                       {t.name}
-                    </option>
+                    </SelectItem>
                   ))}
-              </select>
+              </OptionSelect>
             </Field>
             <Field>
               <FieldLabel htmlFor="adjustment-duration">Adjustment duration (s)</FieldLabel>

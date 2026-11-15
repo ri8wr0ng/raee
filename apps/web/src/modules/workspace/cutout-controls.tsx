@@ -17,6 +17,7 @@ import { useEditorSession } from "./editor-session";
 import { pictureTime } from "@sidecut/core/render-plan";
 import { readPreference, writePreference } from "@sidecut/platform-browser/preferences";
 import type { MattingBackend } from "@sidecut/platform-browser/matting-models";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 const MASK_PAIRS = [
   [
@@ -101,26 +102,26 @@ export function CutoutControls({ clip }: { clip: Clip }) {
     <>
       <InspectorSection id="picture.cutout" title="Cutout">
         <PropertyRow label="Background removal" htmlFor="cutout-enabled">
-          <select
+          <OptionSelect
             id="cutout-enabled"
             value={String(settings.enabled)}
             disabled={disabled}
-            onChange={(e) => update({ enabled: e.target.value === "true" })}
+            onValueChange={(value) => update({ enabled: value === "true" })}
           >
-            <option value="false">Off</option>
-            <option value="true">On</option>
-          </select>
+            <SelectItem value="false">Off</SelectItem>
+            <SelectItem value="true">On</SelectItem>
+          </OptionSelect>
         </PropertyRow>
         <PropertyRow label="Keep" htmlFor="cutout-mode">
-          <select
+          <OptionSelect
             id="cutout-mode"
             value={settings.mode}
             disabled={disabled}
-            onChange={(e) => update({ mode: e.target.value as Cutout["mode"] })}
+            onValueChange={(value) => update({ mode: value as Cutout["mode"] })}
           >
-            <option value="person">Person</option>
-            <option value="personAndProps">Person and accessories</option>
-          </select>
+            <SelectItem value="person">Person</SelectItem>
+            <SelectItem value="personAndProps">Person and accessories</SelectItem>
+          </OptionSelect>
         </PropertyRow>
         {(
           [
@@ -141,19 +142,19 @@ export function CutoutControls({ clip }: { clip: Clip }) {
           </PropertyRow>
         ))}
         <PropertyRow label="Matting model" htmlFor="matting-backend">
-          <select
+          <OptionSelect
             id="matting-backend"
             value={backend}
             disabled={disabled}
-            onChange={(event) => {
-              const value = event.target.value === "rvm" ? "rvm" : "mediapipe";
+            onValueChange={(next) => {
+              const value = next === "rvm" ? "rvm" : "mediapipe";
               setBackend(value);
               run(() => writePreference("sidecut.matte.backend", value));
             }}
           >
-            <option value="mediapipe">MediaPipe · person and accessory masks</option>
-            <option value="rvm">RVM · recurrent video matting</option>
-          </select>
+            <SelectItem value="mediapipe">MediaPipe · person and accessory masks</SelectItem>
+            <SelectItem value="rvm">RVM · recurrent video matting</SelectItem>
+          </OptionSelect>
         </PropertyRow>
         <ActionRow>
           <Button
@@ -197,27 +198,27 @@ export function CutoutControls({ clip }: { clip: Clip }) {
           <fieldset className="editor-mask" key={i}>
             <legend>Mask {i + 1}</legend>
             <PropertyRow label="Action" htmlFor={`mask-${i}-mode`}>
-              <select
+              <OptionSelect
                 id={`mask-${i}-mode`}
                 value={m.mode}
                 disabled={disabled}
-                onChange={(e) => mask(i, { mode: e.target.value as RepairMask["mode"] })}
+                onValueChange={(value) => mask(i, { mode: value as RepairMask["mode"] })}
               >
-                <option value="include">Include</option>
-                <option value="exclude">Exclude</option>
-              </select>
+                <SelectItem value="include">Include</SelectItem>
+                <SelectItem value="exclude">Exclude</SelectItem>
+              </OptionSelect>
             </PropertyRow>
             <PropertyRow label="Shape" htmlFor={`mask-${i}-shape`}>
-              <select
+              <OptionSelect
                 id={`mask-${i}-shape`}
                 value={m.shape}
                 disabled={disabled}
-                onChange={(e) => mask(i, { shape: e.target.value as RepairMask["shape"] })}
+                onValueChange={(value) => mask(i, { shape: value as RepairMask["shape"] })}
               >
-                <option value="rectangle">Rectangle</option>
-                <option value="roundedRectangle">Rounded rectangle</option>
-                <option value="ellipse">Ellipse</option>
-              </select>
+                <SelectItem value="rectangle">Rectangle</SelectItem>
+                <SelectItem value="roundedRectangle">Rounded rectangle</SelectItem>
+                <SelectItem value="ellipse">Ellipse</SelectItem>
+              </OptionSelect>
             </PropertyRow>
             {MASK_PAIRS.map(([title, keys]) => (
               <PropertyRow key={title} label={title}>

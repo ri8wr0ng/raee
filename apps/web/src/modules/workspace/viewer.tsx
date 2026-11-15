@@ -8,6 +8,7 @@ import { JobStatus } from "./job-status";
 import { timecode, stepFrame, projectDuration } from "./timeline-model";
 import { formatOf, formatProject } from "@sidecut/core/formats";
 import { FormatsDialog } from "./formats-dialog";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function Viewer() {
   const { session, snapshot, editor } = useEditorSession();
@@ -121,19 +122,19 @@ export function Viewer() {
           Source preview · {project.settings.width} × {project.settings.height}
         </span>
         {snapshot.project.settings.alternateFormats.length > 0 && (
-          <select
+          <OptionSelect
             aria-label="Preview format"
             className="editor-format-select"
             value={formatOf(snapshot.project, format)?.id ?? ""}
-            onChange={(event) => editor.getState().setFormat(event.target.value || null)}
+            onValueChange={(value) => editor.getState().setFormat(value || null)}
           >
-            <option value="">Main canvas</option>
+            <SelectItem value="">Main canvas</SelectItem>
             {snapshot.project.settings.alternateFormats.map((f) => (
-              <option key={f.id} value={f.id}>
+              <SelectItem key={f.id} value={f.id}>
                 {f.name}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         )}
       </div>
       <div className="editor-viewer-stage">

@@ -17,6 +17,8 @@ import { useEditorSession, useEditorView } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
 import { useEditorCommand } from "./use-editor-command";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Textarea } from "@sidecut/ui/components/textarea";
 
 const KIND_LABEL: Record<string, string> = {
   marker: "Marker",
@@ -232,7 +234,7 @@ function MarkerDialog({
               <FieldLabel htmlFor="marker-name">
                 {comment && kind === "comment" ? "Comment" : "Name"}
               </FieldLabel>
-              <textarea
+              <Textarea
                 id="marker-name"
                 className="editor-text-area"
                 rows={comment ? 3 : 1}
@@ -245,21 +247,21 @@ function MarkerDialog({
               <>
                 <Field>
                   <FieldLabel htmlFor="marker-kind">Kind</FieldLabel>
-                  <select
+                  <OptionSelect
                     id="marker-kind"
                     value={kind}
                     disabled={disabled}
-                    onChange={(event) => setKind(event.target.value)}
+                    onValueChange={setKind}
                   >
                     {markerKinds.map((k) => (
-                      <option key={k} value={k}>
+                      <SelectItem key={k} value={k}>
                         {KIND_LABEL[k]}
-                      </option>
+                      </SelectItem>
                     ))}
                     {!(markerKinds as readonly string[]).includes(kind) && (
-                      <option value={kind}>{kind} (read as marker)</option>
+                      <SelectItem value={kind}>{kind} (read as marker)</SelectItem>
                     )}
-                  </select>
+                  </OptionSelect>
                 </Field>
                 <div className="editor-speech-grid">
                   <Field>

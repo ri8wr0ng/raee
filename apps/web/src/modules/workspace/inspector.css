@@ -251,15 +251,13 @@
   gap: 4px;
   min-width: 0;
 }
-.editor-prop-control > :is(select, .editor-commit-input, .editor-prop-pair, textarea),
+.editor-prop-control
+  > :is([data-slot="select-trigger"], .editor-commit-input, .editor-prop-pair, textarea),
 .editor-prop-control > [data-slot="input"]:not([type="color"]) {
   flex: 1 1 0;
   min-width: 0;
 }
-.editor-prop-control input[type="checkbox"] {
-  accent-color: var(--primary);
-}
-.editor-prop-control :is(input[type="checkbox"], input[type="color"]):focus-visible {
+.editor-prop-control input[type="color"]:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }

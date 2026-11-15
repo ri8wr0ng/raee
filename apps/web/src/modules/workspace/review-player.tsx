@@ -3,6 +3,7 @@ import { decodeProjectFile } from "@sidecut/contracts/project";
 import type { ReviewVersion } from "@sidecut/contracts/review";
 import { Button } from "@sidecut/ui/components/button";
 import { reviewFrameTime, reviewReverseTime, reviewShuttleRate } from "./review-player-logic";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 type Props = {
   url: string;
@@ -256,20 +257,22 @@ export function ReviewPlayer({ url, mediaType, version, mediaRef, onTimeUpdate, 
         </Button>
         <label>
           Speed{" "}
-          <select
-            value={rate}
-            onChange={(event) => {
-              const next = Number(event.target.value);
+          <OptionSelect
+            aria-label="Playback speed"
+            className="w-20"
+            value={String(rate)}
+            onValueChange={(value) => {
+              const next = Number(value);
               setRate(next);
               if (playing) play(next);
             }}
           >
             {[0.25, 0.5, 1, 1.5, 2, 4, 8].map((value) => (
-              <option key={value} value={value}>
+              <SelectItem key={value} value={String(value)}>
                 {value}×
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </label>
         <Button
           size="xs"

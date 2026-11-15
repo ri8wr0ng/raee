@@ -6,7 +6,7 @@
   flex: none;
   color: var(--muted-foreground);
 }
-.editor-keymap select {
+.editor-keymap [data-slot="select-trigger"] {
   width: 150px;
 }
 .editor-range-fields {

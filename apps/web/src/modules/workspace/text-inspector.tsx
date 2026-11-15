@@ -26,6 +26,8 @@ import {
 import { CommitInput } from "./commit-input";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
 import { useEditorSession } from "./editor-session";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Textarea } from "@sidecut/ui/components/textarea";
 
 let fontVersion = 0;
 const fontsChanged = (listener: () => void) =>
@@ -122,22 +124,21 @@ export function TextInspector({ clip }: { clip: Clip }) {
   const id = (name: string) => `text-${clip.id}-${name}`;
   const select = (field: "alignment" | "uppercase" | "shadow", options: [string, string][]) => (
     <PropertyRow label={field[0]!.toUpperCase() + field.slice(1)} htmlFor={id(field)}>
-      <select
+      <OptionSelect
         id={id(field)}
         disabled={disabled}
         value={content.style[field] === undefined ? "" : String(content.style[field])}
-        onChange={(event) => {
-          const v = event.target.value;
+        onValueChange={(v) => {
           style(field, v === "" ? null : field === "alignment" ? v : v === "true");
         }}
       >
-        <option value="">Preset ({String(fromPreset[field])})</option>
+        <SelectItem value="">Preset ({String(fromPreset[field])})</SelectItem>
         {options.map(([value, label]) => (
-          <option key={value} value={value}>
+          <SelectItem key={value} value={value}>
             {label}
-          </option>
+          </SelectItem>
         ))}
-      </select>
+      </OptionSelect>
     </PropertyRow>
   );
   const number = (
@@ -186,7 +187,7 @@ export function TextInspector({ clip }: { clip: Clip }) {
     <div className="editor-text-inspector">
       <InspectorSection id="text.title" title="Title">
         <PropertyRow label="Text" htmlFor={id("text")} stacked>
-          <textarea
+          <Textarea
             key={`${clip.id}:${content.text}`}
             id={id("text")}
             className="editor-text-area"
@@ -203,24 +204,22 @@ export function TextInspector({ clip }: { clip: Clip }) {
           <Hint>Caption text comes from its {content.words.length} timed words.</Hint>
         )}
         <PropertyRow label="Preset" htmlFor={id("preset")}>
-          <select
+          <OptionSelect
             id={id("preset")}
             disabled={disabled}
             value={preset?.id ?? content.preset ?? ""}
-            onChange={(event) =>
-              patch("Change title preset", { preset: event.target.value || null })
-            }
+            onValueChange={(value) => patch("Change title preset", { preset: value || null })}
           >
-            <option value="">None</option>
+            <SelectItem value="">None</SelectItem>
             {TITLE_PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>
+              <SelectItem key={p.id} value={p.id}>
                 {p.name}
-              </option>
+              </SelectItem>
             ))}
             {content.preset && !preset && (
-              <option value={content.preset}>{content.preset} (unknown)</option>
+              <SelectItem value={content.preset}>{content.preset} (unknown)</SelectItem>
             )}
-          </select>
+          </OptionSelect>
         </PropertyRow>
         {preset && <Hint>{preset.summary}</Hint>}
       </InspectorSection>
@@ -231,23 +230,23 @@ export function TextInspector({ clip }: { clip: Clip }) {
             label={field === "animationIn" ? "In" : "Out"}
             htmlFor={id(field)}
           >
-            <select
+            <OptionSelect
               id={id(field)}
               disabled={disabled}
               value={content[field] ?? ""}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 patch(`Set title ${field === "animationIn" ? "in" : "out"} animation`, {
-                  [field]: event.target.value || null,
+                  [field]: value || null,
                 })
               }
             >
-              <option value="">Preset ({preset?.[field] ?? "none"})</option>
+              <SelectItem value="">Preset ({preset?.[field] ?? "none"})</SelectItem>
               {ANIMATION_NAMES.map((name) => (
-                <option key={name} value={name}>
+                <SelectItem key={name} value={name}>
                   {name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+            </OptionSelect>
           </PropertyRow>
         ))}
         <PropertyRow label="Duration" htmlFor={id("animationDuration")}>

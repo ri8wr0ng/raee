@@ -10,6 +10,7 @@ import { useEditorSession } from "./editor-session";
 import { CommitInput } from "./commit-input";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
 import { voiceIsolationAvailable } from "@sidecut/platform-browser/voice-isolation";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function AudioControls({ clip }: { clip: Clip }) {
   const { snapshot, session, editor } = useEditorSession();
@@ -104,15 +105,15 @@ export function AudioControls({ clip }: { clip: Clip }) {
     <>
       <InspectorSection id="audio.levels" title="Levels" label="Audio levels">
         <PropertyRow label="Playback" htmlFor="audio-muted">
-          <select
+          <OptionSelect
             id="audio-muted"
             value={clip.audio?.muted ? "muted" : "audible"}
             disabled={disabled}
-            onChange={(e) => patch({ muted: e.target.value === "muted" })}
+            onValueChange={(value) => patch({ muted: value === "muted" })}
           >
-            <option value="audible">Audible</option>
-            <option value="muted">Muted</option>
-          </select>
+            <SelectItem value="audible">Audible</SelectItem>
+            <SelectItem value="muted">Muted</SelectItem>
+          </OptionSelect>
         </PropertyRow>
         {(
           [
@@ -146,20 +147,19 @@ export function AudioControls({ clip }: { clip: Clip }) {
       </InspectorSection>
       <InspectorSection id="audio.loudness" title="Loudness">
         <PropertyRow label="Speech levelling" htmlFor="audio-normalization">
-          <select
+          <OptionSelect
             id="audio-normalization"
             value={typeof clip.audio?.normalizeTo === "number" ? "on" : "off"}
             disabled={disabled}
-            onChange={(e) =>
+            onValueChange={(value) =>
               patch({
-                normalizeTo:
-                  e.target.value === "on" ? snapshot.project.settings.speechLoudness : null,
+                normalizeTo: value === "on" ? snapshot.project.settings.speechLoudness : null,
               })
             }
           >
-            <option value="off">Off</option>
-            <option value="on">Level source</option>
-          </select>
+            <SelectItem value="off">Off</SelectItem>
+            <SelectItem value="on">Level source</SelectItem>
+          </OptionSelect>
         </PropertyRow>
         {typeof clip.audio?.normalizeTo === "number" && (
           <PropertyRow label="Source target" htmlFor="audio-target">

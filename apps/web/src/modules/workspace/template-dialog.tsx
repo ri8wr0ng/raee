@@ -15,6 +15,7 @@ import { RiLayoutMasonryLine } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function TemplateDialog() {
   const { session, snapshot, editor } = useEditorSession();
@@ -88,18 +89,13 @@ export function TemplateDialog() {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="template-id">Template</FieldLabel>
-              <select
-                id="template-id"
-                value={id}
-                disabled={disabled}
-                onChange={(e) => setID(e.target.value)}
-              >
+              <OptionSelect id="template-id" value={id} disabled={disabled} onValueChange={setID}>
                 {BUILT_IN_TEMPLATES.map((t) => (
-                  <option key={t.id} value={t.id}>
+                  <SelectItem key={t.id} value={t.id}>
                     {t.name} · {t.duration} s
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </Field>
             {template.fields.map((field) => (
               <Field key={field.key}>
@@ -116,16 +112,16 @@ export function TemplateDialog() {
             ))}
             <Field>
               <FieldLabel htmlFor="template-mode">Placement</FieldLabel>
-              <select
+              <OptionSelect
                 id="template-mode"
                 value={mode}
                 disabled={disabled}
-                onChange={(e) => setMode(e.target.value as typeof mode)}
+                onValueChange={(value) => setMode(value as typeof mode)}
               >
-                <option value="overwrite">Overwrite what is there</option>
-                <option value="place">Only into free space</option>
-                <option value="insert">Insert, pushing later clips</option>
-              </select>
+                <SelectItem value="overwrite">Overwrite what is there</SelectItem>
+                <SelectItem value="place">Only into free space</SelectItem>
+                <SelectItem value="insert">Insert, pushing later clips</SelectItem>
+              </OptionSelect>
             </Field>
             {error && <FieldError role="alert">{error}</FieldError>}
             <Button type="submit" disabled={disabled}>

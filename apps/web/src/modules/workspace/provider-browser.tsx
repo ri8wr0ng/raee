@@ -6,6 +6,9 @@ import type { AssetLibrary, LibraryEntry } from "@sidecut/platform-browser/asset
 import { Button } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@sidecut/ui/components/field";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { Textarea } from "@sidecut/ui/components/textarea";
 export function ProviderBrowser({
   library,
   onStored,
@@ -95,12 +98,12 @@ export function ProviderBrowser({
       <div className="editor-trim-form">
         <Field>
           <FieldLabel htmlFor="provider-source">Source</FieldLabel>
-          <select
+          <OptionSelect
             id="provider-source"
             value={id}
             disabled={busy}
-            onChange={(e) => {
-              setID(e.target.value);
+            onValueChange={(value) => {
+              setID(value);
               setRows([]);
               setPage(1);
               setSecret("");
@@ -109,11 +112,11 @@ export function ProviderBrowser({
             }}
           >
             {providers.map((p) => (
-              <option key={p.id} value={p.id}>
+              <SelectItem key={p.id} value={p.id}>
                 {p.displayName}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </Field>
         <p role="status">
           {current
@@ -167,12 +170,10 @@ export function ProviderBrowser({
               </Button>
               {id === "freesound" && (
                 <label>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     disabled={busy}
                     checked={current?.status.state !== "disabled"}
-                    onChange={(e) => {
-                      const enabled = e.target.checked;
+                    onCheckedChange={(enabled) => {
                       void run(async () => {
                         await providerBridge()!.providerCall(crypto.randomUUID(), {
                           operation: "configure",
@@ -262,7 +263,7 @@ export function ProviderBrowser({
             <h4>Generate audio</h4>
             <Field>
               <FieldLabel htmlFor="generation-prompt">Prompt</FieldLabel>
-              <textarea
+              <Textarea
                 id="generation-prompt"
                 value={prompt}
                 maxLength={16000}
@@ -275,20 +276,20 @@ export function ProviderBrowser({
             </Field>
             <Field>
               <FieldLabel htmlFor="generation-kind">Kind</FieldLabel>
-              <select
+              <OptionSelect
                 id="generation-kind"
                 value={kind}
                 disabled={busy}
-                onChange={(e) => {
-                  const value = e.target.value as "sfx" | "music";
+                onValueChange={(next) => {
+                  const value = next as "sfx" | "music";
                   setKind(value);
                   setDuration(value === "sfx" ? "2" : "10");
                   change();
                 }}
               >
-                <option value="sfx">Sound effect</option>
-                <option value="music">Music</option>
-              </select>
+                <SelectItem value="sfx">Sound effect</SelectItem>
+                <SelectItem value="music">Music</SelectItem>
+              </OptionSelect>
             </Field>
             <div className="editor-picture-fields">
               <Field>
@@ -326,12 +327,11 @@ export function ProviderBrowser({
             {kind === "sfx" ? (
               <>
                 <label>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={loop}
                     disabled={busy}
-                    onChange={(e) => {
-                      setLoop(e.target.checked);
+                    onCheckedChange={(checked) => {
+                      setLoop(checked);
                       change();
                     }}
                   />{" "}
@@ -356,12 +356,11 @@ export function ProviderBrowser({
               </>
             ) : (
               <label>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={instrumental}
                   disabled={busy}
-                  onChange={(e) => {
-                    setInstrumental(e.target.checked);
+                  onCheckedChange={(checked) => {
+                    setInstrumental(checked);
                     change();
                   }}
                 />{" "}
@@ -389,12 +388,11 @@ export function ProviderBrowser({
               still be charged.
             </FieldDescription>
             <label>
-              <input
+              <Checkbox
                 id="generation-confirm"
-                type="checkbox"
                 checked={confirmed}
                 disabled={busy || !available}
-                onChange={(e) => setConfirmed(e.target.checked)}
+                onCheckedChange={(checked) => setConfirmed(checked)}
               />{" "}
               I confirm this paid request and variation count
             </label>

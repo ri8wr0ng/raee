@@ -1,0 +1,181 @@
+/* Audio Mixer Panel - Studio Dark Theme */
+
+.audio-mixer {
+  display: grid;
+  gap: 10px;
+}
+
+.audio-mixer-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.audio-mixer-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--foreground);
+}
+
+.audio-mixer-channels {
+  display: grid;
+  gap: 8px;
+}
+
+.audio-mixer-strip {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--muted) 25%, transparent);
+  transition: border-color 150ms ease-out;
+}
+
+.audio-mixer-strip:focus-within {
+  border-color: color-mix(in oklch, var(--ring) 50%, var(--border));
+}
+
+.audio-mixer-strip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.audio-mixer-strip-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.audio-mixer-strip-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audio-mixer-strip-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Horizontal peak level meter */
+.audio-mixer-meter {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--muted) 70%, #000);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  overflow: hidden;
+}
+
+.audio-mixer-meter-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--primary);
+  transition:
+    width 100ms ease-out,
+    background-color 100ms ease-out;
+}
+
+.audio-mixer-meter-fill[data-peak="warn"] {
+  background: #f59e0b;
+}
+
+.audio-mixer-meter-fill[data-peak="clip"] {
+  background: var(--destructive);
+  box-shadow: 0 0 6px var(--destructive);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audio-mixer-meter-fill {
+    transition: none;
+  }
+}
+
+/* Volume row */
+.audio-mixer-volume-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 52px;
+  align-items: center;
+  gap: 8px;
+}
+
+.audio-mixer-volume-label {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  user-select: none;
+}
+
+.audio-mixer-db-button {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: var(--foreground);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  cursor: pointer;
+  transition:
+    color 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.audio-mixer-db-button:hover {
+  color: var(--primary);
+  background: color-mix(in oklch, var(--muted) 60%, transparent);
+  text-decoration: underline;
+}
+
+.audio-mixer-db-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+/* Overflow / expand area */
+.audio-mixer-overflow {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed color-mix(in oklch, var(--border) 70%, transparent);
+}
+
+.audio-mixer-delay-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 52px;
+  align-items: center;
+  gap: 8px;
+}
+
+.audio-mixer-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Empty state */
+.audio-mixer-empty {
+  padding: 16px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.5;
+}

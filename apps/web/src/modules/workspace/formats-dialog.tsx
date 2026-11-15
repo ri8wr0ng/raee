@@ -19,6 +19,7 @@ import { formatOf, isHiddenIn, PORTRAIT, type PortraitSlot } from "@sidecut/core
 import { planShort, type ShortPlan } from "@sidecut/core/short";
 import { useEditorSession, useEditorView } from "./editor-session";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 const PRESETS = [PORTRAIT, { id: "square", name: "Square (1:1)", width: 1080, height: 1080 }];
 
@@ -95,35 +96,35 @@ export function FormatsDialog() {
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="format-preview">Preview</FieldLabel>
-            <select
+            <OptionSelect
               id="format-preview"
               value={output?.id ?? ""}
-              onChange={(e) => editor.getState().setFormat(e.target.value || null)}
+              onValueChange={(value) => editor.getState().setFormat(value || null)}
             >
-              <option value="">
+              <SelectItem value="">
                 Main canvas · {project.settings.width} × {project.settings.height}
-              </option>
+              </SelectItem>
               {project.settings.alternateFormats.map((f) => (
-                <option key={f.id} value={f.id}>
+                <SelectItem key={f.id} value={f.id}>
                   {f.name} · {f.width} × {f.height}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+            </OptionSelect>
           </Field>
           <Field>
             <FieldLabel htmlFor="format-add">Add format</FieldLabel>
-            <select
+            <OptionSelect
               id="format-add"
               value={preset}
               disabled={disabled}
-              onChange={(e) => setPreset(e.target.value)}
+              onValueChange={setPreset}
             >
               {PRESETS.map((f) => (
-                <option key={f.id} value={f.id}>
+                <SelectItem key={f.id} value={f.id}>
                   {f.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+            </OptionSelect>
           </Field>
           <Button
             size="sm"

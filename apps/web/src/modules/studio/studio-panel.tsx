@@ -16,23 +16,35 @@ import { LocalMediaReader } from "@sidecut/platform-browser/preview";
 import { RecentClips } from "@sidecut/platform-browser/recent-clips";
 import { recordingLimits } from "@sidecut/platform-browser/recording";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 import { Input } from "@sidecut/ui/components/input";
+import { OptionSelect } from "@sidecut/ui/components/option-select";
+import { RadioGroup, RadioGroupItem } from "@sidecut/ui/components/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@sidecut/ui/components/select";
 import { useNavigate } from "@tanstack/react-router";
 import {
   RiAddLine,
   RiArrowDownLine,
   RiArrowUpLine,
+  RiBroadcastLine,
+  RiCloudLine,
   RiCloseLine,
   RiComputerLine,
   RiDeleteBinLine,
+  RiDragMove2Line,
   RiFlagLine,
   RiFullscreenExitLine,
   RiFullscreenLine,
-  RiMicLine,
-  RiMusic2Line,
-  RiPlayFill,
   RiRecordCircleFill,
+  RiRecordCircleLine,
   RiRefreshLine,
+  RiStackLine,
   RiStopFill,
   RiVideoOnLine,
 } from "@remixicon/react";
@@ -67,6 +79,10 @@ import {
   sourceRect,
   type SourceLayout,
 } from "./source-layout";
+import { AudioMixerPanel } from "./audio-mixer-panel";
+import { openAudioInput, useAudioInputDevices } from "./audio-devices";
+import { OverlayStage } from "./overlay-stage";
+import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
 import "./studio.css";
 
@@ -78,7 +94,15 @@ type VideoSource = {
   video: HTMLVideoElement;
   stream: MediaStream;
 };
-type AudioInput = { id: string; label: string; stream: MediaStream; channel: LiveAudioChannel };
+type AudioInput = {
+  id: string;
+  label: string;
+  kind: "microphone" | "screen" | "camera";
+  /** The video source this audio belongs to; it is removed with that source. */
+  sourceId?: string;
+  stream: MediaStream;
+  channel: LiveAudioChannel;
+};
 type Recovered = TakeInfo & { bytes: number };
 type Mode = "record" | "live" | "both";
 type SaveTo = "device" | "cloud";
@@ -157,7 +181,9 @@ export default function StudioPanel({
   const mixer = useRef<LiveAudioMixer | null>(null);
   const sources = useRef<VideoSource[]>([]);
   const audioInputs = useRef<AudioInput[]>([]);
-  const sounds = useRef(new Map<string, AudioBuffer>());
+  /** Soundboard pads that are playing right now, by pad id. */
+  const playingPads = useRef(new Set<string>());
+  const [soundboardOpen, setSoundboardOpen] = useState(false);
   const persist = useRef<Promise<void>>(Promise.resolve());
   const [, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((value) => value + 1), []);
@@ -169,6 +195,8 @@ export default function StudioPanel({
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState<LiveAssets>(DEFAULT_LIVE_ASSETS);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  /** While an overlay is selected the preview edits overlays instead of sources. */
+  const [selectedOverlay, setSelectedOverlay] = useState<string | null>(null);
   const sourceNumbers = useRef({ camera: 0, screen: 0 });
   /** The program canvas's shape; a placeholder until the first frame sizes it. */
   const canvasAspect = () => {
@@ -178,6 +206,7 @@ export default function StudioPanel({
   const [overlayText, setOverlayText] = useState("");
   const [overlayKind, setOverlayKind] = useState<LiveOverlay["kind"]>("banner");
   const [settings, setSettings] = useState<Record<string, LiveAudioSettings>>({});
+  const { devices: audioDevices } = useAudioInputDevices();
   const [meters, setMeters] = useState<Record<string, number>>({});
   const [mode, setMode] = useState<Mode>("record");
   const [saveTo, setSaveToState] = useState<SaveTo>(readSaveTo);
@@ -484,6 +513,7 @@ export default function StudioPanel({
     for (const track of source.stream.getTracks()) track.stop();
     source.video.onresize = null;
     source.video.srcObject = null;
+    for (const input of audioInputs.current) if (input.sourceId === id) removeInput(input.id);
     setSelectedSource((current) => (current === id ? null : current));
     refresh();
   };
@@ -492,7 +522,8 @@ export default function StudioPanel({
       const stream =
         kind === "camera"
           ? await navigator.mediaDevices.getUserMedia({ video: true })
-          : await navigator.mediaDevices.getDisplayMedia({ video: true });
+          : // Tab or system audio comes along when the user ticks "Share audio".
+            await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
       const video = document.createElement("video");
       video.muted = true;
       video.playsInline = true;
@@ -514,6 +545,16 @@ export default function StudioPanel({
       sources.current = [...sources.current.slice(0, at), source, ...sources.current.slice(at)];
       video.onresize = refresh;
       stream.getVideoTracks()[0]?.addEventListener("ended", () => removeSource(id), { once: true });
+      if (stream.getAudioTracks().length) {
+        const audio = await ensureMixer();
+        const audioID = `${id}:audio`;
+        const channel = audio.addStream(audioID, new MediaStream(stream.getAudioTracks()));
+        setSettings((current) => ({ ...current, [audioID]: DEFAULT_LIVE_AUDIO }));
+        audioInputs.current = [
+          ...audioInputs.current,
+          { id: audioID, label, kind, sourceId: id, stream, channel },
+        ];
+      }
       setSelectedSource(id);
       refresh();
     }, `Could not start the ${kind}.`);
@@ -536,14 +577,15 @@ export default function StudioPanel({
   const removeInput = (id: string) => {
     mixer.current?.remove(id);
     for (const input of audioInputs.current)
-      if (input.id === id) for (const track of input.stream.getTracks()) track.stop();
+      if (input.id === id && !input.sourceId)
+        for (const track of input.stream.getTracks()) track.stop();
     audioInputs.current = audioInputs.current.filter((input) => input.id !== id);
     refresh();
   };
-  const addMicrophone = () =>
+  const addMicrophone = (deviceId: string | null = null) =>
     attempt(async () => {
       const audio = await ensureMixer();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await openAudioInput(deviceId);
       const id = crypto.randomUUID();
       const track = stream.getAudioTracks()[0];
       const channel = audio.addStream(id, stream, DEFAULT_LIVE_AUDIO);
@@ -554,6 +596,7 @@ export default function StudioPanel({
         {
           id,
           label: track?.label || `Microphone ${audioInputs.current.length + 1}`,
+          kind: "microphone",
           stream,
           channel,
         },
@@ -567,20 +610,55 @@ export default function StudioPanel({
       setSettings((current) => ({ ...current, [input.id]: next }));
     }, "The audio setting could not be changed.");
   };
-  const loadSound = (file: File | undefined) =>
-    attempt(async () => {
-      if (!file) return;
-      if (file.size > 32 * 1024 * 1024) throw new Error("Soundboard files can be up to 32 MiB.");
+  const decodeSound = async (file: Blob) => {
+    if (file.size > 32 * 1024 * 1024) throw new Error("Soundboard files can be up to 32 MiB.");
+    const audio = await ensureMixer();
+    return audio.context.decodeAudioData(await file.arrayBuffer());
+  };
+  const stopPad = (id: string | null) => {
+    for (const pad of id === null ? [...playingPads.current] : [id]) {
+      mixer.current?.stop(`pad-${pad}`);
+      playingPads.current.delete(pad);
+    }
+  };
+  const playPad = (id: string, buffer: AudioBuffer, volumeDB: number, loop: boolean) =>
+    void attempt(async () => {
       const audio = await ensureMixer();
-      sounds.current.set(file.name, await audio.context.decodeAudioData(await file.arrayBuffer()));
-      refresh();
-    }, "That sound could not be decoded.");
-  const playSound = (soundName: string) =>
-    attempt(async () => {
-      const audio = await ensureMixer();
-      const buffer = sounds.current.get(soundName);
-      if (buffer) audio.play(`sound-${crypto.randomUUID()}`, buffer);
+      stopPad(id);
+      const channel = audio.play(
+        `pad-${id}`,
+        buffer,
+        { ...DEFAULT_LIVE_AUDIO, gainDB: volumeDB },
+        undefined,
+        loop,
+      );
+      playingPads.current.add(id);
+      void channel;
     }, "The sound could not be played.");
+  /** Shows or hides an overlay on the scene that is on air, for soundboard macros. */
+  const setLiveOverlay = (overlayId: string, visible: boolean) =>
+    void attempt(() => {
+      const current = studio.current;
+      const activeID = current?.activeScene?.id;
+      const scene = current?.list().find((item) => item.id === activeID);
+      if (!current || !scene) return;
+      const project = current.project(scene.id);
+      const assets = liveAssets(project.liveAssets ?? DEFAULT_LIVE_ASSETS);
+      const next = {
+        ...assets,
+        overlays: assets.overlays.map((overlay) =>
+          overlay.id === overlayId ? { ...overlay, enabled: visible } : overlay,
+        ),
+      };
+      current.save({
+        id: scene.id,
+        name: scene.name,
+        project: { ...project, liveAssets: next },
+        expectedRevision: current.currentRevision,
+      });
+      if (selected === scene.id) setDraft(next);
+      commit();
+    }, "The overlay could not be changed.");
 
   const programStream = async () => {
     const audio = await ensureMixer();
@@ -677,6 +755,21 @@ export default function StudioPanel({
                 onChange={placeSource}
               />
             )}
+            {frame && selectedOverlay && (
+              <OverlayStage
+                overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
+                selected={selectedOverlay}
+                onSelect={setSelectedOverlay}
+                onChange={(id, rect) =>
+                  setDraft((current) => ({
+                    ...current,
+                    overlays: current.overlays.map((overlay) =>
+                      overlay.id === id ? { ...overlay, ...rect } : overlay,
+                    ),
+                  }))
+                }
+              />
+            )}
             {!active && !loading && (
               <p className="studio-program-empty">
                 Save a scene from the editor, then go live with it to start the program output.
@@ -698,29 +791,30 @@ export default function StudioPanel({
           {loading ? "Opening saved scenes…" : status || captureNotice}
         </p>
         <Section title="Go">
-          <div role="radiogroup" aria-label="Output" className="studio-modes">
+          <RadioGroup
+            aria-label="Output"
+            className="studio-modes"
+            value={mode}
+            disabled={busy}
+            onValueChange={(value) => setMode(value as typeof mode)}
+          >
             {(
               [
-                ["record", "Record"],
-                ["live", "Live"],
-                ["both", "Both"],
+                ["record", "Record", RiRecordCircleLine],
+                ["live", "Live", RiBroadcastLine],
+                ["both", "Both", RiStackLine],
               ] as const
-            ).map(([value, label]) => (
+            ).map(([value, label, Icon]) => (
               <label key={value} data-checked={mode === value || undefined}>
-                <input
-                  type="radio"
-                  name="studio-mode"
-                  className="sr-only"
-                  value={value}
-                  checked={mode === value}
-                  disabled={busy}
-                  onChange={() => setMode(value)}
-                />
-                {label}
+                <RadioGroupItem value={value} className="sr-only" />
+                <span className="studio-mode-title">
+                  <Icon aria-hidden />
+                  {label}
+                </span>
                 {value !== "record" && !canStream && <small>Desktop app</small>}
               </label>
             ))}
-          </div>
+          </RadioGroup>
           {mode !== "record" &&
             (canStream ? (
               <>
@@ -768,23 +862,46 @@ export default function StudioPanel({
                     Mark moment
                   </Button>
                 )}
-                <label className="studio-save-to">
-                  <span>Save to</span>
-                  <select
+                <div className="studio-save-to">
+                  <span id="studio-save-to-label">Save to</span>
+                  <Select
                     value={toCloud ? "cloud" : "device"}
                     disabled={busy}
-                    onChange={(event) =>
-                      setSaveTo(event.target.value === "cloud" ? "cloud" : "device")
-                    }
+                    onValueChange={(value) => setSaveTo(value === "cloud" ? "cloud" : "device")}
                   >
-                    <option value="device">This device</option>
-                    <option value="cloud" disabled={cloud.state !== "ready"}>
-                      {cloud.state === "ready" ? `Cloud · ${cloud.teamName}` : "Cloud"}
-                    </option>
-                  </select>
-                </label>
+                    <SelectTrigger aria-labelledby="studio-save-to-label" className="min-w-40">
+                      <SelectValue>
+                        {(value: string) =>
+                          value === "cloud" ? (
+                            <>
+                              <RiCloudLine className="text-muted-foreground" />
+                              {cloud.state === "ready" ? cloud.teamName : "Cloud"}
+                            </>
+                          ) : (
+                            <>
+                              <RiComputerLine className="text-muted-foreground" />
+                              This device
+                            </>
+                          )
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent align="end" alignItemWithTrigger={false}>
+                      <SelectItem value="device">
+                        <RiComputerLine className="text-muted-foreground" />
+                        This device
+                      </SelectItem>
+                      <SelectItem value="cloud" disabled={cloud.state !== "ready"}>
+                        <RiCloudLine className="text-muted-foreground" />
+                        {cloud.state === "ready"
+                          ? `Cloud · ${cloud.teamName}`
+                          : "Cloud · not set up"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {recording ? (
                   <span role="status">
                     Recording program output…
@@ -962,7 +1079,13 @@ export default function StudioPanel({
           description="Pick a scene to edit its look. Go live puts it on the program."
         >
           {scenes.length > 0 && (
-            <ul className="studio-list">
+            <RadioGroup
+              aria-label="Scenes"
+              className="studio-list"
+              render={<ul />}
+              value={selected}
+              onValueChange={(value) => setSelected(value as string)}
+            >
               {scenes.map((scene) => {
                 const live = active?.id === scene.id;
                 return (
@@ -972,13 +1095,7 @@ export default function StudioPanel({
                     data-selected={selected === scene.id || undefined}
                   >
                     <label className="studio-row-main">
-                      <input
-                        type="radio"
-                        name="studio-scene"
-                        className="sr-only"
-                        checked={selected === scene.id}
-                        onChange={() => setSelected(scene.id)}
-                      />
+                      <RadioGroupItem value={scene.id} className="sr-only" />
                       <span className="truncate">{scene.name}</span>
                       {live && <span className="studio-live-badge">Live</span>}
                     </label>
@@ -1013,7 +1130,7 @@ export default function StudioPanel({
                   </li>
                 );
               })}
-            </ul>
+            </RadioGroup>
           )}
           <form
             className="flex gap-2"
@@ -1143,20 +1260,14 @@ export default function StudioPanel({
           <div className="studio-fields">
             <label className="studio-field">
               <span>Background</span>
-              <select
+              <OptionSelect
                 value={draft.background}
                 disabled={!selectedScene}
-                onChange={(event) => {
-                  const background = LIVE_BACKGROUNDS.find((item) => item === event.target.value);
-                  if (background) setDraft((current) => ({ ...current, background }));
-                }}
-              >
-                {LIVE_BACKGROUNDS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+                options={LIVE_BACKGROUNDS.map((item) => ({ value: item, label: item }))}
+                className="capitalize"
+                contentClassName="capitalize"
+                onValueChange={(background) => setDraft((current) => ({ ...current, background }))}
+              />
             </label>
             <label className="studio-field">
               <span>Color</span>
@@ -1177,11 +1288,10 @@ export default function StudioPanel({
               />
             </label>
             <label className="studio-check">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={draft.motion}
                 disabled={!selectedScene}
-                onChange={(event) => setDraft({ ...draft, motion: event.target.checked })}
+                onCheckedChange={(motion) => setDraft({ ...draft, motion })}
               />
               Motion
             </label>
@@ -1193,22 +1303,18 @@ export default function StudioPanel({
               addOverlay();
             }}
           >
-            <select
+            <OptionSelect
               aria-label="Overlay type"
               value={overlayKind}
               disabled={!selectedScene}
               className="w-28 shrink-0"
-              onChange={(event) => {
-                const kind = (["banner", "takeover", "highlight"] as const).find(
-                  (item) => item === event.target.value,
-                );
-                if (kind) setOverlayKind(kind);
-              }}
-            >
-              <option value="banner">Banner</option>
-              <option value="takeover">Takeover</option>
-              <option value="highlight">Highlight</option>
-            </select>
+              options={[
+                { value: "banner", label: "Banner" },
+                { value: "takeover", label: "Takeover" },
+                { value: "highlight", label: "Highlight" },
+              ]}
+              onValueChange={setOverlayKind}
+            />
             <Input
               aria-label="Overlay text"
               placeholder="Overlay text"
@@ -1231,16 +1337,13 @@ export default function StudioPanel({
               {draft.overlays.map((overlay) => (
                 <li key={overlay.id} className="studio-row">
                   <label className="studio-row-main">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={overlay.enabled}
-                      onChange={(event) =>
+                      onCheckedChange={(enabled) =>
                         setDraft({
                           ...draft,
                           overlays: draft.overlays.map((item) =>
-                            item.id === overlay.id
-                              ? { ...item, enabled: event.target.checked }
-                              : item,
+                            item.id === overlay.id ? { ...item, enabled } : item,
                           ),
                         })
                       }
@@ -1248,6 +1351,19 @@ export default function StudioPanel({
                     <span className="text-muted-foreground capitalize">{overlay.kind}</span>
                     <span className="truncate">{overlay.text}</span>
                   </label>
+                  <Button
+                    size="icon-xs"
+                    variant={selectedOverlay === overlay.id ? "secondary" : "ghost"}
+                    aria-label={`Move ${overlay.text} on the preview`}
+                    aria-pressed={selectedOverlay === overlay.id}
+                    title="Move or resize on the preview"
+                    disabled={!overlay.enabled || !frame}
+                    onClick={() =>
+                      setSelectedOverlay((current) => (current === overlay.id ? null : overlay.id))
+                    }
+                  >
+                    <RiDragMove2Line />
+                  </Button>
                   <Button
                     size="icon-xs"
                     variant="ghost"
@@ -1281,133 +1397,47 @@ export default function StudioPanel({
         </Section>
         <Section
           title="Audio"
-          description={
-            audioInputs.current.length || sounds.current.size
-              ? undefined
-              : "Add a microphone for your voice, or sounds to play on cue."
-          }
-          action={
-            <>
-              <Button size="sm" variant="outline" onClick={() => void addMicrophone()}>
-                <RiMicLine data-icon="inline-start" />
-                Add microphone
-              </Button>
-              <label className={buttonVariants({ size: "sm", variant: "outline" })}>
-                <RiMusic2Line data-icon="inline-start" />
-                Add sound
-                <input
-                  className="sr-only"
-                  type="file"
-                  accept="audio/*"
-                  onChange={(event) => {
-                    void loadSound(event.target.files?.[0]);
-                    event.target.value = "";
-                  }}
-                />
-              </label>
-            </>
-          }
+          action={<SoundboardToggle open={soundboardOpen} onOpenChange={setSoundboardOpen} />}
         >
-          {audioInputs.current.map((input) => {
-            const value = settings[input.id] ?? DEFAULT_LIVE_AUDIO;
-            return (
-              <div key={input.id} className="studio-channel">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <RiMicLine className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{input.label}</span>
-                  </span>
-                  <Button
-                    size="icon-xs"
-                    variant="ghost"
-                    aria-label={`Remove ${input.label}`}
-                    onClick={() => removeInput(input.id)}
-                  >
-                    <RiCloseLine />
-                  </Button>
-                </div>
-                <meter
-                  aria-label={`${input.label} level`}
-                  min={0}
-                  max={1}
-                  low={0.6}
-                  high={0.9}
-                  optimum={0.3}
-                  value={meters[input.id] ?? 0}
-                />
-                <label className="studio-slider">
-                  <span>Gain</span>
-                  <input
-                    type="range"
-                    min={-60}
-                    max={12}
-                    value={value.gainDB}
-                    onChange={(event) => updateInput(input, { gainDB: Number(event.target.value) })}
-                  />
-                  <output>{value.gainDB} dB</output>
-                </label>
-                <label className="studio-slider">
-                  <span>Delay</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={500}
-                    step={10}
-                    value={value.syncOffsetMs}
-                    onChange={(event) =>
-                      updateInput(input, { syncOffsetMs: Number(event.target.value) })
-                    }
-                  />
-                  <output>{value.syncOffsetMs} ms</output>
-                </label>
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  <label className="studio-check">
-                    <input
-                      type="checkbox"
-                      checked={value.muted}
-                      onChange={(event) => updateInput(input, { muted: event.target.checked })}
-                    />
-                    Mute
-                  </label>
-                  <label className="studio-check">
-                    <input
-                      type="checkbox"
-                      checked={value.monitor}
-                      onChange={(event) => updateInput(input, { monitor: event.target.checked })}
-                    />
-                    Monitor
-                  </label>
-                  <label className="studio-check">
-                    <input
-                      type="checkbox"
-                      checked={value.cleanup === "rumble"}
-                      onChange={(event) =>
-                        updateInput(input, { cleanup: event.target.checked ? "rumble" : "off" })
-                      }
-                    />
-                    Remove rumble
-                  </label>
-                </div>
-              </div>
-            );
-          })}
-          {sounds.current.size > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {[...sounds.current.keys()].map((sound) => (
-                <Button
-                  key={sound}
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => void playSound(sound)}
-                >
-                  <RiPlayFill data-icon="inline-start" />
-                  {sound}
-                </Button>
-              ))}
-            </div>
-          )}
+          <AudioMixerPanel
+            channels={audioInputs.current.map((input) => ({
+              id: input.id,
+              label: input.label,
+              kind: input.kind,
+              settings: settings[input.id] ?? DEFAULT_LIVE_AUDIO,
+              level: meters[input.id] ?? 0,
+            }))}
+            devices={audioDevices}
+            onAddInput={(deviceId) => void addMicrophone(deviceId)}
+            onUpdate={(id, change) => {
+              const input = audioInputs.current.find((item) => item.id === id);
+              if (input) updateInput(input, change);
+            }}
+            onRemove={removeInput}
+          />
         </Section>
       </div>
+      <Soundboard
+        open={soundboardOpen}
+        onOpenChange={setSoundboardOpen}
+        decode={decodeSound}
+        play={playPad}
+        stop={stopPad}
+        actions={{
+          scenes: scenes.map((scene) => ({ id: scene.id, name: scene.name })),
+          overlays: draft.overlays.map((overlay) => ({ id: overlay.id, text: overlay.text })),
+          switchScene: (id) => void switchTo(id),
+          setOverlay: setLiveOverlay,
+          record: (action) => {
+            if (action === "start" && !recording && !startDisabled) void startRecording();
+            if (action === "stop" && recording) capture.current?.stop();
+          },
+          mark: () => {
+            if (recording)
+              void attempt(() => capture.current!.mark(), "The mark could not be added.");
+          },
+        }}
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ import {
 import { useEditorSession } from "./editor-session";
 import { readPreference, writePreference } from "@sidecut/platform-browser/preferences";
 import { TRANSCRIPTION_LANGUAGES } from "@sidecut/platform-browser/transcription-config";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function MediaAnalysisControls({ item }: { item: MediaItem }) {
   const { session, snapshot } = useEditorSession();
@@ -57,14 +59,11 @@ export function MediaAnalysisControls({ item }: { item: MediaItem }) {
               device and loaded as needed. Audio and final export use the original.
             </FieldDescription>
             <FieldLabel htmlFor={`proxy-${item.id}`}>Use generated proxy in viewer</FieldLabel>
-            <input
+            <Checkbox
               id={`proxy-${item.id}`}
-              type="checkbox"
               disabled={disabled || !state?.proxy}
               checked={state?.proxyEnabled ?? false}
-              onChange={(event) =>
-                run(() => session.analysis.useProxy(item.id, event.target.checked))
-              }
+              onCheckedChange={(checked) => run(() => session.analysis.useProxy(item.id, checked))}
             />
           </Field>
         )}
@@ -72,21 +71,21 @@ export function MediaAnalysisControls({ item }: { item: MediaItem }) {
           <>
             <Field>
               <FieldLabel htmlFor={`sync-reference-${item.id}`}>Sound sync reference</FieldLabel>
-              <select
+              <OptionSelect
                 id={`sync-reference-${item.id}`}
                 value={referenceID}
                 disabled={disabled}
-                onChange={(event) => setReferenceID(event.target.value)}
+                onValueChange={setReferenceID}
               >
-                <option value="">Choose another recording</option>
+                <SelectItem value="">Choose another recording</SelectItem>
                 {snapshot.project.media
                   .filter((m) => m.id !== item.id && m.hasAudio)
                   .map((m) => (
-                    <option key={m.id} value={m.id}>
+                    <SelectItem key={m.id} value={m.id}>
                       {m.path}
-                    </option>
+                    </SelectItem>
                   ))}
-              </select>
+              </OptionSelect>
               <Button
                 size="xs"
                 variant="outline"
@@ -105,22 +104,21 @@ export function MediaAnalysisControls({ item }: { item: MediaItem }) {
               <FieldLabel htmlFor={`transcript-language-${item.id}`}>
                 Transcription language
               </FieldLabel>
-              <select
+              <OptionSelect
                 id={`transcript-language-${item.id}`}
                 value={language}
                 disabled={disabled}
-                onChange={(event) => {
-                  const next = event.target.value;
+                onValueChange={(next) => {
                   setLanguage(next);
                   run(() => writePreference("sidecut.transcription.language", next));
                 }}
               >
                 {TRANSCRIPTION_LANGUAGES.map((code) => (
-                  <option key={code} value={code}>
+                  <SelectItem key={code} value={code}>
                     {new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? code} ({code})
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
               <Button
                 size="xs"
                 variant="outline"

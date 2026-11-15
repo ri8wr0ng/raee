@@ -329,14 +329,6 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
-.editor-source-placement select:focus-visible,
-.editor-source-placement input[type="checkbox"]:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-.editor-source-placement input[type="checkbox"] {
-  accent-color: var(--primary);
-}
 
 .editor-take-actions {
   display: flex;

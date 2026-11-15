@@ -125,22 +125,3 @@
     min-height: 0;
   }
 }
-/* Native selects match the editor's inputs on every page. */
-.app-page select {
-  flex: none;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--input);
-  border-radius: min(var(--radius-md), 10px);
-  background: color-mix(in oklch, var(--input) 30%, transparent);
-  color: var(--foreground);
-  font: inherit;
-}
-.app-page select:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 1px;
-}
-.app-page select option {
-  background: var(--card);
-  color: var(--foreground);
-}

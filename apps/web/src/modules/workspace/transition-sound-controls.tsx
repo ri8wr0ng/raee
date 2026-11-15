@@ -7,6 +7,7 @@ import { FieldError } from "@sidecut/ui/components/field";
 import { Input } from "@sidecut/ui/components/input";
 import { useEditorSession } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 interface SoundDefault {
   mediaID: string;
   gainDB: number;
@@ -91,21 +92,21 @@ export function TransitionSoundControls({
   return (
     <InspectorSection id="transitions.sound" title="Sound" label="Transition sound">
       <PropertyRow label="Source" htmlFor={`sound-media-${transition.id}`}>
-        <select
+        <OptionSelect
           id={`sound-media-${transition.id}`}
           value={mediaID}
           disabled={disabled}
-          onChange={(e) => setMediaID(e.target.value)}
+          onValueChange={setMediaID}
         >
-          <option value="">None</option>
+          <SelectItem value="">None</SelectItem>
           {project.media
             .filter((m) => m.hasAudio)
             .map((m) => (
-              <option key={m.id} value={m.id}>
+              <SelectItem key={m.id} value={m.id}>
                 {m.path}
-              </option>
+              </SelectItem>
             ))}
-        </select>
+        </OptionSelect>
       </PropertyRow>
       {media && (
         <Hint>
@@ -158,21 +159,21 @@ export function TransitionSoundControls({
         </Button>
       </ActionRow>
       <PropertyRow label="Existing audio clip" htmlFor={`sound-tie-${transition.id}`}>
-        <select
+        <OptionSelect
           id={`sound-tie-${transition.id}`}
           disabled={disabled}
           value={tie}
-          onChange={(e) => setTie(e.target.value)}
+          onValueChange={setTie}
         >
-          <option value="">Choose clip</option>
+          <SelectItem value="">Choose clip</SelectItem>
           {project.audioTracks
             .flatMap((t) => t.clips)
             .map((c) => (
-              <option key={c.id} value={c.id}>
+              <SelectItem key={c.id} value={c.id}>
                 {c.name ?? c.id}
-              </option>
+              </SelectItem>
             ))}
-        </select>
+        </OptionSelect>
       </PropertyRow>
       <ActionRow>
         <Button

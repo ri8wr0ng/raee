@@ -17,6 +17,7 @@ import {
   PropertyPair,
   PropertyRow,
 } from "./inspector-layout";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 type PictureKey =
   | "x"
@@ -158,12 +159,12 @@ export function PictureControls({ clip }: { clip: Clip }) {
           </InspectorSection>
           <InspectorSection id="picture.layout" title="Layout">
             <PropertyRow label="Layout" htmlFor="picture-layout">
-              <select
+              <OptionSelect
                 id="picture-layout"
                 value={preset}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   run("Apply layout", {
-                    applyLayout: { clipIDs: [clip.id], preset: e.target.value },
+                    applyLayout: { clipIDs: [clip.id], preset: value },
                   })
                 }
                 disabled={disabled}
@@ -175,11 +176,11 @@ export function PictureControls({ clip }: { clip: Clip }) {
                   ["split", "Split"],
                   ["fill", "Fill"],
                 ].map(([id, label]) => (
-                  <option key={id} value={id}>
+                  <SelectItem key={id} value={id}>
                     {label}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </PropertyRow>
             <Hint>Choosing a layout replaces position, scale, and crop.</Hint>
             <ActionRow>
@@ -210,22 +211,22 @@ export function PictureControls({ clip }: { clip: Clip }) {
               }}
             >
               <PropertyRow label="Motion preset" htmlFor="picture-motion">
-                <select
+                <OptionSelect
                   id="picture-motion"
                   disabled={disabled}
                   value={motion}
-                  onChange={(e) => setMotion(e.target.value)}
+                  onValueChange={setMotion}
                 >
                   {["zoomIn", "zoomOut", "panLeft", "panRight", "panUp", "panDown"].map((m) => (
-                    <option key={m} value={m}>
+                    <SelectItem key={m} value={m}>
                       {m[0]!.toUpperCase() +
                         m
                           .slice(1)
                           .replace(/([A-Z])/g, " $1")
                           .toLowerCase()}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
+                </OptionSelect>
               </PropertyRow>
               <PropertyRow label="Motion amount" htmlFor="motion-amount">
                 <Input
@@ -272,13 +273,13 @@ export function PictureInspector({ clips }: { clips: readonly Clip[] }) {
         <div className="editor-section editor-section-plain">
           <div className="editor-section-body">
             <PropertyRow label="Picture clip" htmlFor="picture-clip">
-              <select id="picture-clip" value={clip.id} onChange={(e) => setID(e.target.value)}>
+              <OptionSelect id="picture-clip" value={clip.id} onValueChange={setID}>
                 {pictures.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <SelectItem key={c.id} value={c.id}>
                     {c.name ?? c.id}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </PropertyRow>
           </div>
         </div>

@@ -2,7 +2,9 @@ import { useState, type ReactNode } from "react";
 import type { FunctionArgs, FunctionReturnType } from "convex/server";
 import type { api } from "@sidecut/cloud/api";
 import { Button } from "@sidecut/ui/components/button";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 import { Input } from "@sidecut/ui/components/input";
+import { OptionSelect } from "@sidecut/ui/components/option-select";
 import { isSubscriptionRequired, subscriptionRequiredMessage } from "./subscription-error";
 
 export type LibraryFilter = Omit<FunctionArgs<typeof api.library.list>, "teamId">;
@@ -94,47 +96,46 @@ export function LibraryBrowser({
         </label>
         <label className="grid gap-1 text-sm">
           Library folder
-          <select
-            className="h-9 min-w-0 rounded-md border bg-background px-2"
+          <OptionSelect
+            className="h-9"
             value={filter.folderId ?? ""}
             disabled={busy || !folders}
-            onChange={(event) => {
+            options={[
+              { value: "", label: "All folders" },
+              ...(folders ?? []).map((folder) => ({ value: folder._id, label: folder.name })),
+            ]}
+            onValueChange={(value) => {
               const next = { ...filter };
-              const folder = folders?.find((candidate) => candidate._id === event.target.value);
+              const folder = folders?.find((candidate) => candidate._id === value);
               if (folder) next.folderId = folder._id;
               else delete next.folderId;
               changeFilter(next);
             }}
-          >
-            <option value="">All folders</option>
-            {folders?.map((folder) => (
-              <option key={folder._id} value={folder._id}>
-                {folder.name}
-              </option>
-            ))}
-          </select>
+          />
         </label>
         <label className="grid gap-1 text-sm">
           Library order
-          <select
-            className="h-9 rounded-md border bg-background px-2"
+          <OptionSelect
+            className="h-9"
             value={filter.search?.trim() ? "relevance" : filter.sort}
             disabled={busy || Boolean(filter.search?.trim())}
-            onChange={(event) =>
-              changeFilter({ ...filter, sort: event.target.value === "name" ? "name" : "newest" })
+            options={[
+              ...(filter.search?.trim()
+                ? [{ value: "relevance" as const, label: "Search relevance" }]
+                : []),
+              { value: "newest" as const, label: "Newest first" },
+              { value: "name" as const, label: "Name" },
+            ]}
+            onValueChange={(value) =>
+              changeFilter({ ...filter, sort: value === "name" ? "name" : "newest" })
             }
-          >
-            {filter.search?.trim() && <option value="relevance">Search relevance</option>}
-            <option value="newest">Newest first</option>
-            <option value="name">Name</option>
-          </select>
+          />
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={filter.archived ?? false}
             disabled={busy}
-            onChange={(event) => changeFilter({ ...filter, archived: event.target.checked })}
+            onCheckedChange={(archived) => changeFilter({ ...filter, archived })}
           />
           Show archived files
         </label>
@@ -182,16 +183,15 @@ export function LibraryBrowser({
           {items.map((item) => (
             <li key={item._id} className="flex min-w-0 items-start gap-2 rounded-md border p-3">
               {!readOnly && (
-                <input
-                  type="checkbox"
+                <Checkbox
                   aria-label={`Select ${item.name}`}
                   className="mt-1"
                   checked={selected.has(item._id)}
                   disabled={busy || (!selected.has(item._id) && visibleSelected.length >= 100)}
-                  onChange={(event) =>
+                  onCheckedChange={(checked) =>
                     setSelected((previous) => {
                       const next = new Set(previous);
-                      if (event.target.checked) next.add(item._id);
+                      if (checked) next.add(item._id);
                       else next.delete(item._id);
                       return next;
                     })
@@ -238,21 +238,18 @@ export function LibraryBrowser({
           <div className="flex flex-wrap items-end gap-2">
             <label className="grid min-w-0 gap-1 text-sm">
               Move selected to
-              <select
-                className="h-9 max-w-full rounded-md border bg-background px-2"
+              <OptionSelect
+                className="h-9 max-w-full"
                 value={destination ?? ""}
                 disabled={busy || !visibleSelected.length}
-                onChange={(event) =>
-                  setDestination(folders?.find((folder) => folder._id === event.target.value)?._id)
+                options={[
+                  { value: "", label: "No folder" },
+                  ...(folders ?? []).map((folder) => ({ value: folder._id, label: folder.name })),
+                ]}
+                onValueChange={(value) =>
+                  setDestination(folders?.find((folder) => folder._id === value)?._id)
                 }
-              >
-                <option value="">No folder</option>
-                {folders?.map((folder) => (
-                  <option key={folder._id} value={folder._id}>
-                    {folder.name}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <Button
               variant="outline"

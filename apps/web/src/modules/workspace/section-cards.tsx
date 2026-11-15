@@ -35,6 +35,8 @@ import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
 import { useEditorCommand } from "./use-editor-command";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function SectionCardsDialog() {
   const { session, snapshot } = useEditorSession();
@@ -161,30 +163,30 @@ export function SectionCardsDialog() {
             </Field>
             <Field>
               <FieldLabel htmlFor="cards-mode">Timing</FieldLabel>
-              <select
+              <OptionSelect
                 id="cards-mode"
                 value={mode}
-                onChange={(e) => setMode(e.target.value as typeof mode)}
+                onValueChange={(value) => setMode(value as typeof mode)}
               >
-                <option value="overwrite">Lay over the edit</option>
-                <option value="insert">Make room in the take</option>
-              </select>
+                <SelectItem value="overwrite">Lay over the edit</SelectItem>
+                <SelectItem value="insert">Make room in the take</SelectItem>
+              </OptionSelect>
             </Field>
             {(["in", "out"] as const).map((which) => (
               <Field key={which}>
                 <FieldLabel htmlFor={`cards-sound-${which}`}>Sweep {which} sound</FieldLabel>
-                <select
+                <OptionSelect
                   id={`cards-sound-${which}`}
                   value={which === "in" ? soundIn : soundOut}
-                  onChange={(e) => (which === "in" ? setSoundIn : setSoundOut)(e.target.value)}
+                  onValueChange={(value) => (which === "in" ? setSoundIn : setSoundOut)(value)}
                 >
-                  <option value="">None</option>
+                  <SelectItem value="">None</SelectItem>
                   {sounds.map((m) => (
-                    <option key={m.id} value={m.id}>
+                    <SelectItem key={m.id} value={m.id}>
                       {m.path}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
+                </OptionSelect>
               </Field>
             ))}
           </div>
@@ -315,12 +317,11 @@ export function CardInspector({ clip }: { clip: Clip }) {
           </Field>
         ))}
         <Field orientation="horizontal">
-          <input
+          <Checkbox
             id={id("cursor")}
-            type="checkbox"
             checked={props.cursor}
             disabled={disabled}
-            onChange={(e) => update("Toggle card cursor", { cursor: e.target.checked })}
+            onCheckedChange={(checked) => update("Toggle card cursor", { cursor: checked })}
           />
           <FieldLabel htmlFor={id("cursor")}>Blinking cursor after the title</FieldLabel>
         </Field>

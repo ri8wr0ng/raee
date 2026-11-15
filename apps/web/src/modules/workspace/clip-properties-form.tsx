@@ -5,6 +5,8 @@ import { Input } from "@sidecut/ui/components/input";
 import { FieldError } from "@sidecut/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function ClipPropertiesForm({ clip }: { clip: Clip }) {
   const { session, snapshot } = useEditorSession();
@@ -71,21 +73,19 @@ export function ClipPropertiesForm({ clip }: { clip: Clip }) {
           </PropertyRow>
           <Hint>Separate tags with commas.</Hint>
           <PropertyRow label="Enabled" htmlFor="clip-enabled">
-            <input
+            <Checkbox
               id="clip-enabled"
-              type="checkbox"
               disabled={disabled}
               checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
+              onCheckedChange={(checked) => setEnabled(checked)}
             />
           </PropertyRow>
           <PropertyRow label="Hold source edges" htmlFor="clip-hold-edges">
-            <input
+            <Checkbox
               id="clip-hold-edges"
-              type="checkbox"
               disabled={disabled}
               checked={holdEdges}
-              onChange={(e) => setHoldEdges(e.target.checked)}
+              onCheckedChange={(checked) => setHoldEdges(checked)}
             />
           </PropertyRow>
           <Hint>
@@ -137,12 +137,11 @@ export function ClipPropertiesForm({ clip }: { clip: Clip }) {
             planned pitch-correction renderer.
           </Hint>
           <PropertyRow label="Ripple later clips" htmlFor="speed-ripple">
-            <input
+            <Checkbox
               id="speed-ripple"
-              type="checkbox"
               disabled={disabled}
               checked={ripple}
-              onChange={(e) => setRipple(e.target.checked)}
+              onCheckedChange={(checked) => setRipple(checked)}
             />
           </PropertyRow>
           <ActionRow>
@@ -221,18 +220,18 @@ export function ClipPropertiesForm({ clip }: { clip: Clip }) {
             }}
           >
             <PropertyRow label="Angle track" htmlFor="angle-track">
-              <select
+              <OptionSelect
                 id="angle-track"
                 value={angleTrack}
-                onChange={(e) => setAngleTrack(e.target.value)}
+                onValueChange={setAngleTrack}
                 disabled={disabled}
               >
                 {snapshot.project.videoTracks.map((t) => (
-                  <option key={t.id} value={t.id}>
+                  <SelectItem key={t.id} value={t.id}>
                     {t.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </PropertyRow>
             <PropertyRow label="Angle start (timeline s)" htmlFor="angle-start">
               <Input

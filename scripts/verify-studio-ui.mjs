@@ -100,7 +100,8 @@ try {
   assert.deepEqual(solid.slice(0, 3), [17, 24, 39]);
   await dialog.getByLabel("New scene name").fill("Scene 2");
   await button("Save from editor").click();
-  await dialog.getByLabel("Background").selectOption("grid");
+  await dialog.getByLabel("Background").click();
+  await page.getByRole("option", { name: "grid", exact: true }).click();
   await dialog.getByLabel("Overlay text").fill("On air");
   await button("Add").click();
   await button("Save look").click();

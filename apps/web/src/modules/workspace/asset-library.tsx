@@ -15,6 +15,9 @@ import { projectCredits, creditsText } from "@sidecut/core/asset-use";
 import { RiFolderImageLine } from "@remixicon/react";
 import { ProviderBrowser } from "./provider-browser";
 import { MediaSection } from "./media-section";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { Textarea } from "@sidecut/ui/components/textarea";
 
 export function LocalAssetLibrary() {
   const { session, snapshot } = useEditorSession();
@@ -185,14 +188,13 @@ export function LocalAssetLibrary() {
           <summary>Project credits</summary>
           <div className="editor-trim-form">
             <label>
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={optionalCredits}
-                onChange={(e) => setOptionalCredits(e.target.checked)}
+                onCheckedChange={(checked) => setOptionalCredits(checked)}
               />{" "}
               Include courtesy credits
             </label>
-            <textarea
+            <Textarea
               aria-label="Project credit text"
               readOnly
               rows={6}
@@ -234,29 +236,29 @@ export function LocalAssetLibrary() {
         <div className="editor-picture-fields">
           <Field>
             <FieldLabel htmlFor="asset-filter-kind">Kind</FieldLabel>
-            <select id="asset-filter-kind" value={kind} onChange={(e) => setKind(e.target.value)}>
-              <option value="">All kinds</option>
+            <OptionSelect id="asset-filter-kind" value={kind} onValueChange={setKind}>
+              <SelectItem value="">All kinds</SelectItem>
               {assetKinds.map((k) => (
-                <option key={k} value={k}>
+                <SelectItem key={k} value={k}>
                   {k}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+            </OptionSelect>
           </Field>
           <Field>
             <FieldLabel htmlFor="asset-filter-licence">Licence</FieldLabel>
-            <select
+            <OptionSelect
               id="asset-filter-licence"
               value={filterLicence}
-              onChange={(e) => setFilterLicence(e.target.value)}
+              onValueChange={setFilterLicence}
             >
-              <option value="">All licences</option>
+              <SelectItem value="">All licences</SelectItem>
               {licenceClasses.map((k) => (
-                <option key={k} value={k}>
+                <SelectItem key={k} value={k}>
                   {k}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+            </OptionSelect>
           </Field>
         </div>
         {!entries.length ? (
@@ -327,18 +329,18 @@ export function LocalAssetLibrary() {
           <div className="editor-trim-form">
             <Field>
               <FieldLabel htmlFor="asset-import-kind">Import as</FieldLabel>
-              <select
+              <OptionSelect
                 id="asset-import-kind"
                 value={importKind}
                 disabled={disabled}
-                onChange={(e) => setImportKind(e.target.value)}
+                onValueChange={setImportKind}
               >
                 {["image", "icon", "logo", "sticker", "overlay", "font", "lut"].map((k) => (
-                  <option key={k} value={k}>
+                  <SelectItem key={k} value={k}>
                     {k}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </Field>
             <Field>
               <FieldLabel htmlFor="asset-file">Asset file</FieldLabel>
@@ -362,18 +364,18 @@ export function LocalAssetLibrary() {
             </Field>
             <Field>
               <FieldLabel htmlFor="asset-import-licence">Licence terms</FieldLabel>
-              <select
+              <OptionSelect
                 id="asset-import-licence"
                 value={licenceClass}
                 disabled={disabled}
-                onChange={(e) => setLicenceClass(e.target.value)}
+                onValueChange={setLicenceClass}
               >
                 {licenceClasses.map((k) => (
-                  <option key={k} value={k}>
+                  <SelectItem key={k} value={k}>
                     {k}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </Field>
             <Field>
               <FieldLabel htmlFor="asset-credit">Credit line</FieldLabel>

@@ -20,6 +20,7 @@ import { useFontVersion } from "./text-inspector";
 import { formatOf } from "@sidecut/core/formats";
 import { useEditorSession, useEditorView } from "./editor-session";
 import "./dialogs.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function ExportDialog({
   open,
@@ -30,7 +31,7 @@ export function ExportDialog({
 }) {
   const { session, snapshot, editor } = useEditorSession();
   const range = useEditorView((state) => state.range);
-  const rangeSelect = useRef<HTMLSelectElement>(null);
+  const rangeSelect = useRef<HTMLButtonElement>(null);
   const [encoding, setEncoding] = useState<"webm" | "h264" | "hevc">("webm");
   const [formatID, setFormatID] = useState(""),
     [useRange, setUseRange] = useState(false),
@@ -127,45 +128,43 @@ export function ExportDialog({
         )}
         <label>
           Range
-          <select
+          <OptionSelect
             ref={rangeSelect}
             aria-label="Export range"
             value={useRange ? "range" : "full"}
-            onChange={(event) => setUseRange(event.target.value === "range")}
+            onValueChange={(value) => setUseRange(value === "range")}
           >
-            <option value="full">Entire sequence</option>
-            <option value="range" disabled={!range || range.to <= range.from}>
+            <SelectItem value="full">Entire sequence</SelectItem>
+            <SelectItem value="range" disabled={!range || range.to <= range.from}>
               Timeline range
               {range
                 ? ` · ${range.from.toFixed(2)}–${range.to.toFixed(2)} s`
                 : " · mark I and O first"}
-            </option>
-          </select>
+            </SelectItem>
+          </OptionSelect>
         </label>
         {session.native?.deliveryEncode && preset !== "wav" && (
           <label>
             Video encoding
-            <select
+            <OptionSelect
               aria-label="Video encoding"
               value={encoding}
-              onChange={(event) => {
-                const next = event.target.value;
+              onValueChange={(next) => {
                 if (next === "webm" || next === "h264" || next === "hevc") setEncoding(next);
               }}
             >
-              <option value="webm">WebM · VP8</option>
-              <option value="h264">MP4 · H.264</option>
-              <option value="hevc">MP4 · HEVC</option>
-            </select>
+              <SelectItem value="webm">WebM · VP8</SelectItem>
+              <SelectItem value="h264">MP4 · H.264</SelectItem>
+              <SelectItem value="hevc">MP4 · HEVC</SelectItem>
+            </OptionSelect>
           </label>
         )}
         <label>
           Preset
-          <select
+          <OptionSelect
             aria-label="Export preset"
             value={preset}
-            onChange={(event) => {
-              const value = event.target.value;
+            onValueChange={(value) => {
               if (
                 value === "webm" ||
                 value === "review" ||
@@ -176,30 +175,30 @@ export function ExportDialog({
                 setPreset(value);
             }}
           >
-            <option value="webm">Main canvas · WebM</option>
-            <option value="review">Review · 720p WebM</option>
-            <option value="youtube1080">1080p WebM</option>
-            <option value="short">Portrait · WebM</option>
-            <option value="wav">Audio only · WAV</option>
-          </select>
+            <SelectItem value="webm">Main canvas · WebM</SelectItem>
+            <SelectItem value="review">Review · 720p WebM</SelectItem>
+            <SelectItem value="youtube1080">1080p WebM</SelectItem>
+            <SelectItem value="short">Portrait · WebM</SelectItem>
+            <SelectItem value="wav">Audio only · WAV</SelectItem>
+          </OptionSelect>
         </label>
         {snapshot.project.settings.alternateFormats.length > 0 &&
           preset !== "short" &&
           preset !== "wav" && (
             <label className="editor-export-format">
               Format
-              <select
+              <OptionSelect
                 aria-label="Export format"
                 value={format?.id ?? ""}
-                onChange={(event) => setFormatID(event.target.value)}
+                onValueChange={setFormatID}
               >
-                <option value="">Main canvas</option>
+                <SelectItem value="">Main canvas</SelectItem>
                 {snapshot.project.settings.alternateFormats.map((f) => (
-                  <option key={f.id} value={f.id}>
+                  <SelectItem key={f.id} value={f.id}>
                     {f.name} · {f.width} × {f.height}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </OptionSelect>
             </label>
           )}
         {(preset === "wav" ? [] : missingFonts(rendered, fontAvailable, true)).map((font) => (

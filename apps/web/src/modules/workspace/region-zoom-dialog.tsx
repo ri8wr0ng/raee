@@ -21,6 +21,7 @@ import {
 } from "@sidecut/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import "./dialogs.css";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function RegionZoomDialog({ clip, disabled }: { clip: Clip; disabled: boolean }) {
   const { session, snapshot, editor } = useEditorSession();
@@ -181,11 +182,10 @@ export function RegionZoomDialog({ clip, disabled }: { clip: Clip; disabled: boo
             ))}
             <Field orientation="horizontal">
               <FieldLabel htmlFor="region-animate">Animate from playhead</FieldLabel>
-              <input
+              <Checkbox
                 id="region-animate"
-                type="checkbox"
                 checked={animate}
-                onChange={(e) => setAnimate(e.target.checked)}
+                onCheckedChange={(checked) => setAnimate(checked)}
               />
             </Field>
             {animate && (

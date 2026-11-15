@@ -7,6 +7,12 @@ import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 
+const SOURCE_LABELS = { screen: "Screen or window", camera: "Camera", microphone: "Microphone" };
+async function chooseSource(page, source) {
+  await page.locator("#recording-source").click();
+  await page.getByRole("option", { name: SOURCE_LABELS[source], exact: true }).click();
+}
+
 const root = resolve(import.meta.dirname, ".."),
   publicRoot = join(root, "apps/web/.output/public");
 const requireDesktop = createRequire(join(root, "apps/desktop/package.json"));
@@ -133,7 +139,7 @@ try {
 
   for (const source of ["camera", "microphone", "screen"]) {
     result.step = `record ${source}`;
-    await page.locator("#recording-source").selectOption(source);
+    await chooseSource(page, source);
     if (source === "camera") await page.getByLabel("Include microphone", { exact: true }).check();
     if (source === "screen") {
       await page.getByLabel("Include microphone", { exact: true }).uncheck();
@@ -225,7 +231,8 @@ try {
   assert.equal(await page.getByTestId("media-item").count(), 3);
   result.checks.recordImportPlaceReload = true;
   await page.getByRole("button", { name: "Export", exact: true }).click();
-  await page.getByLabel("Export preset", { exact: true }).selectOption("webm");
+  await page.getByLabel("Export preset", { exact: true }).click();
+  await page.getByRole("option", { name: "Main canvas · WebM", exact: true }).click();
   await page.getByRole("button", { name: "Queue export", exact: true }).click();
   await page.locator('[download$=".webm"]').waitFor();
   const exportEvent = page.waitForEvent("download");
@@ -256,7 +263,7 @@ try {
   };
   await page.keyboard.press("Escape");
   await openRecording();
-  await page.locator("#recording-source").selectOption("microphone");
+  await chooseSource(page, "microphone");
   await page.getByRole("button", { name: "Start recording", exact: true }).click();
   await page.waitForFunction(() => document.body.textContent.includes("Recording · 0:02"));
   await page.getByRole("button", { name: "Stop recording", exact: true }).click();
@@ -279,7 +286,7 @@ try {
   );
   result.checks.completedCaptureSurvivesAcceptedReload = true;
   await openRecording();
-  await page.locator("#recording-source").selectOption("microphone");
+  await chooseSource(page, "microphone");
   await page.getByRole("button", { name: "Start recording", exact: true }).click();
   await page.waitForFunction(() => document.body.textContent.includes("Recording · 0:02"));
   page.once("dialog", (dialog) => dialog.accept());
@@ -313,7 +320,7 @@ try {
   await page.getByRole("button", { name: "Remove saved recording", exact: true }).click();
   await page.getByTestId("saved-recording").waitFor({ state: "detached" });
   await openRecording();
-  await page.locator("#recording-source").selectOption("microphone");
+  await chooseSource(page, "microphone");
   await page.getByRole("button", { name: "Start recording", exact: true }).click();
   await page.getByRole("button", { name: "Cancel recording", exact: true }).click();
   await page.getByRole("button", { name: "Start recording", exact: true }).waitFor();

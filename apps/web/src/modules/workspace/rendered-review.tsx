@@ -10,6 +10,7 @@ import { MediaSection } from "./media-section";
 import { ReviewPlayer } from "./review-player";
 import { reviewFeedbackCSV, reviewMarker } from "./review-feedback";
 import { validReviewRange } from "./rendered-review-range";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 type Version = Awaited<ReturnType<ReviewStore["listVersions"]>>[number];
 type Thread = Awaited<ReturnType<ReviewStore["listThreads"]>>[number];
@@ -201,17 +202,13 @@ export function RenderedReview() {
       {versions.length > 0 && (
         <Field>
           <FieldLabel htmlFor="review-version">Version</FieldLabel>
-          <select
-            id="review-version"
-            value={versionID}
-            onChange={(e) => setVersionID(e.target.value)}
-          >
+          <OptionSelect id="review-version" value={versionID} onValueChange={setVersionID}>
             {versions.map((item) => (
-              <option key={item.id} value={item.id}>
+              <SelectItem key={item.id} value={item.id}>
                 {item.title}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </Field>
       )}
       {version && url && (
@@ -276,15 +273,11 @@ export function RenderedReview() {
           </Button>
           <Field>
             <FieldLabel htmlFor="review-status-filter">Feedback status</FieldLabel>
-            <select
-              id="review-status-filter"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="open">Open</option>
-              <option value="resolved">Resolved</option>
-              <option value="all">All</option>
-            </select>
+            <OptionSelect id="review-status-filter" value={status} onValueChange={setStatus}>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </OptionSelect>
           </Field>
           <Field>
             <FieldLabel htmlFor="review-author-filter">Filter by author</FieldLabel>

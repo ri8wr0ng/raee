@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { buttonVariants } from "@sidecut/ui/components/button";
+import { OptionSelect } from "@sidecut/ui/components/option-select";
 import { AppPage } from "@/modules/shell/app-shell";
 import { useActiveTeam } from "./active-team";
 import { useCloud } from "./cloud-provider";
@@ -39,13 +40,11 @@ function TeamLibrary() {
       {teams && teams.length > 1 && (
         <label className="grid max-w-sm gap-1">
           Team
-          <select value={current.team._id} onChange={(event) => select(event.target.value)}>
-            {teams.map((entry) => (
-              <option key={entry.team._id} value={entry.team._id}>
-                {entry.team.name}
-              </option>
-            ))}
-          </select>
+          <OptionSelect
+            value={current.team._id}
+            options={teams.map((entry) => ({ value: entry.team._id, label: entry.team.name }))}
+            onValueChange={select}
+          />
         </label>
       )}
       <CloudLibrary

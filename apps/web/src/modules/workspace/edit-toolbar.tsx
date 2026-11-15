@@ -22,6 +22,7 @@ import { SpeechToolsDialog } from "./speech-tools";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 import { MOD, ToolTip } from "./tool-tip";
 import "./toolbar.css";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
 export function EditToolbar({
   run,
@@ -50,28 +51,25 @@ export function EditToolbar({
         <ToolTip label="Keyboard layout">
           <label className="editor-keymap">
             <RiKeyboardLine className="editor-keymap-icon" size={14} aria-hidden="true" />
-            <select
+            <OptionSelect
               aria-label="Keyboard layout"
               value={keymap}
-              onChange={(event) =>
-                editor
-                  .getState()
-                  .setKeymap(event.target.value === "minimal" ? "minimal" : "premiere")
+              onValueChange={(value) =>
+                editor.getState().setKeymap(value === "minimal" ? "minimal" : "premiere")
               }
             >
-              <option value="premiere">Premiere subset</option>
-              <option value="minimal">Editing only</option>
-            </select>
+              <SelectItem value="premiere">Premiere subset</SelectItem>
+              <SelectItem value="minimal">Editing only</SelectItem>
+            </OptionSelect>
           </label>
         </ToolTip>
         <ShortcutsDialog />
         <label className="editor-keymap">
           Tool
-          <select
+          <OptionSelect
             aria-label="Timeline tool"
             value={tool}
-            onChange={(event) => {
-              const value = event.target.value;
+            onValueChange={(value) => {
               if (
                 value === "select" ||
                 value === "blade" ||
@@ -83,13 +81,13 @@ export function EditToolbar({
                 editor.setState({ tool: value });
             }}
           >
-            <option value="select">Select (V)</option>
-            <option value="blade">Blade (C)</option>
-            <option value="ripple">Ripple trim (B)</option>
-            <option value="roll">Roll (N)</option>
-            <option value="slip">Slip (Y)</option>
-            <option value="slide">Slide (U)</option>
-          </select>
+            <SelectItem value="select">Select (V)</SelectItem>
+            <SelectItem value="blade">Blade (C)</SelectItem>
+            <SelectItem value="ripple">Ripple trim (B)</SelectItem>
+            <SelectItem value="roll">Roll (N)</SelectItem>
+            <SelectItem value="slip">Slip (Y)</SelectItem>
+            <SelectItem value="slide">Slide (U)</SelectItem>
+          </OptionSelect>
         </label>
         <ToolTip label="Toggle snapping" shortcut="S">
           <Button

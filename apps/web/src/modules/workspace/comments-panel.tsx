@@ -14,6 +14,7 @@ import {
 } from "@sidecut/ui/components/empty";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { timecode } from "./timeline-model";
+import { Textarea } from "@sidecut/ui/components/textarea";
 
 type Filter = "all" | "comment" | "todo";
 const FILTERS: { id: Filter; label: string }[] = [
@@ -123,7 +124,7 @@ export function CommentsPanel({
           <label className="sr-only" htmlFor="side-comment-draft">
             New comment at {timecode(playhead, project)}
           </label>
-          <textarea
+          <Textarea
             id="side-comment-draft"
             className="editor-text-area"
             rows={3}
@@ -218,7 +219,7 @@ export function CommentsPanel({
                       <label className="sr-only" htmlFor="side-comment-edit">
                         Edit comment at {at}
                       </label>
-                      <textarea
+                      <Textarea
                         id="side-comment-edit"
                         className="editor-text-area"
                         rows={3}

@@ -21,6 +21,8 @@ import {
 import { Tip } from "@sidecut/ui/components/tooltip";
 import { useEditorSession } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { Checkbox } from "@sidecut/ui/components/checkbox";
 
 export function EffectInspector({ clips }: { clips: readonly Clip[] }) {
   const [clipID, setClipID] = useState(clips[0]!.id);
@@ -29,13 +31,13 @@ export function EffectInspector({ clips }: { clips: readonly Clip[] }) {
     <InspectorSection id="effects.stack" title="Effects" label="Effects">
       {clips.length > 1 && (
         <PropertyRow label="Clip" htmlFor="effect-clip">
-          <select id="effect-clip" value={clip.id} onChange={(e) => setClipID(e.target.value)}>
+          <OptionSelect id="effect-clip" value={clip.id} onValueChange={setClipID}>
             {clips.map((c) => (
-              <option key={c.id} value={c.id}>
+              <SelectItem key={c.id} value={c.id}>
                 {c.name ?? c.id}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+          </OptionSelect>
         </PropertyRow>
       )}
       <EffectStack key={clip.id} clip={clip} />
@@ -74,12 +76,7 @@ function EffectStack({ clip }: { clip: Clip }) {
             : "Effects run top to bottom. Animate numeric settings under Keyframes."}
       </Hint>
       <PropertyRow label="Add effect" htmlFor="effect-type">
-        <select
-          id="effect-type"
-          value={type}
-          disabled={disabled}
-          onChange={(e) => setType(e.target.value)}
-        >
+        <OptionSelect id="effect-type" value={type} disabled={disabled} onValueChange={setType}>
           {effectRegistry
             .filter(
               (d) =>
@@ -87,12 +84,12 @@ function EffectStack({ clip }: { clip: Clip }) {
                 (clip.content.adjustment == null || !styleEffects.has(d.type)),
             )
             .map((d) => (
-              <option key={d.type} value={d.type}>
+              <SelectItem key={d.type} value={d.type}>
                 {d.name}
                 {renderedEffects.has(d.type) ? "" : " (renderer planned)"}
-              </option>
+              </SelectItem>
             ))}
-        </select>
+        </OptionSelect>
       </PropertyRow>
       <ActionRow>
         <Button
@@ -114,17 +111,16 @@ function EffectStack({ clip }: { clip: Clip }) {
           </summary>
           <div className="editor-effect-body">
             <label className="editor-check">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={effect.enabled !== false}
                 disabled={disabled}
-                onChange={(e) =>
+                onCheckedChange={(checked) =>
                   apply([
                     {
                       updateEffect: {
                         clipID: clip.id,
                         effectID: effect.id,
-                        patch: { enabled: e.target.checked },
+                        patch: { enabled: checked },
                       },
                     },
                   ])

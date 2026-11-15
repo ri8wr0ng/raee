@@ -208,7 +208,8 @@ try {
       "timeline words/summary/JSON are read-only",
     );
     await page.getByRole("button", { name: "Export", exact: true }).click();
-    await page.getByRole("dialog").locator("select").first().selectOption("wav");
+    await page.getByRole("dialog").getByLabel("Export preset", { exact: true }).click();
+    await page.getByRole("option", { name: "Audio only · WAV", exact: true }).click();
     await page.getByRole("button", { name: "Queue export", exact: true }).click();
     status = await wait(
       () => call("status"),

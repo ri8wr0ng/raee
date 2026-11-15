@@ -223,7 +223,8 @@ try {
           status: "unsupported",
           message: await page.locator('[role="alert"]').allTextContents(),
         };
-      await page.getByLabel("Export preset", { exact: true }).selectOption("wav");
+      await page.getByLabel("Export preset", { exact: true }).click();
+      await page.getByRole("option", { name: "Audio only · WAV", exact: true }).click();
       await page.getByRole("button", { name: "Queue export", exact: true }).click();
       await page.waitForFunction(
         () =>

@@ -6,6 +6,7 @@ import { Button } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@sidecut/ui/components/field";
 import { useEditorSession, useEditorView } from "./editor-session";
+import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 export function SavedSegments() {
   const { session, snapshot, editor } = useEditorSession(),
     selected = useEditorView((s) => s.selected);
@@ -88,16 +89,16 @@ export function SavedSegments() {
         </Field>
         <Field>
           <FieldLabel htmlFor="segment-mode">Insert mode</FieldLabel>
-          <select
+          <OptionSelect
             id="segment-mode"
             value={mode}
             disabled={disabled}
-            onChange={(e) => setMode(e.target.value as typeof mode)}
+            onValueChange={(value) => setMode(value as typeof mode)}
           >
-            <option value="place">Place without overlap</option>
-            <option value="overwrite">Overwrite</option>
-            <option value="insert">Insert time</option>
-          </select>
+            <SelectItem value="place">Place without overlap</SelectItem>
+            <SelectItem value="overwrite">Overwrite</SelectItem>
+            <SelectItem value="insert">Insert time</SelectItem>
+          </OptionSelect>
         </Field>
         {!entries.length && <p>No saved segments match.</p>}
         <ul className="editor-asset-results">

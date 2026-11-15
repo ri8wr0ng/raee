@@ -6,12 +6,25 @@ import type { FunctionReturnType } from "convex/server";
 import { Link } from "@tanstack/react-router";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
+import { OptionSelect } from "@sidecut/ui/components/option-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@sidecut/ui/components/select";
 import { currentReturnTo, useCloud } from "./cloud-provider";
 import { CloudLibrary } from "./library-panel";
 import { cloudErrorMessage } from "./subscription-error";
 
 type Team = NonNullable<FunctionReturnType<typeof api.teams.list>[number]["team"]>;
 const roles = ["owner", "admin", "member", "viewer"] as const;
+const inviteRoles = [
+  { value: "member", label: "Member" },
+  { value: "viewer", label: "Viewer" },
+  { value: "admin", label: "Admin" },
+] as const;
 
 type CloudView = "team" | "library";
 
@@ -143,23 +156,19 @@ function TeamManager({ view }: { view: CloudView }) {
       {teams.length > 0 && (
         <label className="grid gap-1">
           Active team
-          <select
-            className="h-9 rounded-md border bg-background px-2"
+          <OptionSelect
+            className="h-9"
             value={current?.team?._id ?? ""}
-            onChange={(event) => {
-              const team = teams.find((entry) => entry.team?._id === event.target.value)?.team;
+            options={teams.flatMap((entry) =>
+              entry.team
+                ? [{ value: entry.team._id, label: `${entry.team.name} (${entry.role})` }]
+                : [],
+            )}
+            onValueChange={(value) => {
+              const team = teams.find((entry) => entry.team?._id === value)?.team;
               if (team) setActiveTeamId(team._id);
             }}
-          >
-            {teams.map(
-              (entry) =>
-                entry.team && (
-                  <option key={entry.team._id} value={entry.team._id}>
-                    {entry.team.name} ({entry.role})
-                  </option>
-                ),
-            )}
-          </select>
+          />
         </label>
       )}
       {current?.team && (
@@ -227,20 +236,17 @@ function TeamDetails({ team, role }: { team: Team; role: string }) {
                 {member.user.split("|").at(-1)}
               </span>
               {role === "owner" ? (
-                <select
+                <OptionSelect
                   aria-label={`Role for ${member.user}`}
-                  className="h-9 rounded-md border bg-background px-2"
+                  className="h-9 w-auto capitalize"
+                  contentClassName="capitalize"
                   value={member.role}
                   disabled={busy}
-                  onChange={(event) => {
-                    const next = roles.find((value) => value === event.target.value);
-                    if (next) void run(() => changeRole({ membershipId: member._id, role: next }));
-                  }}
-                >
-                  {roles.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
+                  options={roles.map((value) => ({ value, label: value }))}
+                  onValueChange={(next) =>
+                    void run(() => changeRole({ membershipId: member._id, role: next }))
+                  }
+                />
               ) : (
                 <span>{member.role}</span>
               )}
@@ -286,15 +292,24 @@ function TeamDetails({ team, role }: { team: Team; role: string }) {
             </label>
             <label className="grid gap-1">
               Role
-              <select
+              <Select
                 name="role"
-                className="h-9 rounded-md border bg-background px-2"
                 defaultValue="member"
+                items={inviteRoles.filter((item) => item.value !== "admin" || role === "owner")}
               >
-                <option value="member">Member</option>
-                <option value="viewer">Viewer</option>
-                {role === "owner" && <option value="admin">Admin</option>}
-              </select>
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false}>
+                  {inviteRoles
+                    .filter((item) => item.value !== "admin" || role === "owner")
+                    .map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </label>
             <Button type="submit" disabled={busy}>
               Create invitation
