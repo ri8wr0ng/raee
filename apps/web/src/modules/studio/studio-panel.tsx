@@ -6,8 +6,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { DEFAULT_LIVE_ASSETS, LIVE_BACKGROUNDS, liveAssets } from "@sidecut/core/live-assets";
-import type { LiveAssets, LiveOverlay } from "@sidecut/core/live-assets";
+import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
+import type { LiveAssets } from "@sidecut/core/live-assets";
 import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
 import { liveQualityProfiles, type LiveStudio } from "@sidecut/core/live-studio";
 import { LiveAudioMixer, type LiveAudioChannel } from "@sidecut/platform-browser/live-audio";
@@ -16,9 +16,7 @@ import { LocalMediaReader } from "@sidecut/platform-browser/preview";
 import { RecentClips } from "@sidecut/platform-browser/recent-clips";
 import { recordingLimits } from "@sidecut/platform-browser/recording";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
 import { Input } from "@sidecut/ui/components/input";
-import { OptionSelect } from "@sidecut/ui/components/option-select";
 import { RadioGroup, RadioGroupItem } from "@sidecut/ui/components/radio-group";
 import {
   Select,
@@ -37,7 +35,6 @@ import {
   RiCloseLine,
   RiComputerLine,
   RiDeleteBinLine,
-  RiDragMove2Line,
   RiFlagLine,
   RiFullscreenExitLine,
   RiFullscreenLine,
@@ -82,6 +79,7 @@ import {
 import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
 import { OverlayStage } from "./overlay-stage";
+import { SceneLookPanel } from "./scene-look-panel";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
 import "./studio.css";
@@ -116,14 +114,6 @@ const readSaveTo = (): SaveTo => {
 };
 const message = (cause: unknown, fallback: string) =>
   cause instanceof Error ? cause.message : fallback;
-const OVERLAY_BOUNDS: Record<
-  LiveOverlay["kind"],
-  Pick<LiveOverlay, "x" | "y" | "width" | "height">
-> = {
-  banner: { x: 0.05, y: 0.8, width: 0.9, height: 0.12 },
-  takeover: { x: 0, y: 0, width: 1, height: 1 },
-  highlight: { x: 0.6, y: 0.05, width: 0.35, height: 0.2 },
-};
 
 const sourceAspect = (video: HTMLVideoElement) =>
   video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
@@ -197,14 +187,21 @@ export default function StudioPanel({
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   /** While an overlay is selected the preview edits overlays instead of sources. */
   const [selectedOverlay, setSelectedOverlay] = useState<string | null>(null);
+  // The preview edits one layer at a time: picking a source or an overlay hands it over.
+  useEffect(() => {
+    if (selectedSource) setSelectedOverlay(null);
+  }, [selectedSource]);
+  useEffect(() => {
+    if (selectedOverlay) setSelectedSource(null);
+  }, [selectedOverlay]);
   const sourceNumbers = useRef({ camera: 0, screen: 0 });
   /** The program canvas's shape; a placeholder until the first frame sizes it. */
   const canvasAspect = () => {
     const element = canvas.current;
     return frame && element?.width && element.height ? element.width / element.height : 16 / 9;
   };
-  const [overlayText, setOverlayText] = useState("");
-  const [overlayKind, setOverlayKind] = useState<LiveOverlay["kind"]>("banner");
+  /** The look as last saved, to tell the user when the draft has unsaved changes. */
+  const [savedLook, setSavedLook] = useState("");
   const [settings, setSettings] = useState<Record<string, LiveAudioSettings>>({});
   const { devices: audioDevices } = useAudioInputDevices();
   const [meters, setMeters] = useState<Record<string, number>>({});
@@ -425,9 +422,12 @@ export default function StudioPanel({
   useEffect(() => {
     if (!selected || !studio.current) return;
     try {
-      setDraft(liveAssets(studio.current.project(selected).liveAssets ?? DEFAULT_LIVE_ASSETS));
+      const saved = liveAssets(studio.current.project(selected).liveAssets ?? DEFAULT_LIVE_ASSETS);
+      setDraft(saved);
+      setSavedLook(JSON.stringify(saved));
     } catch {
       setDraft(DEFAULT_LIVE_ASSETS);
+      setSavedLook(JSON.stringify(DEFAULT_LIVE_ASSETS));
     }
   }, [selected]);
 
@@ -479,32 +479,9 @@ export default function StudioPanel({
       });
       if (goLive)
         current.switch({ id: selectedScene.id, expectedRevision: current.currentRevision });
+      setSavedLook(JSON.stringify(draft));
       commit();
     }, "The look could not be applied.");
-  const addOverlay = () => {
-    const text = overlayText.trim();
-    if (!text) return;
-    setDraft((current) => ({
-      ...current,
-      overlays: [
-        ...current.overlays,
-        {
-          id: crypto.randomUUID(),
-          kind: overlayKind,
-          text,
-          ...OVERLAY_BOUNDS[overlayKind],
-          color: current.accent,
-          textColor: "#ffffff",
-          opacity: 1,
-          enabled: true,
-          motion: "none",
-          start: 0,
-          duration: 86400,
-        },
-      ],
-    }));
-    setOverlayText("");
-  };
 
   const removeSource = (id: string) => {
     const source = sources.current.find((item) => item.id === id);
@@ -656,7 +633,10 @@ export default function StudioPanel({
         project: { ...project, liveAssets: next },
         expectedRevision: current.currentRevision,
       });
-      if (selected === scene.id) setDraft(next);
+      if (selected === scene.id) {
+        setDraft(next);
+        setSavedLook(JSON.stringify(next));
+      }
       commit();
     }, "The overlay could not be changed.");
 
@@ -1252,148 +1232,19 @@ export default function StudioPanel({
               <>
                 Editing <strong className="text-foreground">{selectedScene.name}</strong>
               </>
-            ) : (
-              "Save a scene to style it."
-            )
+            ) : undefined
           }
         >
-          <div className="studio-fields">
-            <label className="studio-field">
-              <span>Background</span>
-              <OptionSelect
-                value={draft.background}
-                disabled={!selectedScene}
-                options={LIVE_BACKGROUNDS.map((item) => ({ value: item, label: item }))}
-                className="capitalize"
-                contentClassName="capitalize"
-                onValueChange={(background) => setDraft((current) => ({ ...current, background }))}
-              />
-            </label>
-            <label className="studio-field">
-              <span>Color</span>
-              <input
-                type="color"
-                value={draft.color}
-                disabled={!selectedScene}
-                onChange={(event) => setDraft({ ...draft, color: event.target.value })}
-              />
-            </label>
-            <label className="studio-field">
-              <span>Accent</span>
-              <input
-                type="color"
-                value={draft.accent}
-                disabled={!selectedScene}
-                onChange={(event) => setDraft({ ...draft, accent: event.target.value })}
-              />
-            </label>
-            <label className="studio-check">
-              <Checkbox
-                checked={draft.motion}
-                disabled={!selectedScene}
-                onCheckedChange={(motion) => setDraft({ ...draft, motion })}
-              />
-              Motion
-            </label>
-          </div>
-          <form
-            className="flex gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              addOverlay();
-            }}
-          >
-            <OptionSelect
-              aria-label="Overlay type"
-              value={overlayKind}
-              disabled={!selectedScene}
-              className="w-28 shrink-0"
-              options={[
-                { value: "banner", label: "Banner" },
-                { value: "takeover", label: "Takeover" },
-                { value: "highlight", label: "Highlight" },
-              ]}
-              onValueChange={setOverlayKind}
-            />
-            <Input
-              aria-label="Overlay text"
-              placeholder="Overlay text"
-              value={overlayText}
-              maxLength={500}
-              disabled={!selectedScene}
-              onChange={(event) => setOverlayText(event.target.value)}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              variant="outline"
-              disabled={!selectedScene || !overlayText.trim() || draft.overlays.length >= 20}
-            >
-              Add
-            </Button>
-          </form>
-          {draft.overlays.length > 0 && (
-            <ul className="studio-list">
-              {draft.overlays.map((overlay) => (
-                <li key={overlay.id} className="studio-row">
-                  <label className="studio-row-main">
-                    <Checkbox
-                      checked={overlay.enabled}
-                      onCheckedChange={(enabled) =>
-                        setDraft({
-                          ...draft,
-                          overlays: draft.overlays.map((item) =>
-                            item.id === overlay.id ? { ...item, enabled } : item,
-                          ),
-                        })
-                      }
-                    />
-                    <span className="text-muted-foreground capitalize">{overlay.kind}</span>
-                    <span className="truncate">{overlay.text}</span>
-                  </label>
-                  <Button
-                    size="icon-xs"
-                    variant={selectedOverlay === overlay.id ? "secondary" : "ghost"}
-                    aria-label={`Move ${overlay.text} on the preview`}
-                    aria-pressed={selectedOverlay === overlay.id}
-                    title="Move or resize on the preview"
-                    disabled={!overlay.enabled || !frame}
-                    onClick={() =>
-                      setSelectedOverlay((current) => (current === overlay.id ? null : overlay.id))
-                    }
-                  >
-                    <RiDragMove2Line />
-                  </Button>
-                  <Button
-                    size="icon-xs"
-                    variant="ghost"
-                    aria-label={`Remove overlay ${overlay.text}`}
-                    onClick={() =>
-                      setDraft({
-                        ...draft,
-                        overlays: draft.overlays.filter((item) => item.id !== overlay.id),
-                      })
-                    }
-                  >
-                    <RiCloseLine />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={!selectedScene}
-              onClick={() => void applyLook(false)}
-            >
-              Save look
-            </Button>
-            <Button size="sm" disabled={!selectedScene} onClick={() => void applyLook(true)}>
-              Save and go live
-            </Button>
-          </div>
+          <SceneLookPanel
+            draft={draft}
+            onDraftChange={setDraft}
+            disabled={!selectedScene}
+            dirty={JSON.stringify(draft) !== savedLook}
+            canPlace={Boolean(frame)}
+            selectedOverlay={selectedOverlay}
+            onSelectOverlay={setSelectedOverlay}
+            onSave={(goLive) => void applyLook(goLive)}
+          />
         </Section>
         <Section
           title="Audio"

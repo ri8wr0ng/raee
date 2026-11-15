@@ -81,7 +81,7 @@ try {
   const button = (name) => dialog.getByRole("button", { name, exact: true });
   const pixel = (x, y) =>
     dialog
-      .locator("canvas")
+      .getByLabel("Program output")
       .evaluate(
         (canvas, [px, py]) => [
           ...canvas.getContext("2d").getImageData(canvas.width * px, canvas.height * py, 1, 1).data,
@@ -94,16 +94,16 @@ try {
   await openStudio();
   await button("Save from editor").click();
   await button("Switch to Scene 1").click();
-  await dialog.getByText("Live", { exact: true }).waitFor();
+  await dialog.locator(".studio-live-badge").waitFor();
   await page.waitForTimeout(500);
   const solid = await pixel(0.5, 0.5);
   assert.deepEqual(solid.slice(0, 3), [17, 24, 39]);
   await dialog.getByLabel("New scene name").fill("Scene 2");
   await button("Save from editor").click();
-  await dialog.getByLabel("Background").click();
-  await page.getByRole("option", { name: "grid", exact: true }).click();
+  await dialog.locator(".look-background", { hasText: "Grid" }).click();
+  await dialog.getByLabel("Add overlay").click();
+  await page.getByRole("option", { name: "Banner", exact: true }).click();
   await dialog.getByLabel("Overlay text").fill("On air");
-  await button("Add").click();
   await button("Save look").click();
   await page.waitForTimeout(400);
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [17, 24, 39], "save must not go live");
@@ -126,7 +126,7 @@ try {
 
   // Sources can be dragged and resized on the program preview.
   const cameraBox = dialog.getByRole("group", { name: /^Camera 1 position/ });
-  const stage = await dialog.locator("canvas").boundingBox();
+  const stage = await dialog.getByLabel("Program output").boundingBox();
   const box = await cameraBox.boundingBox();
   const beforeDrag = await pixel(0.36, 0.72);
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -191,27 +191,32 @@ try {
   result.checks.screen = screenAlert.length
     ? { skipped: screenAlert[0] }
     : { listed: await dialog.getByText("Screen", { exact: false }).count() };
-  if (screenAlert.length) await button("Add microphone").focus();
 
   // Microphone meter, gain and mute reach the program mix.
-  await button("Add microphone").click();
-  const meter = dialog.locator("meter");
+  await dialog.getByLabel("Add audio input").click();
+  await page.getByRole("option", { name: "Default microphone", exact: true }).click();
+  // A screen shared with audio has its own strip; the microphone is added last.
+  const meter = dialog.getByRole("meter").last();
   await meter.waitFor();
   const peak = async () => {
     let high = 0;
     for (let i = 0; i < 16; i++) {
-      high = Math.max(high, await meter.evaluate((node) => node.value));
+      high = Math.max(
+        high,
+        await meter.evaluate((node) => Number(node.getAttribute("aria-valuenow")) / 100),
+      );
       await sleep(150);
     }
     return high;
   };
   const audible = await peak();
   assert.ok(audible > 0.01, `microphone meter stayed at ${audible}`);
-  await dialog.getByLabel("Mute").check();
+  const mute = dialog.getByRole("button", { name: /^Mute / }).last();
+  await mute.click();
   await sleep(300);
   const muted = await peak();
   assert.ok(muted < 0.001, `muted meter reads ${muted}`);
-  await dialog.getByLabel("Mute").uncheck();
+  await mute.click();
   result.checks.microphone = { audible, muted };
 
   // Record: decoded output has picture, overlay, camera and audio.
@@ -288,8 +293,11 @@ try {
   await dialog.waitFor({ state: "detached" });
   await page.reload();
   await openStudio();
-  await dialog.getByText("Live", { exact: true }).waitFor();
-  assert.equal(await dialog.getByLabel("Background").inputValue(), "grid");
+  await dialog.locator(".studio-live-badge").waitFor();
+  assert.equal(
+    await dialog.getByRole("radio", { name: "Grid" }).getAttribute("aria-checked"),
+    "true",
+  );
   await page.waitForTimeout(600);
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
   result.checks.reloadRecovery = true;

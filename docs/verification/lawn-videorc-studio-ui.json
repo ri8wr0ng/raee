@@ -1,21 +1,23 @@
 {
-  "testedAt": "2026-11-14T16:19:41.407Z",
+  "testedAt": "2026-11-15T10:21:07.720Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
   "checks": {
     "scenes": true,
     "camera": {
-      "beforeCamera": [17, 24, 39, 255],
+      "beforeCamera": [25, 63, 88, 255],
       "withCamera": [0, 135, 0, 255]
     },
     "sourceLayout": {
       "beforeDrag": [17, 24, 39, 255],
-      "afterDrag": [0, 135, 0, 255],
+      "afterDrag": [74, 255, 22, 255],
       "width": [219.5, 98.078125]
     },
+    "sourceHitOrder": true,
+    "sourceAspectChange": true,
     "screen": {
-      "listed": 2
+      "listed": 3
     },
     "microphone": {
       "audible": 1,
@@ -24,7 +26,7 @@
     "closeGuard": true,
     "recording": {
       "size": [1920, 1080],
-      "bytes": 918489,
+      "bytes": 1118237,
       "audio": 1,
       "banner": [55, 190, 247, 255]
     },

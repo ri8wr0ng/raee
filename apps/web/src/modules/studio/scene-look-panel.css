@@ -1,0 +1,322 @@
+.look {
+  display: grid;
+  gap: 14px;
+}
+.look-empty,
+.look-hint {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.look-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.look-hint > svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin-top: 1px;
+}
+.look-field {
+  display: grid;
+  gap: 6px;
+}
+.look-field-label {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+/* Background swatches: real renders, so the choice is what the program shows. */
+.look-backgrounds {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 6px;
+}
+.look-background {
+  display: grid;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+.look-background canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.look-background > span:last-child {
+  padding-inline: 2px;
+}
+.look-background:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.look-background[data-checked] {
+  background: color-mix(in oklch, var(--primary) 16%, transparent);
+  color: var(--foreground);
+}
+.look-background[data-checked] canvas {
+  box-shadow:
+    0 0 0 2px var(--card),
+    0 0 0 4px var(--primary);
+}
+.look-background:has(:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+/* Colour swatch buttons */
+.look-colors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.look-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px 5px 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 120ms ease-out;
+}
+.look-color:hover {
+  border-color: color-mix(in oklch, var(--foreground) 25%, transparent);
+}
+.look-color:has(:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+.look-color-chip {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15);
+}
+.look-color-text {
+  display: grid;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.look-color-hex {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.look-motion {
+  display: grid;
+  gap: 8px;
+}
+.look-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+}
+.look-speed {
+  display: grid;
+  grid-template-columns: 56px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+}
+.look-speed output {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Overlays */
+.look-overlays {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.look-overlays > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.look-overlays h4 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.look-count {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.look-overlay-list {
+  display: grid;
+  gap: 4px;
+}
+.look-overlay-list > li {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out;
+}
+.look-overlay-list > li[data-open] {
+  border-color: var(--border);
+  background: color-mix(in oklch, var(--muted) 35%, transparent);
+}
+.look-overlay-list > li[data-hidden] .look-overlay-main {
+  opacity: 0.5;
+}
+.look-overlay-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 4px;
+}
+.look-overlay-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 7px;
+  text-align: left;
+}
+.look-overlay-main:hover {
+  background: var(--accent);
+}
+.look-overlay-main:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.look-overlay-icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  border-radius: 5px;
+}
+.look-overlay-icon > svg {
+  width: 13px;
+  height: 13px;
+}
+.look-overlay-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.look-overlay-text em {
+  color: var(--muted-foreground);
+}
+.look-overlay-chevron {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 150ms ease-out;
+}
+[data-open] .look-overlay-chevron {
+  transform: rotate(180deg);
+}
+.look-overlay-editor {
+  display: grid;
+  gap: 12px;
+  padding: 4px 10px 12px;
+}
+
+.look-segmented {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+.look-segmented label {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+.look-segmented label:hover {
+  color: var(--foreground);
+}
+.look-segmented label[data-checked] {
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+.look-segmented label:has(:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.look-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.look-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.look-status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted-foreground);
+  content: "";
+}
+.look-status[data-dirty] {
+  color: var(--foreground);
+}
+.look-status[data-dirty]::before {
+  background: var(--status-busy, oklch(0.8 0.15 85));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .look-background,
+  .look-segmented label,
+  .look-overlay-chevron,
+  .look-overlay-list > li {
+    transition: none;
+  }
+}
