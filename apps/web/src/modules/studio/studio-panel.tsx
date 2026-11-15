@@ -369,6 +369,7 @@ export default function StudioPanel({
       output.current = null;
       for (const source of [...sources.current, ...audioInputs.current])
         for (const track of source.stream.getTracks()) track.stop();
+      for (const source of sources.current) source.video.onresize = null;
       sources.current = [];
       audioInputs.current = [];
       mixer.current?.close();
@@ -481,6 +482,7 @@ export default function StudioPanel({
     if (!source) return;
     sources.current = sources.current.filter((item) => item.id !== id);
     for (const track of source.stream.getTracks()) track.stop();
+    source.video.onresize = null;
     source.video.srcObject = null;
     setSelectedSource((current) => (current === id ? null : current));
     refresh();
@@ -510,6 +512,7 @@ export default function StudioPanel({
       const firstCamera = sources.current.findIndex((item) => item.kind === "camera");
       const at = kind === "screen" && firstCamera >= 0 ? firstCamera : sources.current.length;
       sources.current = [...sources.current.slice(0, at), source, ...sources.current.slice(at)];
+      video.onresize = refresh;
       stream.getVideoTracks()[0]?.addEventListener("ended", () => removeSource(id), { once: true });
       setSelectedSource(id);
       refresh();

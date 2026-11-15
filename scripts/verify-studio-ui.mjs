@@ -60,6 +60,14 @@ try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   await context.grantPermissions(["camera", "microphone"]);
   const page = await context.newPage();
+  await page.addInitScript(() => {
+    const play = HTMLMediaElement.prototype.play;
+    window.studioTestVideos = [];
+    HTMLMediaElement.prototype.play = function () {
+      if (this instanceof HTMLVideoElement && this.srcObject) window.studioTestVideos.push(this);
+      return play.call(this);
+    };
+  });
   page.setDefaultTimeout(30_000);
   page.on("pageerror", (error) => result.errors.push(error.message));
   await page.goto(url);
@@ -140,6 +148,40 @@ try {
   assert.ok(resized.width < moved.width * 0.7, `resize left ${resized.width} of ${moved.width}`);
   assert.ok(Math.abs(resized.x - moved.x) < 2, "resizing from a corner keeps the opposite corner");
   result.checks.sourceLayout = { beforeDrag, afterDrag, width: [moved.width, resized.width] };
+
+  // Selecting a lower layer must not intercept a visible source above it.
+  await button("Add camera").click();
+  const upperCamera = dialog.getByRole("group", { name: /^Camera 2 position/ });
+  await upperCamera.waitFor();
+  await button("Fit Camera 1 to the frame").click();
+  await dialog.getByRole("button", { name: "Camera 1", exact: true }).click();
+  const upperBox = await upperCamera.boundingBox();
+  await page.mouse.click(upperBox.x + upperBox.width / 2, upperBox.y + upperBox.height / 2);
+  assert.equal(await upperCamera.getAttribute("data-selected"), "true");
+  await button("Remove Camera 2").click();
+  result.checks.sourceHitOrder = true;
+
+  // A video resize event must update handle bounds without another UI action.
+  const beforeAspect = await cameraBox.boundingBox();
+  await page.evaluate(() => {
+    const video = window.studioTestVideos[0];
+    Object.defineProperty(video, "videoWidth", { configurable: true, value: 400 });
+    Object.defineProperty(video, "videoHeight", { configurable: true, value: 400 });
+    video.dispatchEvent(new Event("resize"));
+  });
+  await page.waitForFunction(() => {
+    const bounds = document.querySelector("[data-source]").getBoundingClientRect();
+    return Math.abs(bounds.width - bounds.height) < 2;
+  });
+  const afterAspect = await cameraBox.boundingBox();
+  assert.notEqual(afterAspect.height, beforeAspect.height);
+  await page.evaluate(() => {
+    const video = window.studioTestVideos[0];
+    delete video.videoWidth;
+    delete video.videoHeight;
+    video.dispatchEvent(new Event("resize"));
+  });
+  result.checks.sourceAspectChange = true;
 
   // Screen source through the real picker path.
   await button("Add screen").click();
