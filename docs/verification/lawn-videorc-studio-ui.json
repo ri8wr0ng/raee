@@ -6,36 +6,13 @@
   "checks": {
     "scenes": true,
     "camera": {
-      "beforeCamera": [
-        17,
-        24,
-        39,
-        255
-      ],
-      "withCamera": [
-        0,
-        135,
-        0,
-        255
-      ]
+      "beforeCamera": [17, 24, 39, 255],
+      "withCamera": [0, 135, 0, 255]
     },
     "sourceLayout": {
-      "beforeDrag": [
-        17,
-        24,
-        39,
-        255
-      ],
-      "afterDrag": [
-        74,
-        255,
-        22,
-        255
-      ],
-      "width": [
-        219.5,
-        98.078125
-      ]
+      "beforeDrag": [17, 24, 39, 255],
+      "afterDrag": [74, 255, 22, 255],
+      "width": [219.5, 98.078125]
     },
     "sourceHitOrder": true,
     "sourceAspectChange": true,
@@ -50,18 +27,10 @@
     },
     "closeGuard": true,
     "recording": {
-      "size": [
-        1920,
-        1080
-      ],
+      "size": [1920, 1080],
       "bytes": 1103498,
       "audio": 1,
-      "banner": [
-        55,
-        190,
-        247,
-        255
-      ]
+      "banner": [55, 190, 247, 255]
     },
     "handoff": {
       "placed": true,
