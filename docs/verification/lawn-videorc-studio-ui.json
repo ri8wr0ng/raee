@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-15T19:19:35.489Z",
+  "testedAt": "2026-11-15T19:38:45.386Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
@@ -21,9 +21,9 @@
     },
     "sourceLayout": {
       "beforeDrag": [
-        17,
-        24,
-        39,
+        19,
+        36,
+        55,
         255
       ],
       "afterDrag": [
@@ -41,6 +41,7 @@
     "sourceAspectChange": true,
     "perSceneSources": true,
     "scenePreview": true,
+    "sceneAudio": true,
     "screen": {
       "listed": 3
     },
@@ -54,7 +55,7 @@
         1920,
         1080
       ],
-      "bytes": 1103498,
+      "bytes": 1134175,
       "audio": 1,
       "banner": [
         55,
@@ -67,8 +68,10 @@
       "placed": true,
       "marker": true
     },
+    "videoSource": true,
     "recentClips": true,
     "reloadRecovery": true,
+    "videoRestore": true,
     "cameraArrangementRecovery": true,
     "takeRecovery": true
   },

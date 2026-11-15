@@ -10,6 +10,7 @@ import {
   RiComputerLine,
   RiEqualizerLine,
   RiHeadphoneLine,
+  RiFilmLine,
   RiMicLine,
   RiMusic2Line,
   RiVideoOnLine,
@@ -18,7 +19,7 @@ import {
 } from "@remixicon/react";
 import "./audio-mixer-panel.css";
 
-export type AudioMixerChannelKind = "microphone" | "screen" | "camera" | "sound";
+export type AudioMixerChannelKind = "microphone" | "screen" | "camera" | "video" | "sound";
 
 export type AudioMixerChannel = {
   readonly id: string;
@@ -52,6 +53,8 @@ function ChannelKindIcon({ kind }: { readonly kind: AudioMixerChannelKind }): Re
       );
     case "camera":
       return <RiVideoOnLine className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
+    case "video":
+      return <RiFilmLine className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
     case "sound":
       return <RiMusic2Line className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
   }

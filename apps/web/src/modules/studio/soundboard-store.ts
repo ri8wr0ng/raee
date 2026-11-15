@@ -13,6 +13,8 @@ export type Pad = {
   volumeDB: number;
   loop: boolean;
   shortcut: string | null;
+  /** The scene this pad belongs to; null plays on every scene. */
+  scene: string | null;
 };
 
 export type MacroStep =
@@ -420,6 +422,10 @@ export function validatePad(pad: unknown): ValidationResult {
   if (p.shortcut !== null && typeof p.shortcut !== "string") {
     return { valid: false, reason: "Pad shortcut must be string or null" };
   }
+  // Pads saved before scenes had their own pads have no scene: they play everywhere.
+  if (p.scene !== undefined && p.scene !== null && typeof p.scene !== "string") {
+    return { valid: false, reason: "Pad scene must be string or null" };
+  }
   return { valid: true };
 }
 
@@ -431,7 +437,13 @@ export function createPad(partial: Partial<Pad> & { name: string }): Pad {
     volumeDB: Math.max(-30, Math.min(6, partial.volumeDB ?? 0)),
     loop: partial.loop ?? false,
     shortcut: partial.shortcut ?? null,
+    scene: partial.scene ?? null,
   };
+}
+
+/** The pads a scene can play: its own and the ones for every scene. */
+export function padsForScene(pads: readonly Pad[], scene: string | null): Pad[] {
+  return pads.filter((pad) => pad.scene === null || pad.scene === scene);
 }
 
 export function createMacro(partial: Partial<Macro> & { name: string }): Macro {
@@ -544,7 +556,7 @@ export function loadSoundboardData(): SoundboardData {
     if (Array.isArray(parsed?.pads)) {
       for (const item of parsed.pads) {
         if (validatePad(item).valid) {
-          pads.push(item as Pad);
+          pads.push({ ...(item as Pad), scene: (item as Pad).scene ?? null });
         }
       }
     }

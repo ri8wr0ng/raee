@@ -93,3 +93,13 @@ describe("gateSourceKey", () => {
     expect(gateSourceKey({ id: "mic" }, sources)).toBeUndefined();
   });
 });
+
+describe("scene microphones", () => {
+  it("are heard only on scenes that hold them", () => {
+    const scenes = new SceneSources();
+    scenes.add("talk", place("audio:mic-1"));
+    const mic = { id: "m", identity: "audio:mic-1" };
+    expect(isAudioInputOpen({ sourceId: gateSourceKey(mic, []) }, "talk", scenes)).toBe(true);
+    expect(isAudioInputOpen({ sourceId: gateSourceKey(mic, []) }, "brb", scenes)).toBe(false);
+  });
+});

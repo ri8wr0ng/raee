@@ -3,6 +3,7 @@ import {
   codeToKeyName,
   createMacro,
   createPad,
+  padsForScene,
   detectShortcutConflicts,
   findShortcutConflict,
   isValidMacroStep,
@@ -278,5 +279,23 @@ describe("soundboard-store validation", () => {
       const invalidName = { ...pad, name: "" };
       expect(validatePad(invalidName).valid).toBe(false);
     });
+  });
+});
+
+describe("scene pads", () => {
+  it("shows a scene its own pads and the pads for every scene", () => {
+    const pads = [
+      createPad({ id: "all", name: "Applause" }),
+      createPad({ id: "intro", name: "Intro music", scene: "intro" }),
+      createPad({ id: "brb", name: "BRB loop", scene: "brb" }),
+    ];
+    expect(padsForScene(pads, "intro").map((pad) => pad.id)).toEqual(["all", "intro"]);
+    expect(padsForScene(pads, null).map((pad) => pad.id)).toEqual(["all"]);
+  });
+
+  it("keeps pads saved before scenes had pads, as pads for every scene", () => {
+    const old = { id: "p", name: "Old", color: "#fff", volumeDB: 0, loop: false, shortcut: null };
+    expect(validatePad(old)).toEqual({ valid: true });
+    expect(validatePad({ ...old, scene: 3 }).valid).toBe(false);
   });
 });

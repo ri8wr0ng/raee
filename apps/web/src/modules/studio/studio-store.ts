@@ -1,5 +1,5 @@
 import { LiveStudio } from "@sidecut/core/live-studio";
-import type { SavedArrangements, Placement } from "./scene-sources";
+import type { Placement, SavedArrangements, SourceKind } from "./scene-sources";
 
 const DIRECTORY = "live-studio";
 const fileName = (projectID: string) => `${encodeURIComponent(projectID)}.json`;
@@ -50,6 +50,13 @@ export async function loadArrangements(projectID: string): Promise<SavedArrangem
   return parseArrangements(await (await handle.getFile()).text());
 }
 
+const KIND_NAMES: Record<SourceKind, string> = {
+  camera: "Camera",
+  screen: "Screen",
+  video: "Video",
+  audio: "Audio",
+};
+
 const finite = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
@@ -75,18 +82,21 @@ export function parseArrangements(text: string): SavedArrangements {
     const placements: Placement[] = [];
     for (const item of list as unknown[]) {
       if (!item || typeof item !== "object") continue;
-      const { identity, label, kind, layout, deviceId } = item as Record<string, unknown>;
+      const { identity, label, kind, layout, deviceId, mediaId } = item as Record<string, unknown>;
       const box = (layout ?? {}) as Record<string, unknown>;
       if (typeof identity !== "string" || !identity || seen.has(identity)) continue;
-      if (kind !== "camera" && kind !== "screen") continue;
+      if (typeof kind !== "string" || !(kind in KIND_NAMES)) continue;
+      const sourceKind = kind as SourceKind;
+      if (sourceKind === "video" && (typeof mediaId !== "string" || !mediaId)) continue;
       if (!finite(box.x) || !finite(box.y) || !finite(box.w) || box.w <= 0) continue;
       seen.add(identity);
       placements.push({
         identity,
-        label: typeof label === "string" && label ? label : kind === "camera" ? "Camera" : "Screen",
-        kind,
+        label: typeof label === "string" && label ? label : KIND_NAMES[sourceKind],
+        kind: sourceKind,
         layout: { x: box.x, y: box.y, w: box.w },
         ...(typeof deviceId === "string" && deviceId ? { deviceId } : {}),
+        ...(typeof mediaId === "string" && mediaId ? { mediaId } : {}),
       });
     }
     if (placements.length) scenes[scene] = placements;
