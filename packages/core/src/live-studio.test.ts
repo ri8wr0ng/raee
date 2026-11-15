@@ -65,6 +65,34 @@ describe("saved live scenes", () => {
     expect(studio.frame(0).sceneId).toBe("a");
   });
 
+  it("renders any saved scene for preview without touching the program", () => {
+    const studio = new LiveStudio();
+    studio.save({ id: "a", name: "A", project: project(), expectedRevision: 0 });
+    studio.switch({ id: "a", expectedRevision: 1 });
+    studio.save({ id: "b", name: "B", project: project(), expectedRevision: 2 });
+
+    const preview = studio.frameScene("b", 1);
+    expect(preview.sceneId).toBe("b");
+    expect(preview.sceneRevision).toBe(1);
+    expect(preview.commitRevision).toBe(studio.currentRevision);
+    expect(Object.isFrozen(preview.project)).toBe(true);
+    // The decoded snapshot is cached per saved revision.
+    expect(studio.frameScene("b", 2).project).toBe(preview.project);
+
+    // Nothing about the program moved.
+    expect(studio.activeScene?.id).toBe("a");
+    expect(studio.frame(1).sceneId).toBe("a");
+    expect(studio.currentRevision).toBe(3);
+
+    studio.save({ id: "b", name: "B edited", project: project(), expectedRevision: 3 });
+    expect(studio.frameScene("b", 1).sceneRevision).toBe(2);
+    expect(studio.frameScene("b", 1).project).not.toBe(preview.project);
+    expect(studio.frame(1).sceneId).toBe("a");
+
+    expect(() => studio.frameScene("missing", 0)).toThrow("unavailable");
+    expect(() => studio.frameScene("b", -1)).toThrow("Invalid");
+  });
+
   it("persists saved drafts separately from the active snapshot", () => {
     const studio = new LiveStudio();
     studio.save({ id: "a", name: "A", project: project(), expectedRevision: 0 });

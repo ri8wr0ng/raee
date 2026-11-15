@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-15T15:26:00.645Z",
+  "testedAt": "2026-11-15T15:41:14.592Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
@@ -21,15 +21,15 @@
     },
     "sourceLayout": {
       "beforeDrag": [
-        17,
-        24,
-        39,
+        28,
+        73,
+        102,
         255
       ],
       "afterDrag": [
-        0,
-        135,
-        0,
+        74,
+        255,
+        22,
         255
       ],
       "width": [
@@ -40,6 +40,7 @@
     "sourceHitOrder": true,
     "sourceAspectChange": true,
     "perSceneSources": true,
+    "scenePreview": true,
     "screen": {
       "listed": 3
     },
@@ -53,7 +54,7 @@
         1920,
         1080
       ],
-      "bytes": 1131782,
+      "bytes": 1202804,
       "audio": 1,
       "banner": [
         55,
