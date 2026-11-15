@@ -223,7 +223,7 @@ describe("LiveStudioOutput previewAssets override", () => {
 
     output.close();
 
-    // 7. Constructor accepting options object { previewAssets }
+    // 7. Constructor accepting a preview callback
     const outputWithOptions = new LiveStudioOutput(
       canvas,
       studio,
@@ -233,7 +233,7 @@ describe("LiveStudioOutput previewAssets override", () => {
       undefined,
       undefined,
       1080,
-      { previewAssets: () => draftAssets },
+      () => draftAssets,
     );
     stagingCtx.calls.length = 0;
     await outputWithOptions.render(1);

@@ -591,22 +591,37 @@ export default function StudioPanel({
       refresh();
     }, `Could not start the ${kind}.`);
 
+  const switchingCameras = useRef(new Set<string>());
   const switchCameraDevice = (id: string, newDeviceId: string) =>
     attempt(async () => {
       const source = sources.current.find((item) => item.id === id);
       if (!source || source.kind !== "camera") return;
       if (source.deviceId === newDeviceId) return;
-
-      const newStream = await openCamera(newDeviceId);
-      const newVideo = document.createElement("video");
-      newVideo.muted = true;
-      newVideo.playsInline = true;
-      newVideo.srcObject = newStream;
+      // One switch per source at a time, so overlapping picks can't orphan a stream.
+      if (switchingCameras.current.has(id)) return;
+      switchingCameras.current.add(id);
+      let newStream: MediaStream;
+      let newVideo: HTMLVideoElement;
       try {
-        await newVideo.play();
-      } catch (cause) {
+        newStream = await openCamera(newDeviceId);
+        newVideo = document.createElement("video");
+        newVideo.muted = true;
+        newVideo.playsInline = true;
+        newVideo.srcObject = newStream;
+        try {
+          await newVideo.play();
+        } catch (cause) {
+          for (const track of newStream.getTracks()) track.stop();
+          throw cause;
+        }
+      } finally {
+        switchingCameras.current.delete(id);
+      }
+      // The source may have been removed while the new camera was opening.
+      if (!sources.current.includes(source)) {
         for (const track of newStream.getTracks()) track.stop();
-        throw cause;
+        newVideo.srcObject = null;
+        return;
       }
 
       for (const track of source.stream.getTracks()) track.stop();

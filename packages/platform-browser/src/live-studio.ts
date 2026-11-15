@@ -4,17 +4,6 @@ import { paintLiveEngagement, type LiveEngagement } from "./live-engagement";
 import { paintPicture } from "./picture";
 import { paintLiveBackground, paintLiveOverlays } from "./live-assets";
 
-export type LiveStudioOutputOptions = {
-  previewAssets?: (() => LiveAssets | undefined) | null | undefined;
-};
-
-export type LiveStudioPreviewAssets =
-  | (() => LiveAssets | undefined)
-  | LiveStudioOutputOptions
-  | LiveAssets
-  | null
-  | undefined;
-
 /** Preview this canvas and record its stream; both receive the same completed frame. */
 export class LiveStudioOutput {
   private busy = false;
@@ -39,21 +28,10 @@ export class LiveStudioOutput {
     private readonly engagement?: LiveEngagement,
     private readonly liveLayers?: (context: CanvasRenderingContext2D, time: number) => void,
     private readonly maxOutputHeight = Number.POSITIVE_INFINITY,
-    previewAssets?: LiveStudioPreviewAssets,
+    /** Paints this look instead of the committed one while it returns a value (the unsaved draft). */
+    previewAssets?: () => LiveAssets | undefined,
   ) {
-    if (previewAssets) {
-      if (typeof previewAssets === "function") {
-        this.previewAssetsOverride = previewAssets;
-      } else if (
-        typeof previewAssets === "object" &&
-        "previewAssets" in previewAssets &&
-        typeof previewAssets.previewAssets === "function"
-      ) {
-        this.previewAssetsOverride = previewAssets.previewAssets;
-      } else if (typeof previewAssets === "object" && "background" in previewAssets) {
-        this.previewAssetsOverride = previewAssets as LiveAssets;
-      }
-    }
+    if (previewAssets) this.previewAssetsOverride = previewAssets;
     this.staging = document.createElement("canvas");
     const context = this.staging.getContext("2d");
     const output = canvas.getContext("2d");
@@ -64,7 +42,8 @@ export class LiveStudioOutput {
   get currentFrame() {
     return this.committed ? { ...this.committed } : null;
   }
-  setPreviewAssets(assets?: LiveAssets | (() => LiveAssets | undefined) | null | undefined) {
+  /** The override also reaches recordings: return undefined from it while capturing. */
+  setPreviewAssets(assets?: LiveAssets | (() => LiveAssets | undefined) | null) {
     this.previewAssetsOverride = assets ?? null;
   }
   recordingStream(audio?: MediaStream) {
