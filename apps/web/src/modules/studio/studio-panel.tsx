@@ -1326,10 +1326,7 @@ export default function StudioPanel({
           selected={selectedOverlay}
           // The canvas already paints the draft look, except on the program canvas while a
           // take or the clip buffer owns it — only then does the DOM stand-in draw it.
-          standIn={
-            editingProgram &&
-            (captureActive || bufferCapturing(clipState.buffer))
-          }
+          standIn={editingProgram && (captureActive || bufferCapturing(clipState.buffer))}
           onSelect={setSelectedOverlay}
           onChange={(id, rect) =>
             setDraft((current) => ({
