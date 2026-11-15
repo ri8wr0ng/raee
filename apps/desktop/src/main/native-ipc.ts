@@ -11,6 +11,7 @@ export function registerNativeIPC(
   project: HostProjectService,
   isTrusted: (url: string) => boolean,
   api?: ProjectAPI,
+  request: typeof fetch = globalThis.fetch,
 ) {
   const folders = new Map<number, StableFolderWatch>(),
     jobs = new Map<string, AbortController>();
@@ -155,6 +156,39 @@ export function registerNativeIPC(
     check(event);
     if (typeof id !== "string") throw new Error("Invalid media cancellation.");
     jobs.get(`${event.sender.id}:${id}`)?.abort();
+  });
+  ipcMain.handle(bridgeChannels.kickChannelLookup, async (event, slug: unknown) => {
+    check(event);
+    if (event.sender.isDestroyed()) throw new Error("Untrusted native sender.");
+    if (typeof slug !== "string" || !/^[a-zA-Z0-9_.-]{1,100}$/.test(slug.trim())) {
+      throw new Error("Invalid Kick channel slug.");
+    }
+    const trimmed = slug.trim().toLowerCase();
+    // Unofficial: Kick has no public OAuth chat API, public web endpoint resolves channel slug to chatroom ID
+    const response = await request(
+      `https://kick.com/api/v2/channels/${encodeURIComponent(trimmed)}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      },
+    );
+    if (!response.ok) {
+      if (response.status === 404) throw new Error(`Kick channel "${trimmed}" not found.`);
+      throw new Error(`Kick channel lookup failed with status ${response.status}`);
+    }
+    const data = (await response.json()) as {
+      chatroom?: { id?: number };
+      id?: number;
+      slug?: string;
+    };
+    const chatroomId = data.chatroom?.id ?? data.id;
+    if (typeof chatroomId !== "number" || chatroomId <= 0) {
+      throw new Error(`Could not resolve chatroom ID for Kick channel "${trimmed}".`);
+    }
+    return { chatroomId, channelSlug: data.slug ?? trimmed };
   });
   return async () => {
     for (const folder of folders.values()) folder.close();

@@ -16,6 +16,8 @@ import { LiveStudioOutput } from "@sidecut/platform-browser/live-studio";
 import { LocalMediaReader } from "@sidecut/platform-browser/preview";
 import { RecentClips } from "@sidecut/platform-browser/recent-clips";
 import { recordingLimits } from "@sidecut/platform-browser/recording";
+import { useLiveChatController } from "./live-chat-controller";
+import { LiveChatPanel } from "./live-chat-panel";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
 import { RadioGroup } from "@sidecut/ui/components/radio-group";
@@ -166,6 +168,9 @@ export default function StudioPanel({
 }) {
   const { session, snapshot } = useEditorSession();
   const navigate = useNavigate();
+  const liveChat = useLiveChatController();
+  const liveChatRef = useRef(liveChat.chat);
+  liveChatRef.current = liveChat.chat;
   // Live goes through the desktop app's native recorder; browsers cannot reach RTMP.
   const canStream = Boolean(nativeBridge()?.nativeRecordingStart);
   const projectID = useRef(snapshot.project.id).current;
@@ -391,7 +396,7 @@ export default function StudioPanel({
           canvas.current,
           loaded,
           reader,
-          undefined,
+          { target: "stream", chat: liveChatRef.current },
           (context) => paintSources(context, sources.current),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
@@ -1063,6 +1068,7 @@ export default function StudioPanel({
             </>
           )}
         </Section>
+        <LiveChatPanel mode={mode} controller={liveChat} />
         {recovered.length > 0 && (
           <Section
             title="Recovered takes"
