@@ -88,6 +88,7 @@ import { SceneLookPanel } from "./scene-look-panel";
 import { SceneSources, type SavedArrangements } from "./scene-sources";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
+import { activeLiveSceneKey, isAudioInputOpen } from "./audio-gate";
 import "./studio.css";
 
 type VideoSource = {
@@ -201,7 +202,19 @@ export default function StudioPanel({
   const [soundboardOpen, setSoundboardOpen] = useState(false);
   const persist = useRef<Promise<void>>(Promise.resolve());
   const [, setVersion] = useState(0);
-  const refresh = useCallback(() => setVersion((value) => value + 1), []);
+  const syncAudioGates = useCallback(() => {
+    const activeScene = studio.current?.activeScene ?? null;
+    const hasScenes = (studio.current?.list().length ?? 0) > 0;
+    const liveKey = activeLiveSceneKey(activeScene, hasScenes);
+    for (const input of audioInputs.current) {
+      const open = isAudioInputOpen(input, liveKey, arrangement);
+      input.channel.setGate(open);
+    }
+  }, [arrangement]);
+  const refresh = useCallback(() => {
+    syncAudioGates();
+    setVersion((value) => value + 1);
+  }, [syncAudioGates]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
@@ -511,6 +524,10 @@ export default function StudioPanel({
 
   const scenes = studio.current?.list() ?? [];
   const active = studio.current?.activeScene ?? null;
+  const liveKey = activeLiveSceneKey(active, scenes.length > 0);
+  useEffect(() => {
+    syncAudioGates();
+  }, [syncAudioGates, liveKey]);
   const selectedScene = scenes.find((scene) => scene.id === selected);
   /** The Sources panel arranges the selected scene ("" before any scene exists). */
   const editKey = selected ?? "";
@@ -1729,6 +1746,7 @@ export default function StudioPanel({
               kind: input.kind,
               settings: settings[input.id] ?? DEFAULT_LIVE_AUDIO,
               level: meters[input.id] ?? 0,
+              gated: !isAudioInputOpen(input, liveKey, arrangement),
             }))}
             devices={audioDevices}
             onAddInput={(deviceId) => void addMicrophone(deviceId)}

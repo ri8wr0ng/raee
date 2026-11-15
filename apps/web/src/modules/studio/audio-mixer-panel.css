@@ -64,6 +64,19 @@
   white-space: nowrap;
 }
 
+.audio-mixer-strip-hint {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--muted) 70%, transparent);
+  border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .audio-mixer-strip-actions {
   display: flex;
   align-items: center;

@@ -7,6 +7,7 @@ export class LiveAudioChannel {
   private readonly filter: BiquadFilterNode;
   private readonly delay: DelayNode;
   private readonly level: GainNode;
+  private readonly gate: GainNode;
   private readonly analyser: AnalyserNode;
   private readonly rightAnalyser: AnalyserNode;
   private readonly splitter: ChannelSplitterNode;
@@ -14,6 +15,7 @@ export class LiveAudioChannel {
   private readonly samples = new Float32Array(2048);
   private closed = false;
   private settings: LiveAudioSettings;
+  private gateOpen = true;
   constructor(
     private readonly context: BaseAudioContext,
     private readonly source: AudioNode,
@@ -27,6 +29,8 @@ export class LiveAudioChannel {
     this.filter = context.createBiquadFilter();
     this.delay = context.createDelay(2);
     this.level = context.createGain();
+    this.gate = context.createGain();
+    this.gate.gain.setValueAtTime(1, context.currentTime);
     this.analyser = context.createAnalyser();
     this.analyser.fftSize = this.samples.length;
     this.rightAnalyser = context.createAnalyser();
@@ -34,7 +38,8 @@ export class LiveAudioChannel {
     this.splitter = context.createChannelSplitter(2);
     this.monitorLevel = context.createGain();
     this.apply(this.settings, true);
-    source.connect(this.filter).connect(this.delay).connect(this.level).connect(program);
+    source.connect(this.filter).connect(this.delay).connect(this.level);
+    this.level.connect(this.gate).connect(program);
     this.level.connect(this.monitorLevel).connect(monitor);
     this.level.connect(this.splitter);
     this.splitter.connect(this.analyser, 0);
@@ -59,6 +64,18 @@ export class LiveAudioChannel {
     const settings = liveAudioSettings(input);
     this.apply(settings, false);
     this.settings = settings;
+  }
+  setGate(open: boolean) {
+    if (this.closed) return;
+    if (this.gateOpen === open) return;
+    this.gateOpen = open;
+    const time = this.context.currentTime;
+    const target = open ? 1 : 0;
+    this.gate.gain.cancelScheduledValues(time);
+    this.gate.gain.setTargetAtTime(target, time, 0.005);
+  }
+  get isGateOpen() {
+    return this.gateOpen;
   }
   get state() {
     return { ...this.settings };
@@ -85,6 +102,7 @@ export class LiveAudioChannel {
       this.filter,
       this.delay,
       this.level,
+      this.gate,
       this.analyser,
       this.rightAnalyser,
       this.splitter,

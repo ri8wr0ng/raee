@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-15T15:55:59.282Z",
+  "testedAt": "2026-11-15T15:40:34.725Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
@@ -53,7 +53,7 @@
         1920,
         1080
       ],
-      "bytes": 1206723,
+      "bytes": 1151407,
       "audio": 1,
       "banner": [
         55,
@@ -68,7 +68,6 @@
     },
     "recentClips": true,
     "reloadRecovery": true,
-    "cameraArrangementRecovery": true,
     "takeRecovery": true
   },
   "errors": [],
