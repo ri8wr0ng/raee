@@ -4,6 +4,12 @@ import { paintLiveEngagement, type LiveEngagement } from "./live-engagement";
 import { paintPicture } from "./picture";
 import { paintLiveBackground, paintLiveOverlays } from "./live-assets";
 
+/**
+ * The look to paint instead of the frame's saved one. It is asked about the scene the frame
+ * belongs to, so an unsaved draft can only ever cover its own scene, never another one.
+ */
+export type LivePreviewAssets = (sceneId: string) => LiveAssets | undefined;
+
 /** Preview this canvas and record its stream; both receive the same completed frame. */
 export class LiveStudioOutput {
   private busy = false;
@@ -19,7 +25,7 @@ export class LiveStudioOutput {
     commitRevision: number;
     time: number;
   } | null = null;
-  private previewAssetsOverride: LiveAssets | (() => LiveAssets | undefined) | null = null;
+  private previewAssetsOverride: LiveAssets | LivePreviewAssets | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -28,8 +34,8 @@ export class LiveStudioOutput {
     private readonly engagement?: LiveEngagement,
     private readonly liveLayers?: (context: CanvasRenderingContext2D, time: number) => void,
     private readonly maxOutputHeight = Number.POSITIVE_INFINITY,
-    /** Paints this look instead of the committed one while it returns a value (the unsaved draft). */
-    previewAssets?: () => LiveAssets | undefined,
+    /** Paints this look instead of the saved one, for the scene it is asked about (the draft). */
+    previewAssets?: LivePreviewAssets,
     /**
      * Renders the saved scene this returns instead of the live one: an OBS-style
      * preview. It is never recorded or streamed, and a frame is dropped when the
@@ -49,7 +55,7 @@ export class LiveStudioOutput {
     return this.committed ? { ...this.committed } : null;
   }
   /** The override also reaches recordings: return undefined from it while capturing. */
-  setPreviewAssets(assets?: LiveAssets | (() => LiveAssets | undefined) | null) {
+  setPreviewAssets(assets?: LiveAssets | LivePreviewAssets | null) {
     this.previewAssetsOverride = assets ?? null;
   }
   recordingStream(audio?: MediaStream) {
@@ -85,7 +91,7 @@ export class LiveStudioOutput {
         sceneId === undefined ? this.studio.frame(time) : this.studio.frameScene(sceneId, time);
       const preview =
         typeof this.previewAssetsOverride === "function"
-          ? this.previewAssetsOverride()
+          ? this.previewAssetsOverride(frame.sceneId)
           : this.previewAssetsOverride;
       const assets = preview ?? frame.assets;
       const settings = frame.project.settings;

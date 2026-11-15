@@ -318,6 +318,82 @@ describe("LiveStudioOutput previewAssets override", () => {
     output.close();
   });
 
+  it("asks the look override only about the frame's own scene", async () => {
+    const look = (text: string): LiveAssets => ({
+      ...DEFAULT_LIVE_ASSETS,
+      overlays: [
+        {
+          id: "ov",
+          kind: "banner",
+          text,
+          x: 0,
+          y: 0,
+          width: 0.5,
+          height: 0.1,
+          color: "#000000",
+          textColor: "#ffffff",
+          opacity: 1,
+          enabled: true,
+          motion: "none",
+          start: 0,
+          duration: 10,
+        },
+      ],
+    });
+    const studio = new LiveStudio();
+    studio.save({
+      id: "s1",
+      name: "One",
+      project: createProject(look("Saved One")),
+      expectedRevision: 0,
+    });
+    studio.save({
+      id: "s2",
+      name: "Two",
+      project: createProject(look("Saved Two")),
+      expectedRevision: 1,
+    });
+    studio.switch({ id: "s1", expectedRevision: 2 });
+
+    const canvas = makeMockCanvas() as unknown as HTMLCanvasElement;
+    const asked: string[] = [];
+    // The draft belongs to scene two while the program shows scene one.
+    const draft = look("Draft Two");
+    const output = new LiveStudioOutput(
+      canvas,
+      studio,
+      async () => {
+        throw new Error("No media");
+      },
+      undefined,
+      undefined,
+      1080,
+      (sceneId) => {
+        asked.push(sceneId);
+        return sceneId === "s2" ? draft : undefined;
+      },
+    );
+    const stagingCtx = (output as unknown as { staging: { ctx: ReturnType<typeof mockContext> } })
+      .staging.ctx;
+
+    await output.render(1);
+    // The override is consulted with the on-air scene, so the other scene's draft never paints.
+    expect(asked).toEqual(["s1"]);
+    expect(stagingCtx.calls).toContain("fillText:Saved One");
+    expect(stagingCtx.calls).not.toContain("fillText:Draft Two");
+
+    // Cutting to scene two lets its own draft cover its saved look.
+    stagingCtx.calls.length = 0;
+    studio.switch({ id: "s2", expectedRevision: 3 });
+    await output.render(1);
+    expect(asked).toEqual(["s1", "s2"]);
+    expect(stagingCtx.calls).toContain("fillText:Draft Two");
+    expect(stagingCtx.calls).not.toContain("fillText:Saved Two");
+    expect(stagingCtx.calls).not.toContain("fillText:Saved One");
+
+    output.close();
+  });
+
   it("keeps commitRevision stale-frame check intact", async () => {
     const studio = new LiveStudio();
     studio.save({ id: "s1", name: "Scene 1", project: createProject(), expectedRevision: 0 });

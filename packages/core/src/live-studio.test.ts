@@ -3,6 +3,41 @@ import { decodeProjectFile } from "@sidecut/contracts/project";
 import { LiveStudio, LiveStudioRenditions } from "./live-studio";
 import { layerGeometry, sourceCrop } from "./render-plan";
 
+const overlay = (text: string) => ({
+  id: "ov",
+  kind: "banner",
+  text,
+  x: 0.05,
+  y: 0.8,
+  width: 0.9,
+  height: 0.12,
+  color: "#38bdf8",
+  textColor: "#ffffff",
+  opacity: 1,
+  enabled: true,
+  motion: "none",
+  start: 0,
+  duration: 86400,
+});
+
+const projectWithLook = (...overlays: ReturnType<typeof overlay>[]) =>
+  decodeProjectFile({
+    revision: 0,
+    project: {
+      id: "p",
+      settings: { width: 1920, height: 1080 },
+      liveAssets: {
+        background: "solid",
+        color: "#111827",
+        accent: "#38bdf8",
+        speed: 1,
+        motion: true,
+        overlays,
+      },
+      videoTracks: [],
+    },
+  }).project;
+
 const project = (width = 1920) =>
   decodeProjectFile({
     revision: 0,
@@ -50,6 +85,35 @@ describe("saved live scenes", () => {
     studio.switch({ id: "a", expectedRevision: 3 });
     expect(studio.frame(1).sceneRevision).toBe(2);
     expect(frame.sceneRevision).toBe(1);
+  });
+
+  it("paints the on-air scene's latest saved look without a cut", () => {
+    const studio = new LiveStudio();
+    studio.save({
+      id: "a",
+      name: "A",
+      project: projectWithLook(overlay("Invalid!")),
+      expectedRevision: 0,
+    });
+    studio.switch({ id: "a", expectedRevision: 1 });
+    expect(studio.frame(0).assets?.overlays.map((item) => item.text)).toEqual(["Invalid!"]);
+
+    // Saving a look keeps the same on-air snapshot, so the saved edits paint on the same frame.
+    studio.save({
+      id: "a",
+      name: "A",
+      project: projectWithLook(),
+      expectedRevision: 2,
+    });
+    const frame = studio.frame(0);
+    expect(frame.assets?.overlays).toEqual([]);
+    // The composition snapshot itself did not move until the next cut.
+    expect(frame.sceneRevision).toBe(1);
+    expect(studio.activeScene?.revision).toBe(1);
+
+    studio.switch({ id: "a", expectedRevision: 3 });
+    expect(studio.frame(0).assets?.overlays).toEqual([]);
+    expect(studio.frame(0).sceneRevision).toBe(2);
   });
 
   it("rejects stale edits, missing scenes, invalid times and incompatible output changes", () => {

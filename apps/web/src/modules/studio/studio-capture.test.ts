@@ -3,8 +3,10 @@ import {
   CaptureCommandError,
   ClipCapture,
   StudioCapture,
+  bufferCapturing,
   captureNeedsResolution,
   captureTransition,
+  type BufferState,
   type CaptureDeps,
   type ClipsPort,
   type RecorderLike,
@@ -506,5 +508,20 @@ describe("recent clips run beside program recording", () => {
     await clips.importClip(() => Promise.resolve());
     expect(revoked).toEqual(["blob:clip-1"]);
     expect(clips.state.product.kind).toBe("none");
+  });
+});
+
+describe("bufferCapturing", () => {
+  const cases: [BufferState, boolean][] = [
+    [{ kind: "disarmed" }, false],
+    [{ kind: "arming", attempt: 1 }, true],
+    [{ kind: "armed" }, true],
+    [{ kind: "stopping", then: "disarmed" }, true],
+    [{ kind: "stopping", then: "closed" }, true],
+    [{ kind: "failed", message: "source ended" }, false],
+    [{ kind: "closed" }, false],
+  ];
+  it.each(cases)("%o -> %s", (buffer, expected) => {
+    expect(bufferCapturing(buffer)).toBe(expected);
   });
 });

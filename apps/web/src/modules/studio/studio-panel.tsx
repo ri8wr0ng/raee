@@ -73,6 +73,7 @@ import { loadArrangements, loadStudio, saveArrangements, saveStudio } from "./st
 import {
   ClipCapture,
   StudioCapture,
+  bufferCapturing,
   captureNeedsResolution,
   clipsNeedResolution,
   type CaptureDeps,
@@ -90,6 +91,7 @@ import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
+import { lookForScene, programLook, type LookDraft } from "./scene-look";
 import {
   PRE_SCENE,
   SceneSources,
@@ -257,8 +259,16 @@ export default function StudioPanel({
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
   const [draft, setDraft] = useState<LiveAssets>(DEFAULT_LIVE_ASSETS);
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
+  /** The scene `draft` belongs to, kept next to the assets so the two can never disagree. */
+  const draftScene = useRef<string | null>(null);
+  /** What the program and preview painters read: only the draft of the canvas's own scene. */
+  const lookRef = useRef<LookDraft>({ sceneId: null, assets: DEFAULT_LIVE_ASSETS });
+  lookRef.current = { sceneId: draftScene.current, assets: draft };
+  /** Loads a scene's saved look into the editor, with the scene it belongs to. */
+  const loadLook = useCallback((sceneId: string | null, assets: LiveAssets) => {
+    draftScene.current = sceneId;
+    setDraft(assets);
+  }, []);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   /** While an overlay is selected the preview edits overlays instead of sources. */
   const [selectedOverlay, setSelectedOverlay] = useState<string | null>(null);
@@ -485,11 +495,10 @@ export default function StudioPanel({
             const saved = liveAssets(
               loaded.project(initialSelected).liveAssets ?? DEFAULT_LIVE_ASSETS,
             );
-            draftRef.current = saved;
-            setDraft(saved);
+            loadLook(initialSelected, saved);
             setSavedLook(JSON.stringify(saved));
           } catch {
-            // Keep default assets
+            loadLook(initialSelected, DEFAULT_LIVE_ASSETS);
           }
         }
         // The preview shows the selected scene while it is not the one on air.
@@ -506,19 +515,13 @@ export default function StudioPanel({
           (context) => paintSources(context, shown(loaded.activeScene?.id ?? "")),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
-          () => {
-            // Recordings and the clip buffer both capture this canvas; neither gets an unsaved look.
-            if (captureActiveRef.current) return undefined;
-            if (clips.current && clips.current.state.buffer.kind !== "disarmed") return undefined;
-            if (
-              selectedRef.current &&
-              loaded.activeScene &&
-              selectedRef.current !== loaded.activeScene.id
-            ) {
-              return undefined;
-            }
-            return draftRef.current;
-          },
+          (sceneId) =>
+            programLook(sceneId, lookRef.current, {
+              // Recordings and the clip buffer both capture this canvas; neither gets an
+              // unsaved look.
+              recording: captureActiveRef.current,
+              buffering: Boolean(clips.current && bufferCapturing(clips.current.state.buffer)),
+            }),
         );
         if (previewCanvas.current) {
           previewOutput.current = new LiveStudioOutput(
@@ -531,7 +534,7 @@ export default function StudioPanel({
               if (id) paintSources(context, shown(id));
             },
             1080,
-            () => draftRef.current,
+            (sceneId) => lookForScene(sceneId, lookRef.current),
             previewScene,
           );
         }
@@ -595,7 +598,7 @@ export default function StudioPanel({
       mixer.current = null;
       for (const entry of readers.values()) void entry.then((item) => item.close()).catch(() => {});
     };
-  }, [arrangement, projectID, session, shown]);
+  }, [arrangement, loadLook, projectID, session, shown]);
 
   const inputCount = audioInputs.current.length;
   useEffect(() => {
@@ -615,13 +618,13 @@ export default function StudioPanel({
     if (!selected || !studio.current) return;
     try {
       const saved = liveAssets(studio.current.project(selected).liveAssets ?? DEFAULT_LIVE_ASSETS);
-      setDraft(saved);
+      loadLook(selected, saved);
       setSavedLook(JSON.stringify(saved));
     } catch {
-      setDraft(DEFAULT_LIVE_ASSETS);
+      loadLook(selected, DEFAULT_LIVE_ASSETS);
       setSavedLook(JSON.stringify(DEFAULT_LIVE_ASSETS));
     }
-  }, [selected]);
+  }, [loadLook, selected]);
 
   const scenes = studio.current?.list() ?? [];
   const active = studio.current?.activeScene ?? null;
@@ -1228,7 +1231,7 @@ export default function StudioPanel({
         expectedRevision: current.currentRevision,
       });
       if (selected === scene.id) {
-        setDraft(next);
+        loadLook(scene.id, next);
         setSavedLook(JSON.stringify(next));
       }
       commit();
@@ -1321,6 +1324,12 @@ export default function StudioPanel({
         <OverlayStage
           overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
           selected={selectedOverlay}
+          // The canvas already paints the draft look, except on the program canvas while a
+          // take or the clip buffer owns it — only then does the DOM stand-in draw it.
+          standIn={
+            editingProgram &&
+            (captureActive || bufferCapturing(clipState.buffer))
+          }
           onSelect={setSelectedOverlay}
           onChange={(id, rect) =>
             setDraft((current) => ({

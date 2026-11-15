@@ -24,6 +24,15 @@ function sceneProject(scene: SavedScene) {
   projectLiveAssets(project);
   return project;
 }
+/** Decodes a saved scene once per revision; every decode returns a frozen project. */
+function cachedSceneProject(cache: WeakMap<SavedScene, Project>, scene: SavedScene): Project {
+  let project = cache.get(scene);
+  if (!project) {
+    project = freeze(sceneProject(scene));
+    cache.set(scene, project);
+  }
+  return project;
+}
 function freeze<T>(value: T): T {
   if (value && typeof value === "object") {
     for (const child of Object.values(value)) freeze(child);
@@ -129,12 +138,16 @@ export class LiveStudio {
     if (!Number.isFinite(time) || time < 0) throw new Error("Invalid studio time.");
     const active = this.active;
     if (!active) throw new Error("Select a scene first.");
+    // The look is edited live and saved separately from the composition, so a frame always
+    // carries the scene's latest saved look. A stale overlay would otherwise reappear on the
+    // program as soon as the draft stops covering the on-air scene.
+    const saved = this.scenes.get(active.scene.id) ?? active.scene;
     return {
       sceneId: active.scene.id,
       sceneRevision: active.scene.revision,
       commitRevision: active.commitRevision,
       project: active.project,
-      assets: projectLiveAssets(active.project),
+      assets: projectLiveAssets(cachedSceneProject(this.sceneProjects, saved)),
       plan: framePlan(active.project, time),
     };
   }
@@ -147,11 +160,7 @@ export class LiveStudio {
     if (!Number.isFinite(time) || time < 0) throw new Error("Invalid studio time.");
     const scene = this.scenes.get(id);
     if (!scene) throw new Error("Scene unavailable.");
-    let project = this.sceneProjects.get(scene);
-    if (!project) {
-      project = freeze(sceneProject(scene));
-      this.sceneProjects.set(scene, project);
-    }
+    const project = cachedSceneProject(this.sceneProjects, scene);
     return {
       sceneId: scene.id,
       sceneRevision: scene.revision,

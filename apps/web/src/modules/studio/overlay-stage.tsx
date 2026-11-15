@@ -51,12 +51,18 @@ export function OverlayStage({
   onSelect,
   onChange,
   disabled,
+  standIn = false,
 }: {
   overlays: readonly StageOverlay[];
   selected: string | null;
   onSelect: (id: string | null) => void;
   onChange: (id: string, rect: OverlayRect) => void;
   disabled?: boolean | undefined;
+  /**
+   * Paint a DOM stand-in for each overlay. Only needed when the canvas under the stage is
+   * not already painting the unsaved draft look (e.g. the program canvas while recording).
+   */
+  standIn?: boolean | undefined;
 }) {
   const stage = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
@@ -163,7 +169,7 @@ export function OverlayStage({
                 if (!disabled) nudge(event, overlay);
               }}
             >
-              {overlay.color && (
+              {standIn && overlay.color && (
                 <span className="studio-overlay-preview" aria-hidden>
                   {overlay.label}
                 </span>

@@ -9,8 +9,21 @@
 }
 @media (min-width: 1024px) {
   .studio-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    grid-template-columns: minmax(0, 1fr) minmax(320px, clamp(340px, 26vw, 420px));
   }
+}
+
+/* Studio is a workspace, not a reading page: let it use the full window width
+   instead of the 1400px cap .app-page puts on every other page's content. */
+.app-page:has(.studio-layout) > :not(.app-page-header),
+.app-page:has(.studio-layout) > .app-page-header {
+  max-width: none;
+}
+
+/* Section header actions (Add camera / Add screen / Video or audio) must stay
+   inside the card: cap the row at the header width and let the buttons wrap. */
+.studio-section > header > div + div {
+  max-width: 100%;
 }
 
 /* Panels */
