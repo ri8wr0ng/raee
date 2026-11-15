@@ -78,6 +78,7 @@ import {
 } from "./source-layout";
 import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
+import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
 import { SceneLookPanel } from "./scene-look-panel";
 import { Soundboard, SoundboardToggle } from "./soundboard";
@@ -91,6 +92,7 @@ type VideoSource = {
   layout: SourceLayout;
   video: HTMLVideoElement;
   stream: MediaStream;
+  deviceId?: string | undefined;
 };
 type AudioInput = {
   id: string;
@@ -204,6 +206,13 @@ export default function StudioPanel({
   const [savedLook, setSavedLook] = useState("");
   const [settings, setSettings] = useState<Record<string, LiveAudioSettings>>({});
   const { devices: audioDevices } = useAudioInputDevices();
+  const { devices: cameraDevices, refresh: refreshCameraDevices } = useCameraDevices();
+  const [cameraSelectKey, setCameraSelectKey] = useState(0);
+  const usedCameraDeviceIds = new Set(
+    sources.current
+      .filter((s) => s.kind === "camera" && s.deviceId)
+      .map((s) => s.deviceId as string),
+  );
   const [meters, setMeters] = useState<Record<string, number>>({});
   const [mode, setMode] = useState<Mode>("record");
   const [saveTo, setSaveToState] = useState<SaveTo>(readSaveTo);
@@ -494,11 +503,11 @@ export default function StudioPanel({
     setSelectedSource((current) => (current === id ? null : current));
     refresh();
   };
-  const addSource = (kind: VideoSource["kind"]) =>
+  const addSource = (kind: VideoSource["kind"], chosenDeviceId?: string) =>
     attempt(async () => {
       const stream =
         kind === "camera"
-          ? await navigator.mediaDevices.getUserMedia({ video: true })
+          ? await openCamera(chosenDeviceId)
           : // Tab or system audio comes along when the user ticks "Share audio".
             await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
       const video = document.createElement("video");
@@ -515,13 +524,23 @@ export default function StudioPanel({
       const same = sources.current.filter((item) => item.kind === kind);
       const label = `${kind === "camera" ? "Camera" : "Screen"} ${++sourceNumbers.current[kind]}`;
       const layout = defaultLayout(kind, same.length, canvasAspect(), sourceAspect(video));
-      const source: VideoSource = { id, kind, label, layout, video, stream };
+      const deviceId =
+        kind === "camera"
+          ? chosenDeviceId || stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
+          : undefined;
+      const source: VideoSource = { id, kind, label, layout, video, stream, deviceId };
       // New screens go under the cameras so a share never hides the presenter.
       const firstCamera = sources.current.findIndex((item) => item.kind === "camera");
       const at = kind === "screen" && firstCamera >= 0 ? firstCamera : sources.current.length;
       sources.current = [...sources.current.slice(0, at), source, ...sources.current.slice(at)];
       video.onresize = refresh;
-      stream.getVideoTracks()[0]?.addEventListener("ended", () => removeSource(id), { once: true });
+      const onEnded = () => {
+        const current = sources.current.find((item) => item.id === id);
+        if (current?.stream === stream) {
+          removeSource(id);
+        }
+      };
+      stream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
       if (stream.getAudioTracks().length) {
         const audio = await ensureMixer();
         const audioID = `${id}:audio`;
@@ -533,8 +552,50 @@ export default function StudioPanel({
         ];
       }
       setSelectedSource(id);
+      if (kind === "camera") {
+        void refreshCameraDevices();
+      }
       refresh();
     }, `Could not start the ${kind}.`);
+
+  const switchCameraDevice = (id: string, newDeviceId: string) =>
+    attempt(async () => {
+      const source = sources.current.find((item) => item.id === id);
+      if (!source || source.kind !== "camera") return;
+      if (source.deviceId === newDeviceId) return;
+
+      const newStream = await openCamera(newDeviceId);
+      const newVideo = document.createElement("video");
+      newVideo.muted = true;
+      newVideo.playsInline = true;
+      newVideo.srcObject = newStream;
+      try {
+        await newVideo.play();
+      } catch (cause) {
+        for (const track of newStream.getTracks()) track.stop();
+        throw cause;
+      }
+
+      for (const track of source.stream.getTracks()) track.stop();
+      source.video.onresize = null;
+      source.video.srcObject = null;
+
+      source.stream = newStream;
+      source.video = newVideo;
+      source.deviceId = newDeviceId || newStream.getVideoTracks()[0]?.getSettings?.()?.deviceId;
+
+      newVideo.onresize = refresh;
+      const onEnded = () => {
+        const current = sources.current.find((item) => item.id === id);
+        if (current?.stream === newStream) {
+          removeSource(id);
+        }
+      };
+      newStream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
+
+      void refreshCameraDevices();
+      refresh();
+    }, "Could not switch camera device.");
   const placeSource = (id: string, layout: SourceLayout) => {
     const source = sources.current.find((item) => item.id === id);
     if (!source) return;
@@ -1140,10 +1201,46 @@ export default function StudioPanel({
           }
           action={
             <>
-              <Button size="sm" variant="outline" onClick={() => void addSource("camera")}>
-                <RiVideoOnLine data-icon="inline-start" />
-                Add camera
-              </Button>
+              {cameraDevices.length > 1 ? (
+                <Select
+                  key={cameraSelectKey}
+                  value=""
+                  onValueChange={(val) => {
+                    if (!val) return;
+                    void addSource("camera", val);
+                    setCameraSelectKey((k) => k + 1);
+                  }}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    aria-label="Add camera"
+                    className="h-7 text-[0.8rem] rounded-[min(var(--radius-md),12px)] px-2.5"
+                  >
+                    <RiVideoOnLine data-icon="inline-start" className="size-3.5" />
+                    <span>Add camera</span>
+                  </SelectTrigger>
+                  <SelectContent align="end" alignItemWithTrigger={false}>
+                    {cameraDevices.map((device) => {
+                      const isUsed = usedCameraDeviceIds.has(device.deviceId);
+                      return (
+                        <SelectItem key={device.deviceId} value={device.deviceId}>
+                          {device.label}
+                          {isUsed ? " (in use)" : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void addSource("camera", cameraDevices[0]?.deviceId)}
+                >
+                  <RiVideoOnLine data-icon="inline-start" />
+                  Add camera
+                </Button>
+              )}
               <Button size="sm" variant="outline" onClick={() => void addSource("screen")}>
                 <RiComputerLine data-icon="inline-start" />
                 Add screen
@@ -1172,6 +1269,40 @@ export default function StudioPanel({
                       {source.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
                       <span className="truncate">{source.label}</span>
                     </button>
+                    {source.kind === "camera" && cameraDevices.length > 0 && (
+                      <Select
+                        value={source.deviceId || ""}
+                        onValueChange={(val) => {
+                          if (!val || val === source.deviceId) return;
+                          void switchCameraDevice(source.id, val);
+                        }}
+                      >
+                        <SelectTrigger
+                          size="sm"
+                          aria-label={`Switch camera for ${source.label}`}
+                          title="Switch camera device"
+                          className="h-6 max-w-28 px-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                        >
+                          <SelectValue placeholder="Camera">
+                            {cameraDevices.find((d) => d.deviceId === source.deviceId)?.label ??
+                              cameraDevices[0]?.label ??
+                              "Camera"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent align="end" alignItemWithTrigger={false}>
+                          {cameraDevices.map((device) => {
+                            const isCurrent = device.deviceId === source.deviceId;
+                            const isUsed = usedCameraDeviceIds.has(device.deviceId) && !isCurrent;
+                            return (
+                              <SelectItem key={device.deviceId} value={device.deviceId}>
+                                {device.label}
+                                {isUsed ? " (in use)" : ""}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <Button
                       size="icon-xs"
                       variant="ghost"
