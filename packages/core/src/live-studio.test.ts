@@ -98,7 +98,6 @@ describe("saved live scenes", () => {
     studio.switch({ id: "a", expectedRevision: 1 });
     expect(studio.frame(0).assets?.overlays.map((item) => item.text)).toEqual(["Invalid!"]);
 
-    // Saving a look keeps the same on-air snapshot, so the saved edits paint on the same frame.
     studio.save({
       id: "a",
       name: "A",
@@ -107,7 +106,6 @@ describe("saved live scenes", () => {
     });
     const frame = studio.frame(0);
     expect(frame.assets?.overlays).toEqual([]);
-    // The composition snapshot itself did not move until the next cut.
     expect(frame.sceneRevision).toBe(1);
     expect(studio.activeScene?.revision).toBe(1);
 

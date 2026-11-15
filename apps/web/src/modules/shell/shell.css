@@ -71,8 +71,7 @@
 }
 .app-page {
   height: 100%;
-  /* Keep absolutely positioned descendants (sr-only radios, color inputs) inside this scroll container.
-     Without a positioned ancestor they anchor to <body>, escape the scroll area and add a second page scrollbar. */
+  /* Contain sr-only/absolute descendants so they don't add a page scrollbar. */
   position: relative;
   overflow-y: auto;
   padding: 24px clamp(16px, 4vw, 40px) 40px;

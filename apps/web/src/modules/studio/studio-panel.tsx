@@ -259,12 +259,10 @@ export default function StudioPanel({
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
   const [draft, setDraft] = useState<LiveAssets>(DEFAULT_LIVE_ASSETS);
-  /** The scene `draft` belongs to, kept next to the assets so the two can never disagree. */
   const draftScene = useRef<string | null>(null);
-  /** What the program and preview painters read: only the draft of the canvas's own scene. */
+  /** What the canvas painters read: the draft scoped to each canvas's own scene. */
   const lookRef = useRef<LookDraft>({ sceneId: null, assets: DEFAULT_LIVE_ASSETS });
   lookRef.current = { sceneId: draftScene.current, assets: draft };
-  /** Loads a scene's saved look into the editor, with the scene it belongs to. */
   const loadLook = useCallback((sceneId: string | null, assets: LiveAssets) => {
     draftScene.current = sceneId;
     setDraft(assets);
@@ -517,8 +515,7 @@ export default function StudioPanel({
           1080,
           (sceneId) =>
             programLook(sceneId, lookRef.current, {
-              // Recordings and the clip buffer both capture this canvas; neither gets an
-              // unsaved look.
+              // Captures must not include unsaved looks.
               recording: captureActiveRef.current,
               buffering: Boolean(clips.current && bufferCapturing(clips.current.state.buffer)),
             }),
@@ -1324,8 +1321,7 @@ export default function StudioPanel({
         <OverlayStage
           overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
           selected={selectedOverlay}
-          // The canvas already paints the draft look, except on the program canvas while a
-          // take or the clip buffer owns it — only then does the DOM stand-in draw it.
+          // The canvas paints the draft look except while a take or clip buffer owns it.
           standIn={editingProgram && (captureActive || bufferCapturing(clipState.buffer))}
           onSelect={setSelectedOverlay}
           onChange={(id, rect) =>

@@ -373,11 +373,7 @@ export type ProductState =
   | { kind: "closed" };
 export type ClipsState = { buffer: BufferState; product: ProductState };
 
-/**
- * True while the buffer holds or is acquiring the program stream: arming has already called
- * acquire (the canvas stream exists), armed records, and stopping drains the recorder.
- * failed, closed and disarmed capture nothing.
- */
+/** True while the buffer holds or is acquiring the program stream. */
 export function bufferCapturing(buffer: BufferState) {
   return buffer.kind === "arming" || buffer.kind === "armed" || buffer.kind === "stopping";
 }

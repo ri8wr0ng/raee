@@ -13,15 +13,13 @@
   }
 }
 
-/* Studio is a workspace, not a reading page: let it use the full window width
-   instead of the 1400px cap .app-page puts on every other page's content. */
+/* Studio uses the full window width, not the 1400px .app-page cap. */
 .app-page:has(.studio-layout) > :not(.app-page-header),
 .app-page:has(.studio-layout) > .app-page-header {
   max-width: none;
 }
 
-/* Section header actions (Add camera / Add screen / Video or audio) must stay
-   inside the card: cap the row at the header width and let the buttons wrap. */
+/* Keep section header actions inside the card so the buttons wrap. */
 .studio-section > header > div + div {
   max-width: 100%;
 }

@@ -58,10 +58,7 @@ export function OverlayStage({
   onSelect: (id: string | null) => void;
   onChange: (id: string, rect: OverlayRect) => void;
   disabled?: boolean | undefined;
-  /**
-   * Paint a DOM stand-in for each overlay. Only needed when the canvas under the stage is
-   * not already painting the unsaved draft look (e.g. the program canvas while recording).
-   */
+  /** Draws DOM stand-ins for when the canvas below isn't painting the draft look. */
   standIn?: boolean | undefined;
 }) {
   const stage = useRef<HTMLDivElement>(null);

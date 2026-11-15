@@ -24,7 +24,6 @@ function sceneProject(scene: SavedScene) {
   projectLiveAssets(project);
   return project;
 }
-/** Decodes a saved scene once per revision; every decode returns a frozen project. */
 function cachedSceneProject(cache: WeakMap<SavedScene, Project>, scene: SavedScene): Project {
   let project = cache.get(scene);
   if (!project) {
@@ -138,9 +137,7 @@ export class LiveStudio {
     if (!Number.isFinite(time) || time < 0) throw new Error("Invalid studio time.");
     const active = this.active;
     if (!active) throw new Error("Select a scene first.");
-    // The look is edited live and saved separately from the composition, so a frame always
-    // carries the scene's latest saved look. A stale overlay would otherwise reappear on the
-    // program as soon as the draft stops covering the on-air scene.
+    // Looks are saved separately from cuts, so paint the latest saved look.
     const saved = this.scenes.get(active.scene.id) ?? active.scene;
     return {
       sceneId: active.scene.id,

@@ -4,10 +4,7 @@ import { paintLiveEngagement, type LiveEngagement } from "./live-engagement";
 import { paintPicture } from "./picture";
 import { paintLiveBackground, paintLiveOverlays } from "./live-assets";
 
-/**
- * The look to paint instead of the frame's saved one. It is asked about the scene the frame
- * belongs to, so an unsaved draft can only ever cover its own scene, never another one.
- */
+/** Asked per frame about that frame's scene, so a draft covers only its own scene. */
 export type LivePreviewAssets = (sceneId: string) => LiveAssets | undefined;
 
 /** Preview this canvas and record its stream; both receive the same completed frame. */
@@ -34,7 +31,7 @@ export class LiveStudioOutput {
     private readonly engagement?: LiveEngagement,
     private readonly liveLayers?: (context: CanvasRenderingContext2D, time: number) => void,
     private readonly maxOutputHeight = Number.POSITIVE_INFINITY,
-    /** Paints this look instead of the saved one, for the scene it is asked about (the draft). */
+    /** Paints the draft look instead of the saved one, for the scene it is asked about. */
     previewAssets?: LivePreviewAssets,
     /**
      * Renders the saved scene this returns instead of the live one: an OBS-style

@@ -357,7 +357,6 @@ describe("LiveStudioOutput previewAssets override", () => {
 
     const canvas = makeMockCanvas() as unknown as HTMLCanvasElement;
     const asked: string[] = [];
-    // The draft belongs to scene two while the program shows scene one.
     const draft = look("Draft Two");
     const output = new LiveStudioOutput(
       canvas,
@@ -377,12 +376,10 @@ describe("LiveStudioOutput previewAssets override", () => {
       .staging.ctx;
 
     await output.render(1);
-    // The override is consulted with the on-air scene, so the other scene's draft never paints.
     expect(asked).toEqual(["s1"]);
     expect(stagingCtx.calls).toContain("fillText:Saved One");
     expect(stagingCtx.calls).not.toContain("fillText:Draft Two");
 
-    // Cutting to scene two lets its own draft cover its saved look.
     stagingCtx.calls.length = 0;
     studio.switch({ id: "s2", expectedRevision: 3 });
     await output.render(1);

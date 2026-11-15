@@ -31,9 +31,7 @@ describe("scene look painting", () => {
     const draft = { sceneId: "one", assets: look(overlay("ov", "Invalid!")) };
 
     expect(texts(lookForScene("one", draft))).toEqual(["Invalid!"]);
-    // The program is on another scene, so the editor's draft must not reach it.
     expect(lookForScene("two", draft)).toBeUndefined();
-    // Nothing on air and no editor scene: the compositor paints the saved look.
     expect(lookForScene(null, draft)).toBeUndefined();
     expect(lookForScene("one", null)).toBeUndefined();
   });
@@ -54,7 +52,6 @@ describe("scene look painting", () => {
   });
 
   it("drops the draft on a scene cut so the on-air scene's own look paints", () => {
-    // Scene one's draft still holds the banner after the program cuts to scene two.
     const draft = { sceneId: "one", assets: look(overlay("ov", "Invalid!")) };
 
     expect(programLook("two", draft, { recording: false, buffering: false })).toBeUndefined();
