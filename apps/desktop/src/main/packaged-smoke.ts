@@ -37,18 +37,18 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
   assert.equal(isolation.require, "undefined");
   assert.equal(isolation.bridge, "function");
   await wait(
-    `document.querySelector('.editor-brand img')?.naturalWidth > 0 && document.title === 'raE.E'`,
+    `document.querySelector('.app-rail-brand img')?.naturalWidth > 0 && document.title === 'raE.E'`,
   );
   const branding = await evaluate(`(async () => ({
     title: document.title,
-    wordmark: document.querySelector('.editor-brand')?.textContent.trim(),
+    brandLabel: document.querySelector('.app-rail-brand')?.getAttribute('aria-label'),
     label: document.querySelector('main')?.getAttribute('aria-label'),
-    markLoaded: document.querySelector('.editor-brand img')?.naturalWidth > 0,
+    markLoaded: document.querySelector('.app-rail-brand img')?.naturalWidth > 0,
     faviconLoaded: (await fetch(document.querySelector('link[rel="icon"][type="image/svg+xml"]').href)).ok,
   }))()`);
   assert.equal(app.getName(), "raE.E");
   assert.equal(branding.title, "raE.E");
-  assert.equal(branding.wordmark, "raE.E");
+  assert.equal(branding.brandLabel, "raE.E home");
   assert.equal(branding.label, "raE.E video editor");
   assert.equal(branding.markLoaded, true);
   assert.equal(branding.faviconLoaded, true);

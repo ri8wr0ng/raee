@@ -15,7 +15,7 @@ const executable =
       ? join(
           release,
           `mac${process.arch === "arm64" ? "-arm64" : ""}`,
-          "raE.E.app/Contents/MacOS/SideCut",
+          "SideCut.app/Contents/MacOS/SideCut",
         )
       : process.platform === "linux"
         ? join(release, `linux${process.arch === "arm64" ? "-arm64" : ""}-unpacked`, "sidecut")
@@ -88,7 +88,7 @@ try {
   assert.equal(reopened.reopened, true);
   for (const branding of [result.branding, reopened.branding]) {
     assert.equal(branding.title, "raE.E");
-    assert.equal(branding.wordmark, "raE.E");
+    assert.equal(branding.brandLabel, "raE.E home");
     assert.equal(branding.label, "raE.E video editor");
     assert.equal(branding.markLoaded, true);
     assert.equal(branding.faviconLoaded, true);
