@@ -81,6 +81,7 @@ import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
 import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
+import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
@@ -501,6 +502,15 @@ export default function StudioPanel({
       setSelected(id);
       commit();
     }, "The scene could not be switched.");
+  // The deck changes only what is on air; `selected` and its draft stay put so an
+  // unsaved look being edited is never thrown away by a quick scene cut.
+  const switchOnAir = (id: string) =>
+    attempt(() => {
+      const current = studio.current;
+      if (!current || current.activeScene?.id === id) return;
+      current.switch({ id, expectedRevision: current.currentRevision });
+      commit();
+    }, "The scene could not be switched.");
   const remove = (id: string) =>
     attempt(() => {
       const current = studio.current;
@@ -871,6 +881,12 @@ export default function StudioPanel({
             )}
           </div>
         </div>
+        <SceneDeck
+          scenes={scenes}
+          activeId={active?.id ?? null}
+          live={captureActive || (mode !== "record" && canStream)}
+          onSwitch={(id) => void switchOnAir(id)}
+        />
         {(error || captureFailure) && (
           <p role="alert" className="studio-alert">
             {error || captureFailure}
