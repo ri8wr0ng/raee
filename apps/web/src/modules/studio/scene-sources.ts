@@ -1,118 +1,86 @@
 import type { SourceLayout } from "./source-layout";
 
-/** One open or saved source as one scene shows it. */
+/** One camera or screen as one scene shows it; also the saved form. */
 export type Placement = {
-  /** Stable identity surviving reloads (e.g. "camera:<deviceId>" or "screen:<n>"). */
-  identity?: string | undefined;
-  /** UI label, e.g. "Camera 1" or "Screen 1". */
-  label?: string | undefined;
-  /** Kind of video source. */
-  kind?: "camera" | "screen" | undefined;
-  /** Placement geometry on canvas. */
-  layout: SourceLayout;
-  /** Optional camera deviceId. */
-  deviceId?: string | undefined;
-  /** Deprecated alias for identity. */
-  sourceId?: string | undefined;
-};
-
-export type SavedPlacement = {
+  /** Survives reloads: "camera:<deviceId>" (with "#n" when a device is open twice) or "screen:<n>". */
   identity: string;
+  /** What the Sources panel calls it, e.g. "Camera 1". */
   label: string;
   kind: "camera" | "screen";
   layout: SourceLayout;
+  /** The camera to reopen on Reconnect. */
   deviceId?: string | undefined;
 };
 
 export type SavedArrangements = {
   sourceNumbers: { camera: number; screen: number };
-  scenes: Record<string, SavedPlacement[]>;
+  scenes: Record<string, Placement[]>;
 };
 
-const idOf = (p: Placement) => p.identity ?? p.sourceId ?? "";
+/** The scene key for sources arranged before any scene exists. */
+export const PRE_SCENE = "";
+
+const clone = (item: Placement): Placement => ({ ...item, layout: { ...item.layout } });
 
 /**
- * Which open or saved sources each scene shows, where, and in what order (bottom layer first).
- * Sources themselves are live streams shared by scenes; a scene only places them.
- * The key "" holds the arrangement made before any scene exists.
+ * Which sources each scene shows, where, and in what order (bottom layer first).
+ * Sources are keyed by identity, so a scene keeps its placements while a source is not
+ * connected and gets them back when the same camera or screen is reopened.
  */
 export class SceneSources {
   #scenes = new Map<string, Placement[]>();
-
-  constructor(scenes?: Record<string, SavedPlacement[]> | Map<string, Placement[]>) {
-    if (scenes) {
-      if (scenes instanceof Map) {
-        for (const [k, v] of scenes) this.#scenes.set(k, [...v]);
-      } else {
-        this.restore(scenes);
-      }
-    }
-  }
 
   of(scene: string): readonly Placement[] {
     return this.#scenes.get(scene) ?? [];
   }
 
-  has(scene: string, id: string): boolean {
-    return this.of(scene).some((item) => idOf(item) === id);
+  has(scene: string, identity: string) {
+    return this.of(scene).some((item) => item.identity === identity);
   }
 
-  /** Whether any scene still shows or saves the source. */
-  used(id: string): boolean {
-    for (const list of this.#scenes.values()) {
-      if (list.some((item) => idOf(item) === id)) return true;
-    }
-    return false;
+  /** Whether any scene places the source. */
+  used(identity: string) {
+    return this.scenesWith(identity).length > 0;
   }
 
-  /** Which scenes place this source identity. */
-  scenesWith(id: string): string[] {
-    const result: string[] = [];
-    for (const [scene, list] of this.#scenes) {
-      if (list.some((item) => idOf(item) === id)) {
-        result.push(scene);
-      }
-    }
-    return result;
+  /** The scenes that place this source. */
+  scenesWith(identity: string) {
+    return [...this.#scenes]
+      .filter(([, list]) => list.some((item) => item.identity === identity))
+      .map(([scene]) => scene);
   }
 
   add(scene: string, placement: Placement, at = this.of(scene).length) {
-    const id = idOf(placement);
-    const list = this.of(scene).filter((item) => idOf(item) !== id);
+    const list = this.of(scene).filter((item) => item.identity !== placement.identity);
     const index = Math.max(0, Math.min(at, list.length));
-    this.#scenes.set(scene, [...list.slice(0, index), { ...placement }, ...list.slice(index)]);
+    this.#scenes.set(scene, [...list.slice(0, index), clone(placement), ...list.slice(index)]);
   }
 
-  /** Takes the source off one scene. Returns true when no scene shows it any more. */
-  remove(scene: string, id: string): boolean {
+  /** Takes the source off one scene. Returns true when no scene places it any more. */
+  remove(scene: string, identity: string) {
     this.#scenes.set(
       scene,
-      this.of(scene).filter((item) => idOf(item) !== id),
+      this.of(scene).filter((item) => item.identity !== identity),
     );
-    return !this.used(id);
+    return !this.used(identity);
   }
 
-  /** Takes the source off every scene, for a stream that ended. */
-  forget(id: string) {
-    for (const [scene, list] of this.#scenes) {
-      this.#scenes.set(
-        scene,
-        list.filter((item) => idOf(item) !== id),
-      );
-    }
+  /** Takes the source off every scene. */
+  forget(identity: string) {
+    for (const scene of this.#scenes.keys()) this.remove(scene, identity);
   }
 
-  place(scene: string, id: string, layout: SourceLayout) {
+  place(scene: string, identity: string, layout: SourceLayout) {
     this.#scenes.set(
       scene,
-      this.of(scene).map((item) => (idOf(item) === id ? { ...item, layout } : item)),
+      this.of(scene).map((item) => (item.identity === identity ? { ...item, layout } : item)),
     );
   }
 
   /** Moves a source one layer up (towards the viewer) or down within one scene. */
-  restack(scene: string, id: string, step: 1 | -1) {
+  restack(scene: string, identity: string, step: 1 | -1) {
     const list = [...this.of(scene)];
-    const from = list.findIndex((item) => idOf(item) === id);
+    const from = list.findIndex((item) => item.identity === identity);
     const to = from + step;
     if (from < 0 || to < 0 || to >= list.length) return;
     [list[from], list[to]] = [list[to]!, list[from]!];
@@ -121,103 +89,41 @@ export class SceneSources {
 
   /** Starts a scene from another scene's arrangement. */
   copy(from: string, to: string) {
-    this.#scenes.set(
-      to,
-      this.of(from).map((item) => ({ ...item, layout: { ...item.layout } })),
-    );
+    this.#scenes.set(to, this.of(from).map(clone));
   }
 
-  /** Forgets a scene. Returns the source identities that no scene shows any more. */
-  drop(scene: string): string[] {
+  /** Forgets a scene. Returns the sources that no scene places any more. */
+  drop(scene: string) {
     const list = this.of(scene);
     this.#scenes.delete(scene);
-    return list.map((item) => idOf(item)).filter((id) => Boolean(id) && !this.used(id));
+    return list.map((item) => item.identity).filter((identity) => !this.used(identity));
   }
 
-  /** Clears all arrangements. */
   clear() {
     this.#scenes.clear();
   }
 
-  /** Updates an identity across all scenes (e.g. camera device switch). */
-  updateIdentity(oldId: string, newId: string, newDeviceId?: string) {
-    for (const [scene, list] of this.#scenes) {
+  /** Re-keys a source in every scene, e.g. after its camera device is switched. */
+  updateIdentity(from: string, to: string, deviceId?: string) {
+    for (const [scene, list] of this.#scenes)
       this.#scenes.set(
         scene,
-        list.map((item) => {
-          if (idOf(item) === oldId) {
-            return {
-              ...item,
-              identity: newId,
-              sourceId: item.sourceId ? newId : undefined,
-              ...(newDeviceId ? { deviceId: newDeviceId } : {}),
-            };
-          }
-          return item;
-        }),
+        list.map((item) =>
+          item.identity === from
+            ? { ...item, identity: to, ...(deviceId ? { deviceId } : {}) }
+            : item,
+        ),
       );
-    }
   }
 
-  /** Restores arrangements from saved state. */
-  restore(scenes: Record<string, SavedPlacement[]>) {
+  restore(scenes: Record<string, readonly Placement[]>) {
     this.#scenes.clear();
-    for (const [scene, placements] of Object.entries(scenes)) {
-      if (Array.isArray(placements)) {
-        this.#scenes.set(
-          scene,
-          placements.map((p) => ({
-            identity: p.identity,
-            label: p.label,
-            kind: p.kind,
-            layout: { ...p.layout },
-            ...(p.deviceId ? { deviceId: p.deviceId } : {}),
-          })),
-        );
-      }
-    }
+    for (const [scene, list] of Object.entries(scenes)) this.#scenes.set(scene, list.map(clone));
   }
 
-  /** Serializes current arrangements for persistence. */
-  serialize(): Record<string, SavedPlacement[]> {
-    const result: Record<string, SavedPlacement[]> = {};
-    for (const [scene, list] of this.#scenes) {
-      if (list.length > 0) {
-        result[scene] = list.map((item) => {
-          const identity = idOf(item);
-          const kind = item.kind ?? (identity.startsWith("screen") ? "screen" : "camera");
-          const label = item.label ?? (kind === "screen" ? "Screen" : "Camera");
-          return {
-            identity,
-            label,
-            kind,
-            layout: { ...item.layout },
-            ...(item.deviceId ? { deviceId: item.deviceId } : {}),
-          };
-        });
-      }
-    }
-    return result;
-  }
-
-  /** Placements in a scene whose identity is not in the live set. */
-  missing(scene: string, liveIdentities: Iterable<string>): SavedPlacement[] {
-    const liveSet = new Set(liveIdentities);
-    const result: SavedPlacement[] = [];
-    for (const item of this.of(scene)) {
-      const id = idOf(item);
-      if (id && !liveSet.has(id)) {
-        const kind = item.kind ?? (id.startsWith("screen") ? "screen" : "camera");
-        const label = item.label ?? (kind === "screen" ? "Screen" : "Camera");
-        result.push({
-          identity: id,
-          label,
-          kind,
-          layout: { ...item.layout },
-          ...(item.deviceId ? { deviceId: item.deviceId } : {}),
-        });
-      }
-    }
+  serialize(): Record<string, Placement[]> {
+    const result: Record<string, Placement[]> = {};
+    for (const [scene, list] of this.#scenes) if (list.length) result[scene] = list.map(clone);
     return result;
   }
 }

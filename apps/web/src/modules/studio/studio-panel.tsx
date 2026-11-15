@@ -85,7 +85,7 @@ import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
-import { SceneSources, type SavedArrangements } from "./scene-sources";
+import { PRE_SCENE, SceneSources, type SavedArrangements } from "./scene-sources";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
 import { activeLiveSceneKey, gateSourceKey, isAudioInputOpen } from "./audio-gate";
@@ -192,7 +192,7 @@ export default function StudioPanel({
   const shown = useCallback(
     (scene: string): ShownSource[] =>
       arrangement.of(scene).flatMap((placement) => {
-        const id = placement.identity ?? placement.sourceId;
+        const id = placement.identity;
         const source = sources.current.find((item) => item.identity === id || item.id === id);
         return source ? [{ ...source, layout: placement.layout }] : [];
       }),
@@ -588,7 +588,7 @@ export default function StudioPanel({
   }, [syncAudioGates, liveKey]);
   const selectedScene = scenes.find((scene) => scene.id === selected);
   /** The Sources panel arranges the selected scene ("" before any scene exists). */
-  const editKey = selected ?? "";
+  const editKey = selected ?? PRE_SCENE;
   const editSources = shown(editKey);
   const scenePlacements = arrangement.of(editKey);
   const otherSources = sources.current.filter(
@@ -791,7 +791,7 @@ export default function StudioPanel({
             ...Array.from(arrangement.scenesWith(baseIdentity)).flatMap((s) => arrangement.of(s)),
           ];
           const missingPlacement = sceneCandidates.find((p) => {
-            const placementId = p.identity ?? p.sourceId ?? "";
+            const placementId = p.identity;
             const matchesDevice =
               placementId === baseIdentity || placementId.startsWith(`${baseIdentity}#`);
             const isLive = sources.current.some((s) => s.identity === placementId);
@@ -799,8 +799,8 @@ export default function StudioPanel({
           });
 
           if (missingPlacement) {
-            identity = missingPlacement.identity ?? missingPlacement.sourceId!;
-            label = missingPlacement.label ?? `Camera ${sourceNumbers.current.camera || 1}`;
+            identity = missingPlacement.identity;
+            label = missingPlacement.label;
           } else {
             const isBaseIdentityLive = sources.current.some((s) => s.identity === baseIdentity);
             const n = ++sourceNumbers.current.camera;
@@ -820,14 +820,14 @@ export default function StudioPanel({
             ...allScenes.flatMap((s) => arrangement.of(s)),
           ];
           const missingScreen = sceneCandidates.find((p) => {
-            const placementId = p.identity ?? p.sourceId ?? "";
+            const placementId = p.identity;
             const isScreen = p.kind === "screen" || placementId.startsWith("screen:");
             const isLive = sources.current.some((s) => s.identity === placementId);
             return isScreen && !isLive;
           });
           if (missingScreen) {
-            identity = missingScreen.identity ?? missingScreen.sourceId!;
-            label = missingScreen.label ?? identity.replace("screen:", "Screen ");
+            identity = missingScreen.identity;
+            label = missingScreen.label;
           } else {
             const n = ++sourceNumbers.current.screen;
             identity = `screen:${n}`;
@@ -1648,7 +1648,7 @@ export default function StudioPanel({
             <ul className="studio-list">
               {/* Top layer first, like a layers panel. */}
               {[...scenePlacements].reverse().map((placement, fromTop, list) => {
-                const identity = placement.identity ?? placement.sourceId ?? "";
+                const identity = placement.identity;
                 const live = sources.current.find(
                   (s) => s.identity === identity || s.id === identity,
                 );
@@ -1759,10 +1759,7 @@ export default function StudioPanel({
                   );
                 }
 
-                const label =
-                  placement.label ?? (identity.startsWith("screen:") ? "Screen" : "Camera");
-                const kind =
-                  placement.kind ?? (identity.startsWith("screen:") ? "screen" : "camera");
+                const { label, kind } = placement;
                 const deviceId =
                   placement.deviceId ??
                   (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);

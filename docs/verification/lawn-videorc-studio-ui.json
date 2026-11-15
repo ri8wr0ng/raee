@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-15T19:16:09.405Z",
+  "testedAt": "2026-11-15T19:19:35.489Z",
   "platform": "win32",
   "production": true,
   "syntheticDevices": true,
@@ -54,7 +54,7 @@
         1920,
         1080
       ],
-      "bytes": 1105026,
+      "bytes": 1103498,
       "audio": 1,
       "banner": [
         55,

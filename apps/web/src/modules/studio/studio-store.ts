@@ -1,5 +1,5 @@
 import { LiveStudio } from "@sidecut/core/live-studio";
-import type { SavedArrangements, SavedPlacement } from "./scene-sources";
+import type { SavedArrangements, Placement } from "./scene-sources";
 
 const DIRECTORY = "live-studio";
 const fileName = (projectID: string) => `${encodeURIComponent(projectID)}.json`;
@@ -72,7 +72,7 @@ export function parseArrangements(text: string): SavedArrangements {
   for (const [scene, list] of Object.entries(rawScenes as Record<string, unknown>)) {
     if (!Array.isArray(list)) continue;
     const seen = new Set<string>();
-    const placements: SavedPlacement[] = [];
+    const placements: Placement[] = [];
     for (const item of list as unknown[]) {
       if (!item || typeof item !== "object") continue;
       const { identity, label, kind, layout, deviceId } = item as Record<string, unknown>;
