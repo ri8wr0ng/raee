@@ -160,6 +160,9 @@
   grid-column: 1 / -1;
 }
 .editor-media-row {
+  /* Anchor the floating actions to the header row, not the whole item,
+     so they stay put when the settings panel expands below. */
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
