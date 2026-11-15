@@ -184,6 +184,16 @@ try {
   });
   result.checks.sourceAspectChange = true;
 
+  // Sources belong to a scene: Scene 1 never got the camera, so cutting to it hides it.
+  await button("Switch to Scene 1").click();
+  await page.waitForTimeout(600);
+  assert.deepEqual((await pixel(0.5, 0.5)).slice(0, 3), [17, 24, 39], "camera leaked to Scene 1");
+  assert.equal(await dialog.getByRole("group", { name: /^Camera 1 position/ }).count(), 0);
+  await dialog.getByLabel("Add an open source").waitFor();
+  await button("Switch to Scene 2").click();
+  await cameraBox.waitFor();
+  result.checks.perSceneSources = true;
+
   // Screen source through the real picker path.
   await button("Add screen").click();
   await page.waitForTimeout(1500);

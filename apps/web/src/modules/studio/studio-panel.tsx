@@ -85,6 +85,7 @@ import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
+import { SceneSources } from "./scene-sources";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
 import "./studio.css";
@@ -93,7 +94,6 @@ type VideoSource = {
   id: string;
   kind: "camera" | "screen";
   label: string;
-  layout: SourceLayout;
   video: HTMLVideoElement;
   stream: MediaStream;
   deviceId?: string | undefined;
@@ -124,8 +124,10 @@ const message = (cause: unknown, fallback: string) =>
 const sourceAspect = (video: HTMLVideoElement) =>
   video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
 
+type ShownSource = VideoSource & { layout: SourceLayout };
+
 /** Draws sources bottom to top, each where the user placed it on the program canvas. */
-function paintSources(context: CanvasRenderingContext2D, sources: readonly VideoSource[]) {
+function paintSources(context: CanvasRenderingContext2D, sources: readonly ShownSource[]) {
   const { width, height } = context.canvas;
   for (const { video, layout } of sources) {
     if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) continue;
@@ -178,7 +180,19 @@ export default function StudioPanel({
   const studio = useRef<LiveStudio | null>(null);
   const output = useRef<LiveStudioOutput | null>(null);
   const mixer = useRef<LiveAudioMixer | null>(null);
+  /** Every open camera and screen; scenes share these streams. */
   const sources = useRef<VideoSource[]>([]);
+  /** Which open sources each scene shows, and where. */
+  const arrangement = useRef(new SceneSources()).current;
+  /** The sources a scene shows, bottom layer first. */
+  const shown = useCallback(
+    (scene: string): ShownSource[] =>
+      arrangement.of(scene).flatMap(({ sourceId, layout }) => {
+        const source = sources.current.find((item) => item.id === sourceId);
+        return source ? [{ ...source, layout }] : [];
+      }),
+    [arrangement],
+  );
   const audioInputs = useRef<AudioInput[]>([]);
   /** Soundboard pads that are playing right now, by pad id. */
   const playingPads = useRef(new Set<string>());
@@ -397,7 +411,7 @@ export default function StudioPanel({
           loaded,
           reader,
           { target: "stream", chat: liveChatRef.current },
-          (context) => paintSources(context, sources.current),
+          (context) => paintSources(context, shown(loaded.activeScene?.id ?? "")),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
           () => {
@@ -451,7 +465,7 @@ export default function StudioPanel({
       mixer.current = null;
       for (const entry of readers.values()) void entry.then((item) => item.close()).catch(() => {});
     };
-  }, [projectID, session]);
+  }, [projectID, session, shown]);
 
   const inputCount = audioInputs.current.length;
   useEffect(() => {
@@ -482,6 +496,12 @@ export default function StudioPanel({
   const scenes = studio.current?.list() ?? [];
   const active = studio.current?.activeScene ?? null;
   const selectedScene = scenes.find((scene) => scene.id === selected);
+  /** The Sources panel arranges the selected scene ("" before any scene exists). */
+  const editKey = selected ?? "";
+  const editSources = shown(editKey);
+  const otherSources = sources.current.filter((source) => !arrangement.has(editKey, source.id));
+  /** Sources can be dragged only while the preview shows the scene being arranged. */
+  const editingProgram = Boolean(active && active.id === editKey);
 
   const saveFromEditor = (existing?: { id: string; name: string }) =>
     attempt(() => {
@@ -495,6 +515,11 @@ export default function StudioPanel({
         project: { ...session.getSnapshot().project, liveAssets: look ?? DEFAULT_LIVE_ASSETS },
         expectedRevision: current.currentRevision,
       });
+      // A new scene starts with the sources of the scene it was made from.
+      if (!existing) {
+        arrangement.copy(selectedRef.current ?? "", id);
+        if (!selectedRef.current) arrangement.drop("");
+      }
       setSelected(id);
       if (!existing) setName(`Scene ${current.list().length + 1}`);
       commit();
@@ -521,6 +546,7 @@ export default function StudioPanel({
       const current = studio.current;
       if (!current) return;
       current.remove({ id, expectedRevision: current.currentRevision });
+      for (const orphan of arrangement.drop(id)) closeSource(orphan);
       if (selected === id) setSelected(current.activeScene?.id ?? current.list()[0]?.id ?? null);
       commit();
     }, "The scene could not be removed.");
@@ -540,9 +566,11 @@ export default function StudioPanel({
       commit();
     }, "The look could not be applied.");
 
-  const removeSource = (id: string) => {
+  /** Stops an open source and takes it off every scene. */
+  const closeSource = (id: string) => {
     const source = sources.current.find((item) => item.id === id);
     if (!source) return;
+    arrangement.forget(id);
     sources.current = sources.current.filter((item) => item.id !== id);
     for (const track of source.stream.getTracks()) track.stop();
     source.video.onresize = null;
@@ -551,8 +579,37 @@ export default function StudioPanel({
     setSelectedSource((current) => (current === id ? null : current));
     refresh();
   };
+  /** Places a source on a scene, screens under cameras so a share never hides the presenter. */
+  const placeOnScene = (scene: string, source: VideoSource) => {
+    const placed = shown(scene);
+    const same = placed.filter((item) => item.kind === source.kind);
+    const layout = defaultLayout(
+      source.kind,
+      same.length,
+      canvasAspect(),
+      sourceAspect(source.video),
+    );
+    const firstCamera = placed.findIndex((item) => item.kind === "camera");
+    const at = source.kind === "screen" && firstCamera >= 0 ? firstCamera : placed.length;
+    arrangement.add(scene, { sourceId: source.id, layout }, at);
+  };
+  /** Takes a source off the scene being arranged, closing it once no scene shows it. */
+  const removeSource = (id: string) => {
+    if (arrangement.remove(editKey, id)) closeSource(id);
+    setSelectedSource((current) => (current === id ? null : current));
+    refresh();
+  };
+  const addExisting = (id: string) => {
+    const source = sources.current.find((item) => item.id === id);
+    if (!source) return;
+    placeOnScene(editKey, source);
+    setSelectedSource(id);
+    refresh();
+  };
   const addSource = (kind: VideoSource["kind"], chosenDeviceId?: string) =>
     attempt(async () => {
+      // The scene picked when the user asked, even if they pick another while a prompt is open.
+      const scene = selectedRef.current ?? "";
       const stream =
         kind === "camera"
           ? await openCamera(chosenDeviceId)
@@ -569,23 +626,19 @@ export default function StudioPanel({
         for (const track of stream.getTracks()) track.stop();
         throw cause;
       }
-      const same = sources.current.filter((item) => item.kind === kind);
       const label = `${kind === "camera" ? "Camera" : "Screen"} ${++sourceNumbers.current[kind]}`;
-      const layout = defaultLayout(kind, same.length, canvasAspect(), sourceAspect(video));
       const deviceId =
         kind === "camera"
           ? chosenDeviceId || stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
           : undefined;
-      const source: VideoSource = { id, kind, label, layout, video, stream, deviceId };
-      // New screens go under the cameras so a share never hides the presenter.
-      const firstCamera = sources.current.findIndex((item) => item.kind === "camera");
-      const at = kind === "screen" && firstCamera >= 0 ? firstCamera : sources.current.length;
-      sources.current = [...sources.current.slice(0, at), source, ...sources.current.slice(at)];
+      const source: VideoSource = { id, kind, label, video, stream, deviceId };
+      sources.current = [...sources.current, source];
+      placeOnScene(scene, source);
       video.onresize = refresh;
       const onEnded = () => {
         const current = sources.current.find((item) => item.id === id);
         if (current?.stream === stream) {
-          removeSource(id);
+          closeSource(id);
         }
       };
       stream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
@@ -651,7 +704,7 @@ export default function StudioPanel({
       const onEnded = () => {
         const current = sources.current.find((item) => item.id === id);
         if (current?.stream === newStream) {
-          removeSource(id);
+          closeSource(id);
         }
       };
       newStream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
@@ -660,19 +713,12 @@ export default function StudioPanel({
       refresh();
     }, "Could not switch camera device.");
   const placeSource = (id: string, layout: SourceLayout) => {
-    const source = sources.current.find((item) => item.id === id);
-    if (!source) return;
-    source.layout = layout;
+    arrangement.place(editKey, id, layout);
     refresh();
   };
-  /** Moves a source one layer up (towards the viewer) or down. */
+  /** Moves a source one layer up (towards the viewer) or down in the scene being arranged. */
   const restack = (id: string, step: 1 | -1) => {
-    const from = sources.current.findIndex((item) => item.id === id);
-    const to = from + step;
-    if (from < 0 || to < 0 || to >= sources.current.length) return;
-    const next = [...sources.current];
-    [next[from], next[to]] = [next[to]!, next[from]!];
-    sources.current = next;
+    arrangement.restack(editKey, id, step);
     refresh();
   };
   const removeInput = (id: string) => {
@@ -831,7 +877,7 @@ export default function StudioPanel({
   const saveClip = (seconds: 30 | 60) =>
     attempt(() => clips.current!.save(seconds), "The clip could not be saved.");
 
-  const stageSources = sources.current.map((source) => ({
+  const stageSources = editSources.map((source) => ({
     id: source.id,
     label: source.label,
     layout: source.layout,
@@ -850,7 +896,7 @@ export default function StudioPanel({
             data-recording={recording || undefined}
           >
             <canvas ref={canvas} aria-label="Program output" data-scene={frame ?? ""} />
-            {frame && (
+            {frame && editingProgram && (
               <SourceStage
                 sources={stageSources}
                 canvasAspect={canvasAspect()}
@@ -1265,9 +1311,16 @@ export default function StudioPanel({
         <Section
           title="Sources"
           description={
-            sources.current.length
-              ? "Drag a source on the preview to move it, or drag its corners to resize. Hold Alt to stop snapping."
-              : "Add a camera or share a screen to put it on the program."
+            selectedScene && !editingProgram ? (
+              <>
+                Arranging <strong className="text-foreground">{selectedScene.name}</strong>. Go live
+                with it to drag its sources on the preview.
+              </>
+            ) : editSources.length ? (
+              "Drag a source on the preview to move it, or drag its corners to resize. Hold Alt to stop snapping."
+            ) : (
+              "Add a camera or share a screen to put it on this scene."
+            )
           }
           action={
             <>
@@ -1318,10 +1371,31 @@ export default function StudioPanel({
             </>
           }
         >
-          {sources.current.length > 0 && (
+          {otherSources.length > 0 && (
+            <Select
+              value=""
+              onValueChange={(value) => {
+                if (value) addExisting(value as string);
+              }}
+            >
+              <SelectTrigger size="sm" aria-label="Add an open source" className="w-fit">
+                <RiAddLine data-icon="inline-start" className="size-3.5" />
+                <span>Add from another scene</span>
+              </SelectTrigger>
+              <SelectContent align="start" alignItemWithTrigger={false}>
+                {otherSources.map((source) => (
+                  <SelectItem key={source.id} value={source.id}>
+                    {source.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                    {source.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {editSources.length > 0 && (
             <ul className="studio-list">
               {/* Top layer first, like a layers panel. */}
-              {[...sources.current].reverse().map((source, fromTop, list) => {
+              {[...editSources].reverse().map((source, fromTop, list) => {
                 const isSelected = selectedSource === source.id;
                 const aspects = [canvasAspect(), sourceAspect(source.video)] as const;
                 return (
@@ -1415,7 +1489,7 @@ export default function StudioPanel({
                       size="icon-xs"
                       variant="ghost"
                       aria-label={`Remove ${source.label}`}
-                      title="Remove source"
+                      title="Remove from this scene"
                       onClick={() => removeSource(source.id)}
                     >
                       <RiCloseLine />
