@@ -6,6 +6,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
 import type { LiveAssets } from "@sidecut/core/live-assets";
 import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
@@ -786,7 +787,7 @@ export default function StudioPanel({
               ] as const
             ).map(([value, label, Icon]) => (
               <label key={value} data-checked={mode === value || undefined}>
-                <RadioGroupItem value={value} className="sr-only" />
+                <RadioPrimitive.Root value={value} className="sr-only" />
                 <span className="studio-mode-title">
                   <Icon aria-hidden />
                   {label}

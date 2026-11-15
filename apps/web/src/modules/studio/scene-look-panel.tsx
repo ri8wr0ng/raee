@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { LIVE_BACKGROUNDS, type LiveAssets, type LiveOverlay } from "@sidecut/core/live-assets";
 import { paintLiveBackground } from "@sidecut/platform-browser/live-assets";
 import { Button } from "@sidecut/ui/components/button";
-import { RadioGroup, RadioGroupItem } from "@sidecut/ui/components/radio-group";
+import { RadioGroup } from "@sidecut/ui/components/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/components/select";
 import { Slider } from "@sidecut/ui/components/slider";
 import { Switch } from "@sidecut/ui/components/switch";
@@ -127,7 +128,7 @@ function Segmented<T extends string>({
     >
       {options.map((option) => (
         <label key={option.value} data-checked={value === option.value || undefined}>
-          <RadioGroupItem value={option.value} className="sr-only" />
+          <RadioPrimitive.Root value={option.value} className="sr-only" />
           {option.label}
         </label>
       ))}
@@ -225,7 +226,7 @@ export function SceneLookPanel({
               data-checked={draft.background === background || undefined}
               title={label(background)}
             >
-              <RadioGroupItem value={background} className="sr-only" />
+              <RadioPrimitive.Root value={background} className="sr-only" />
               <BackgroundSwatch assets={{ ...draft, background }} />
               <span>{label(background)}</span>
             </label>
@@ -394,20 +395,21 @@ export function SceneLookPanel({
                           onChange={(textColor) => setOverlay(overlay.id, { textColor })}
                         />
                       </div>
-                      <label className="look-speed">
-                        <span className="look-field-label">Opacity</span>
-                        <Slider
-                          aria-label="Overlay opacity"
-                          min={0.1}
-                          max={1}
-                          step={0.05}
-                          value={overlay.opacity}
-                          onValueChange={(opacity) =>
-                            setOverlay(overlay.id, { opacity: opacity as number })
-                          }
-                        />
-                        <output>{Math.round(overlay.opacity * 100)}%</output>
-                      </label>
+                      <Field label="Opacity">
+                        <div className="look-slider">
+                          <Slider
+                            aria-label="Overlay opacity"
+                            min={0.1}
+                            max={1}
+                            step={0.05}
+                            value={overlay.opacity}
+                            onValueChange={(opacity) =>
+                              setOverlay(overlay.id, { opacity: opacity as number })
+                            }
+                          />
+                          <output>{Math.round(overlay.opacity * 100)}%</output>
+                        </div>
+                      </Field>
                       <Field label="Entrance">
                         <Segmented
                           name="Overlay entrance"
