@@ -30,6 +30,12 @@ export class LiveStudioOutput {
     private readonly maxOutputHeight = Number.POSITIVE_INFINITY,
     /** Paints this look instead of the committed one while it returns a value (the unsaved draft). */
     previewAssets?: () => LiveAssets | undefined,
+    /**
+     * Renders the saved scene this returns instead of the live one: an OBS-style
+     * preview. It is never recorded or streamed, and a frame is dropped when the
+     * selection or the studio changes while it is being painted.
+     */
+    private readonly scene?: () => string | undefined,
   ) {
     if (previewAssets) this.previewAssetsOverride = previewAssets;
     this.staging = document.createElement("canvas");
@@ -74,7 +80,9 @@ export class LiveStudioOutput {
     this.busy = true;
     try {
       signal?.throwIfAborted();
-      const frame = this.studio.frame(time);
+      const sceneId = this.scene?.();
+      const frame =
+        sceneId === undefined ? this.studio.frame(time) : this.studio.frameScene(sceneId, time);
       const preview =
         typeof this.previewAssetsOverride === "function"
           ? this.previewAssetsOverride()
@@ -111,7 +119,12 @@ export class LiveStudioOutput {
       if (this.engagement) paintLiveEngagement(this.context, this.engagement, time, reducedMotion);
       signal?.throwIfAborted();
       if (this.closed) return null;
-      if (this.studio.frame(time).commitRevision !== frame.commitRevision) return null;
+      if (this.scene) {
+        if (this.scene() !== sceneId || this.studio.currentRevision !== frame.commitRevision)
+          return null;
+      } else if (this.studio.frame(time).commitRevision !== frame.commitRevision) {
+        return null;
+      }
       if (this.canvas.width !== width) this.canvas.width = width;
       if (this.canvas.height !== height) this.canvas.height = height;
       this.output.setTransform(1, 0, 0, 1, 0, 0);

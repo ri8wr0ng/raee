@@ -26,6 +26,7 @@ export type AudioMixerChannel = {
   readonly kind: AudioMixerChannelKind;
   readonly settings: LiveAudioSettings;
   readonly level: number /* 0..1 peak */;
+  readonly gated?: boolean | undefined;
 };
 
 export type AudioMixerDevice = {
@@ -126,13 +127,20 @@ export function AudioMixerPanel({
             const isMonitored = channel.settings.monitor;
 
             return (
-              <div key={channel.id} className="audio-mixer-strip">
+              <div
+                key={channel.id}
+                className="audio-mixer-strip"
+                data-gated={channel.gated || undefined}
+              >
                 <div className="audio-mixer-strip-top">
                   <div className="audio-mixer-strip-info">
                     <ChannelKindIcon kind={channel.kind} />
                     <span className="audio-mixer-strip-label" title={channel.label}>
                       {channel.label}
                     </span>
+                    {channel.gated && (
+                      <span className="audio-mixer-strip-hint">Not in live scene</span>
+                    )}
                   </div>
 
                   <div className="audio-mixer-strip-actions">

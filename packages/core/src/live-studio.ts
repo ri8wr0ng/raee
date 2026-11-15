@@ -37,6 +37,8 @@ export class LiveStudio {
   private revision = 0;
   private scenes = new Map<string, SavedScene>();
   private active: { scene: SavedScene; project: Project; commitRevision: number } | null = null;
+  /** Decoded scene snapshots are immutable, so each saved revision decodes once. */
+  private sceneProjects = new WeakMap<SavedScene, Project>();
 
   get currentRevision() {
     return this.revision;
@@ -134,6 +136,29 @@ export class LiveStudio {
       project: active.project,
       assets: projectLiveAssets(active.project),
       plan: framePlan(active.project, time),
+    };
+  }
+  /**
+   * A read-only frame for any saved scene, for a preview that is not on air.
+   * The active scene, its commit revision and the studio revision are untouched;
+   * commitRevision reports the studio revision so a stale preview frame can be dropped.
+   */
+  frameScene(id: string, time: number) {
+    if (!Number.isFinite(time) || time < 0) throw new Error("Invalid studio time.");
+    const scene = this.scenes.get(id);
+    if (!scene) throw new Error("Scene unavailable.");
+    let project = this.sceneProjects.get(scene);
+    if (!project) {
+      project = freeze(sceneProject(scene));
+      this.sceneProjects.set(scene, project);
+    }
+    return {
+      sceneId: scene.id,
+      sceneRevision: scene.revision,
+      commitRevision: this.revision,
+      project,
+      assets: projectLiveAssets(project),
+      plan: framePlan(project, time),
     };
   }
   serialize() {

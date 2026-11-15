@@ -64,7 +64,7 @@ import {
 } from "./take-store";
 import { openTakeSink } from "./take-sink";
 import type { StudioCloud } from "@/modules/cloud/studio-cloud";
-import { loadStudio, saveStudio } from "./studio-store";
+import { loadArrangements, loadStudio, saveArrangements, saveStudio } from "./studio-store";
 import {
   ClipCapture,
   StudioCapture,
@@ -85,15 +85,17 @@ import { openCamera, useCameraDevices } from "./camera-devices";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
+import { PRE_SCENE, SceneSources, type SavedArrangements } from "./scene-sources";
 import { Soundboard, SoundboardToggle } from "./soundboard";
 import { SourceStage } from "./source-stage";
+import { activeLiveSceneKey, gateSourceKey, isAudioInputOpen } from "./audio-gate";
 import "./studio.css";
 
 type VideoSource = {
   id: string;
+  identity: string;
   kind: "camera" | "screen";
   label: string;
-  layout: SourceLayout;
   video: HTMLVideoElement;
   stream: MediaStream;
   deviceId?: string | undefined;
@@ -124,8 +126,10 @@ const message = (cause: unknown, fallback: string) =>
 const sourceAspect = (video: HTMLVideoElement) =>
   video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
 
+type ShownSource = VideoSource & { layout: SourceLayout };
+
 /** Draws sources bottom to top, each where the user placed it on the program canvas. */
-function paintSources(context: CanvasRenderingContext2D, sources: readonly VideoSource[]) {
+function paintSources(context: CanvasRenderingContext2D, sources: readonly ShownSource[]) {
   const { width, height } = context.canvas;
   for (const { video, layout } of sources) {
     if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) continue;
@@ -175,21 +179,50 @@ export default function StudioPanel({
   const canStream = Boolean(nativeBridge()?.nativeRecordingStart);
   const projectID = useRef(snapshot.project.id).current;
   const canvas = useRef<HTMLCanvasElement>(null);
+  const previewCanvas = useRef<HTMLCanvasElement>(null);
   const studio = useRef<LiveStudio | null>(null);
   const output = useRef<LiveStudioOutput | null>(null);
+  const previewOutput = useRef<LiveStudioOutput | null>(null);
   const mixer = useRef<LiveAudioMixer | null>(null);
+  /** Every open camera and screen; scenes share these streams. */
   const sources = useRef<VideoSource[]>([]);
+  /** Which open sources each scene shows, and where. */
+  const arrangement = useRef(new SceneSources()).current;
+  /** The sources a scene shows, bottom layer first. */
+  const shown = useCallback(
+    (scene: string): ShownSource[] =>
+      arrangement.of(scene).flatMap((placement) => {
+        const id = placement.identity;
+        const source = sources.current.find((item) => item.identity === id || item.id === id);
+        return source ? [{ ...source, layout: placement.layout }] : [];
+      }),
+    [arrangement],
+  );
   const audioInputs = useRef<AudioInput[]>([]);
   /** Soundboard pads that are playing right now, by pad id. */
   const playingPads = useRef(new Set<string>());
   const [soundboardOpen, setSoundboardOpen] = useState(false);
   const persist = useRef<Promise<void>>(Promise.resolve());
   const [, setVersion] = useState(0);
-  const refresh = useCallback(() => setVersion((value) => value + 1), []);
+  const syncAudioGates = useCallback(() => {
+    const activeScene = studio.current?.activeScene ?? null;
+    const hasScenes = (studio.current?.list().length ?? 0) > 0;
+    const liveKey = activeLiveSceneKey(activeScene, hasScenes);
+    for (const input of audioInputs.current) {
+      const key = gateSourceKey(input, sources.current);
+      const open = isAudioInputOpen({ sourceId: key }, liveKey, arrangement);
+      input.channel.setGate(open);
+    }
+  }, [arrangement]);
+  const refresh = useCallback(() => {
+    syncAudioGates();
+    setVersion((value) => value + 1);
+  }, [syncAudioGates]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [frame, setFrame] = useState<string | null>(null);
+  const [previewFrame, setPreviewFrame] = useState<string | null>(null);
   const [name, setName] = useState("Scene 1");
   const [selected, setSelected] = useState<string | null>(null);
   const selectedRef = useRef(selected);
@@ -212,6 +245,13 @@ export default function StudioPanel({
   const canvasAspect = () => {
     const element = canvas.current;
     return frame && element?.width && element.height ? element.width / element.height : 16 / 9;
+  };
+  /** The preview canvas's shape; scenes off air may use another output size. */
+  const previewAspect = () => {
+    const element = previewCanvas.current;
+    return previewFrame && element?.width && element.height
+      ? element.width / element.height
+      : 16 / 9;
   };
   /** The look as last saved, to tell the user when the draft has unsaved changes. */
   const [savedLook, setSavedLook] = useState("");
@@ -349,6 +389,17 @@ export default function StudioPanel({
       .then(() => saveStudio(projectID, current))
       .catch(() => setError("Scene changes could not be saved on this device."));
   }, [projectID, refresh]);
+  const persistArrangements = useRef<Promise<void>>(Promise.resolve());
+  const commitArrangements = useCallback(() => {
+    refresh();
+    const data: SavedArrangements = {
+      sourceNumbers: { ...sourceNumbers.current },
+      scenes: arrangement.serialize(),
+    };
+    persistArrangements.current = persistArrangements.current
+      .then(() => saveArrangements(projectID, data))
+      .catch(() => setError("Scene arrangements could not be saved on this device."));
+  }, [arrangement, projectID, refresh]);
   const ensureMixer = useCallback(async () => {
     mixer.current ??= new LiveAudioMixer(new AudioContext());
     await mixer.current.resume();
@@ -375,10 +426,20 @@ export default function StudioPanel({
       }
       return entry;
     };
-    void loadStudio(projectID)
-      .then((loaded) => {
+    void Promise.all([loadStudio(projectID), loadArrangements(projectID)])
+      .then(([loaded, loadedArrangements]) => {
         if (!alive || !canvas.current) return;
         studio.current = loaded;
+        sourceNumbers.current = { ...loadedArrangements.sourceNumbers };
+        // Forget arrangements of scenes that no longer exist, so they never keep a source "used".
+        const sceneIds = new Set(loaded.list().map((scene) => scene.id));
+        arrangement.restore(
+          Object.fromEntries(
+            Object.entries(loadedArrangements.scenes).filter(
+              ([scene]) => sceneIds.has(scene) || (scene === "" && sceneIds.size === 0),
+            ),
+          ),
+        );
         const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
         if (initialSelected) {
           try {
@@ -392,16 +453,24 @@ export default function StudioPanel({
             // Keep default assets
           }
         }
+        // The preview shows the selected scene while it is not the one on air.
+        const previewScene = () => {
+          const id = selectedRef.current;
+          if (!id || id === loaded.activeScene?.id) return undefined;
+          return loaded.list().some((scene) => scene.id === id) ? id : undefined;
+        };
         output.current = new LiveStudioOutput(
           canvas.current,
           loaded,
           reader,
           { target: "stream", chat: liveChatRef.current },
-          (context) => paintSources(context, sources.current),
+          (context) => paintSources(context, shown(loaded.activeScene?.id ?? "")),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
           () => {
+            // Recordings and the clip buffer both capture this canvas; neither gets an unsaved look.
             if (captureActiveRef.current) return undefined;
+            if (clips.current && clips.current.state.buffer.kind !== "disarmed") return undefined;
             if (
               selectedRef.current &&
               loaded.activeScene &&
@@ -412,20 +481,49 @@ export default function StudioPanel({
             return draftRef.current;
           },
         );
+        if (previewCanvas.current) {
+          previewOutput.current = new LiveStudioOutput(
+            previewCanvas.current,
+            loaded,
+            reader,
+            undefined,
+            (context) => {
+              const id = previewScene();
+              if (id) paintSources(context, shown(id));
+            },
+            1080,
+            () => draftRef.current,
+            previewScene,
+          );
+        }
         setSelected(initialSelected);
         setName(`Scene ${loaded.list().length + 1}`);
         const origin = performance.now();
         // An interval, not rAF: a backgrounded window must keep feeding an active recording.
         timer = setInterval(() => {
-          if (!loaded.activeScene) return;
-          output.current
-            ?.render((performance.now() - origin) / 1000)
-            .then((painted) => {
-              if (alive && painted) setFrame(painted.sceneId);
-            })
-            .catch((cause: unknown) => {
-              if (alive) setError(message(cause, "The scene could not be rendered."));
-            });
+          const time = (performance.now() - origin) / 1000;
+          if (loaded.activeScene) {
+            output.current
+              ?.render(time)
+              .then((painted) => {
+                if (alive && painted) setFrame(painted.sceneId);
+              })
+              .catch((cause: unknown) => {
+                if (alive) setError(message(cause, "The scene could not be rendered."));
+              });
+          }
+          const scene = previewScene();
+          if (scene) {
+            previewOutput.current
+              ?.render(time)
+              .then((painted) => {
+                if (alive && painted) setPreviewFrame(painted.sceneId);
+              })
+              .catch((cause: unknown) => {
+                if (alive && previewScene() === scene)
+                  setError(message(cause, "The scene could not be rendered."));
+              });
+          }
         }, 1000 / liveQualityProfiles.standard.framesPerSecond);
       })
       .catch((cause: unknown) => {
@@ -441,17 +539,20 @@ export default function StudioPanel({
       capture.current?.close();
       output.current?.close();
       output.current = null;
+      previewOutput.current?.close();
+      previewOutput.current = null;
       for (const source of [...sources.current, ...audioInputs.current])
         for (const track of source.stream.getTracks()) track.stop();
       for (const source of sources.current) source.video.onresize = null;
       sources.current = [];
+      arrangement.clear();
       audioInputs.current = [];
       mixer.current?.close();
       void mixer.current?.context.close();
       mixer.current = null;
       for (const entry of readers.values()) void entry.then((item) => item.close()).catch(() => {});
     };
-  }, [projectID, session]);
+  }, [arrangement, projectID, session, shown]);
 
   const inputCount = audioInputs.current.length;
   useEffect(() => {
@@ -481,7 +582,26 @@ export default function StudioPanel({
 
   const scenes = studio.current?.list() ?? [];
   const active = studio.current?.activeScene ?? null;
+  const liveKey = activeLiveSceneKey(active, scenes.length > 0);
+  useEffect(() => {
+    syncAudioGates();
+  }, [syncAudioGates, liveKey]);
   const selectedScene = scenes.find((scene) => scene.id === selected);
+  /** The Sources panel arranges the selected scene ("" before any scene exists). */
+  const editKey = selected ?? PRE_SCENE;
+  const editSources = shown(editKey);
+  const scenePlacements = arrangement.of(editKey);
+  const otherSources = sources.current.filter(
+    (source) => !arrangement.has(editKey, source.identity),
+  );
+  /** Sources can be dragged only while a canvas shows the scene being arranged. */
+  const editingProgram = Boolean(active && active.id === editKey);
+  /** The selected scene is not on air, so it gets its own preview canvas. */
+  const previewing = Boolean(selectedScene && selectedScene.id !== active?.id);
+  /** The preview has painted the selected scene at least once. */
+  const previewPainted = previewing && previewFrame === editKey;
+  /** The canvas being arranged has content, so its drag handles can show. */
+  const editReady = editingProgram ? frame !== null : previewPainted;
 
   const saveFromEditor = (existing?: { id: string; name: string }) =>
     attempt(() => {
@@ -495,6 +615,12 @@ export default function StudioPanel({
         project: { ...session.getSnapshot().project, liveAssets: look ?? DEFAULT_LIVE_ASSETS },
         expectedRevision: current.currentRevision,
       });
+      // A new scene starts with the sources of the scene it was made from.
+      if (!existing) {
+        arrangement.copy(selectedRef.current ?? "", id);
+        if (!selectedRef.current) arrangement.drop("");
+        commitArrangements();
+      }
       setSelected(id);
       if (!existing) setName(`Scene ${current.list().length + 1}`);
       commit();
@@ -521,6 +647,11 @@ export default function StudioPanel({
       const current = studio.current;
       if (!current) return;
       current.remove({ id, expectedRevision: current.currentRevision });
+      for (const orphan of arrangement.drop(id)) {
+        const live = sources.current.find((item) => item.identity === orphan || item.id === orphan);
+        if (live) closeSource(live.id);
+      }
+      commitArrangements();
       if (selected === id) setSelected(current.activeScene?.id ?? current.list()[0]?.id ?? null);
       commit();
     }, "The scene could not be removed.");
@@ -540,24 +671,96 @@ export default function StudioPanel({
       commit();
     }, "The look could not be applied.");
 
-  const removeSource = (id: string) => {
-    const source = sources.current.find((item) => item.id === id);
+  /** Stops an open source's media resources and removes it from active sources. */
+  const disconnectSource = (id: string) => {
+    const source = sources.current.find((item) => item.id === id || item.identity === id);
     if (!source) return;
-    sources.current = sources.current.filter((item) => item.id !== id);
+    sources.current = sources.current.filter((item) => item.id !== source.id);
     for (const track of source.stream.getTracks()) track.stop();
     source.video.onresize = null;
     source.video.srcObject = null;
-    for (const input of audioInputs.current) if (input.sourceId === id) removeInput(input.id);
-    setSelectedSource((current) => (current === id ? null : current));
+    for (const input of audioInputs.current)
+      if (input.sourceId === source.id) removeInput(input.id);
+    setSelectedSource((current) => (current === source.id ? null : current));
     refresh();
   };
-  const addSource = (kind: VideoSource["kind"], chosenDeviceId?: string) =>
+
+  /** Stops an open source and takes it off every scene permanently. */
+  const closeSource = (id: string) => {
+    const source = sources.current.find((item) => item.id === id || item.identity === id);
+    const targetId = source ? source.identity : id;
+    arrangement.forget(targetId);
+    commitArrangements();
+    disconnectSource(id);
+  };
+  /** Places a source on a scene, screens under cameras so a share never hides the presenter. */
+  const placeOnScene = (scene: string, source: VideoSource) => {
+    // Count sources that are not connected too, so a new one never takes their slot or layer.
+    const placed = arrangement.of(scene);
+    const same = placed.filter((item) => item.kind === source.kind);
+    const onProgram = scene === (studio.current?.activeScene?.id ?? "");
+    const layout = defaultLayout(
+      source.kind,
+      same.length,
+      onProgram ? canvasAspect() : previewAspect(),
+      sourceAspect(source.video),
+    );
+    const firstCamera = placed.findIndex((item) => item.kind === "camera");
+    const at = source.kind === "screen" && firstCamera >= 0 ? firstCamera : placed.length;
+    arrangement.add(
+      scene,
+      {
+        identity: source.identity,
+        label: source.label,
+        kind: source.kind,
+        deviceId: source.deviceId,
+        layout,
+      },
+      at,
+    );
+    commitArrangements();
+  };
+  /** Takes a source off the scene being arranged, closing it once no scene shows it. */
+  const removeSource = (id: string) => {
+    const source = sources.current.find((item) => item.id === id || item.identity === id);
+    const targetId = source ? source.identity : id;
+    const removedLast = arrangement.remove(editKey, targetId);
+    commitArrangements();
+    if (removedLast && source) disconnectSource(source.id);
+    setSelectedSource((current) => (current === id || current === targetId ? null : current));
+    refresh();
+  };
+  const addExisting = (id: string) => {
+    const source = sources.current.find((item) => item.id === id || item.identity === id);
+    if (!source) return;
+    placeOnScene(editKey, source);
+    setSelectedSource(source.id);
+    refresh();
+  };
+  const addSource = (
+    kind: VideoSource["kind"],
+    chosenDeviceId?: string,
+    targetIdentity?: string,
+    targetLabel?: string,
+  ) =>
     attempt(async () => {
-      const stream =
-        kind === "camera"
-          ? await openCamera(chosenDeviceId)
-          : // Tab or system audio comes along when the user ticks "Share audio".
-            await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      // The scene picked when the user asked, even if they pick another while a prompt is open.
+      const scene = selectedRef.current ?? "";
+      let stream: MediaStream;
+      if (kind === "camera") {
+        try {
+          stream = await openCamera(chosenDeviceId);
+        } catch (err) {
+          if (chosenDeviceId) {
+            stream = await openCamera();
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        // Tab or system audio comes along when the user ticks "Share audio".
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      }
       const video = document.createElement("video");
       video.muted = true;
       video.playsInline = true;
@@ -569,23 +772,87 @@ export default function StudioPanel({
         for (const track of stream.getTracks()) track.stop();
         throw cause;
       }
-      const same = sources.current.filter((item) => item.kind === kind);
-      const label = `${kind === "camera" ? "Camera" : "Screen"} ${++sourceNumbers.current[kind]}`;
-      const layout = defaultLayout(kind, same.length, canvasAspect(), sourceAspect(video));
+
+      let identity: string;
+      let label: string;
       const deviceId =
         kind === "camera"
           ? chosenDeviceId || stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
           : undefined;
-      const source: VideoSource = { id, kind, label, layout, video, stream, deviceId };
-      // New screens go under the cameras so a share never hides the presenter.
-      const firstCamera = sources.current.findIndex((item) => item.kind === "camera");
-      const at = kind === "screen" && firstCamera >= 0 ? firstCamera : sources.current.length;
-      sources.current = [...sources.current.slice(0, at), source, ...sources.current.slice(at)];
+
+      if (kind === "camera") {
+        if (targetIdentity) {
+          identity = targetIdentity;
+          label = targetLabel || `Camera ${sourceNumbers.current.camera || 1}`;
+        } else {
+          const baseIdentity = `camera:${deviceId || "default"}`;
+          const sceneCandidates = [
+            ...arrangement.of(scene),
+            ...Array.from(arrangement.scenesWith(baseIdentity)).flatMap((s) => arrangement.of(s)),
+          ];
+          const missingPlacement = sceneCandidates.find((p) => {
+            const placementId = p.identity;
+            const matchesDevice =
+              placementId === baseIdentity || placementId.startsWith(`${baseIdentity}#`);
+            const isLive = sources.current.some((s) => s.identity === placementId);
+            return matchesDevice && !isLive;
+          });
+
+          if (missingPlacement) {
+            identity = missingPlacement.identity;
+            label = missingPlacement.label;
+          } else {
+            const isBaseIdentityLive = sources.current.some((s) => s.identity === baseIdentity);
+            const n = ++sourceNumbers.current.camera;
+            label = `Camera ${n}`;
+            identity = isBaseIdentityLive ? `${baseIdentity}#${n}` : baseIdentity;
+          }
+        }
+      } else {
+        if (targetIdentity) {
+          identity = targetIdentity;
+          label = targetLabel || targetIdentity.replace("screen:", "Screen ");
+        } else {
+          // Normal Add screen: check if there is an unconnected missing screen (prioritizing current scene)
+          const allScenes = Object.keys(arrangement.serialize());
+          const sceneCandidates = [
+            ...arrangement.of(scene),
+            ...allScenes.flatMap((s) => arrangement.of(s)),
+          ];
+          const missingScreen = sceneCandidates.find((p) => {
+            const placementId = p.identity;
+            const isScreen = p.kind === "screen" || placementId.startsWith("screen:");
+            const isLive = sources.current.some((s) => s.identity === placementId);
+            return isScreen && !isLive;
+          });
+          if (missingScreen) {
+            identity = missingScreen.identity;
+            label = missingScreen.label;
+          } else {
+            const n = ++sourceNumbers.current.screen;
+            identity = `screen:${n}`;
+            label = `Screen ${n}`;
+          }
+        }
+      }
+
+      const source: VideoSource = { id, identity, kind, label, video, stream, deviceId };
+      sources.current = [...sources.current, source];
+
+      // Restore into every scene that had it at its saved layout and layer order.
+      // If the current scene did not have it saved, place it with default layout.
+      const scenesWithSource = arrangement.scenesWith(identity);
+      if (!scenesWithSource.includes(scene)) {
+        placeOnScene(scene, source);
+      } else {
+        commitArrangements();
+      }
+
       video.onresize = refresh;
       const onEnded = () => {
         const current = sources.current.find((item) => item.id === id);
         if (current?.stream === stream) {
-          removeSource(id);
+          disconnectSource(id);
         }
       };
       stream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
@@ -609,12 +876,12 @@ export default function StudioPanel({
   const switchingCameras = useRef(new Set<string>());
   const switchCameraDevice = (id: string, newDeviceId: string) =>
     attempt(async () => {
-      const source = sources.current.find((item) => item.id === id);
+      const source = sources.current.find((item) => item.id === id || item.identity === id);
       if (!source || source.kind !== "camera") return;
       if (source.deviceId === newDeviceId) return;
       // One switch per source at a time, so overlapping picks can't orphan a stream.
-      if (switchingCameras.current.has(id)) return;
-      switchingCameras.current.add(id);
+      if (switchingCameras.current.has(source.id)) return;
+      switchingCameras.current.add(source.id);
       let newStream: MediaStream;
       let newVideo: HTMLVideoElement;
       try {
@@ -630,7 +897,7 @@ export default function StudioPanel({
           throw cause;
         }
       } finally {
-        switchingCameras.current.delete(id);
+        switchingCameras.current.delete(source.id);
       }
       // The source may have been removed while the new camera was opening.
       if (!sources.current.includes(source)) {
@@ -643,15 +910,24 @@ export default function StudioPanel({
       source.video.onresize = null;
       source.video.srcObject = null;
 
+      const oldIdentity = source.identity;
+      const newDeviceIdResolved =
+        newDeviceId || newStream.getVideoTracks()[0]?.getSettings?.()?.deviceId;
+      const newIdentity = `camera:${newDeviceIdResolved || "default"}`;
+
       source.stream = newStream;
       source.video = newVideo;
-      source.deviceId = newDeviceId || newStream.getVideoTracks()[0]?.getSettings?.()?.deviceId;
+      source.deviceId = newDeviceIdResolved;
+      source.identity = newIdentity;
+
+      arrangement.updateIdentity(oldIdentity, newIdentity, newDeviceIdResolved);
+      commitArrangements();
 
       newVideo.onresize = refresh;
       const onEnded = () => {
-        const current = sources.current.find((item) => item.id === id);
+        const current = sources.current.find((item) => item.id === source.id);
         if (current?.stream === newStream) {
-          removeSource(id);
+          disconnectSource(source.id);
         }
       };
       newStream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
@@ -660,19 +936,18 @@ export default function StudioPanel({
       refresh();
     }, "Could not switch camera device.");
   const placeSource = (id: string, layout: SourceLayout) => {
-    const source = sources.current.find((item) => item.id === id);
-    if (!source) return;
-    source.layout = layout;
+    const source = sources.current.find((item) => item.id === id || item.identity === id);
+    const targetId = source ? source.identity : id;
+    arrangement.place(editKey, targetId, layout);
+    commitArrangements();
     refresh();
   };
-  /** Moves a source one layer up (towards the viewer) or down. */
+  /** Moves a source one layer up (towards the viewer) or down in the scene being arranged. */
   const restack = (id: string, step: 1 | -1) => {
-    const from = sources.current.findIndex((item) => item.id === id);
-    const to = from + step;
-    if (from < 0 || to < 0 || to >= sources.current.length) return;
-    const next = [...sources.current];
-    [next[from], next[to]] = [next[to]!, next[from]!];
-    sources.current = next;
+    const source = sources.current.find((item) => item.id === id || item.identity === id);
+    const targetId = source ? source.identity : id;
+    arrangement.restack(editKey, targetId, step);
+    commitArrangements();
     refresh();
   };
   const removeInput = (id: string) => {
@@ -831,59 +1106,82 @@ export default function StudioPanel({
   const saveClip = (seconds: 30 | 60) =>
     attempt(() => clips.current!.save(seconds), "The clip could not be saved.");
 
-  const stageSources = sources.current.map((source) => ({
+  const stageSources = editSources.map((source) => ({
     id: source.id,
     label: source.label,
     layout: source.layout,
     aspect: sourceAspect(source.video),
   }));
+  // Drag handles sit on whichever canvas shows the scene being arranged.
+  const editStages = editReady ? (
+    <>
+      <SourceStage
+        sources={stageSources}
+        canvasAspect={editingProgram ? canvasAspect() : previewAspect()}
+        selected={selectedSource}
+        onSelect={setSelectedSource}
+        onChange={placeSource}
+      />
+      {selectedOverlay && (
+        <OverlayStage
+          overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
+          selected={selectedOverlay}
+          onSelect={setSelectedOverlay}
+          onChange={(id, rect) =>
+            setDraft((current) => ({
+              ...current,
+              overlays: current.overlays.map((overlay) =>
+                overlay.id === id ? { ...overlay, ...rect } : overlay,
+              ),
+            }))
+          }
+        />
+      )}
+    </>
+  ) : null;
   const startDisabled =
     !frame || (program.kind !== "idle" && program.kind !== "failed" && program.kind !== "uploaded");
 
   return (
     <div className="studio-layout">
       <div className="grid gap-3">
-        <div className="studio-program-frame">
-          <div
-            className="studio-program"
-            style={{ ["--studio-aspect" as string]: String(canvasAspect()) }}
-            data-recording={recording || undefined}
-          >
-            <canvas ref={canvas} aria-label="Program output" data-scene={frame ?? ""} />
-            {frame && (
-              <SourceStage
-                sources={stageSources}
-                canvasAspect={canvasAspect()}
-                selected={selectedSource}
-                onSelect={setSelectedSource}
-                onChange={placeSource}
+        <div className="studio-frames" data-preview={previewing || undefined}>
+          <div className="studio-program-frame" hidden={!previewing}>
+            <div
+              className="studio-program"
+              style={{ ["--studio-aspect" as string]: String(previewAspect()) }}
+            >
+              <canvas
+                ref={previewCanvas}
+                aria-label="Preview output"
+                data-scene={previewFrame ?? ""}
               />
-            )}
-            {frame && selectedOverlay && (
-              <OverlayStage
-                overlays={draft.overlays.map((overlay) => ({ ...overlay, label: overlay.text }))}
-                selected={selectedOverlay}
-                onSelect={setSelectedOverlay}
-                onChange={(id, rect) =>
-                  setDraft((current) => ({
-                    ...current,
-                    overlays: current.overlays.map((overlay) =>
-                      overlay.id === id ? { ...overlay, ...rect } : overlay,
-                    ),
-                  }))
-                }
-              />
-            )}
-            {!active && !loading && (
-              <p className="studio-program-empty">
-                Save a scene from the editor, then go live with it to start the program output.
-              </p>
-            )}
-            {recording && (
-              <span className="studio-rec-badge" aria-hidden>
-                REC
+              {previewing && editStages}
+              <span className="studio-canvas-tag">
+                Preview{selectedScene ? ` · ${selectedScene.name}` : ""}
               </span>
-            )}
+            </div>
+          </div>
+          <div className="studio-program-frame">
+            <div
+              className="studio-program"
+              style={{ ["--studio-aspect" as string]: String(canvasAspect()) }}
+              data-recording={recording || undefined}
+            >
+              <canvas ref={canvas} aria-label="Program output" data-scene={frame ?? ""} />
+              {editingProgram && editStages}
+              <span className="studio-canvas-tag">Program</span>
+              {!active && !loading && (
+                <p className="studio-program-empty">
+                  Save a scene from the editor, then go live with it to start the program output.
+                </p>
+              )}
+              {recording && (
+                <span className="studio-rec-badge" aria-hidden>
+                  REC
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <SceneDeck
@@ -1265,9 +1563,16 @@ export default function StudioPanel({
         <Section
           title="Sources"
           description={
-            sources.current.length
-              ? "Drag a source on the preview to move it, or drag its corners to resize. Hold Alt to stop snapping."
-              : "Add a camera or share a screen to put it on the program."
+            editSources.length ? (
+              `Drag a source on the ${editingProgram ? "program" : "preview"} to move it, or drag its corners to resize. Hold Alt to stop snapping.`
+            ) : selectedScene ? (
+              <>
+                Arranging <strong className="text-foreground">{selectedScene.name}</strong>. Add a
+                camera or share a screen to place it on the preview.
+              </>
+            ) : (
+              "Add a camera or share a screen to put it on this scene."
+            )
           }
           action={
             <>
@@ -1318,105 +1623,177 @@ export default function StudioPanel({
             </>
           }
         >
-          {sources.current.length > 0 && (
+          {otherSources.length > 0 && (
+            <Select
+              value=""
+              onValueChange={(value) => {
+                if (value) addExisting(value as string);
+              }}
+            >
+              <SelectTrigger size="sm" aria-label="Add an open source" className="w-fit">
+                <RiAddLine data-icon="inline-start" className="size-3.5" />
+                <span>Add from another scene</span>
+              </SelectTrigger>
+              <SelectContent align="start" alignItemWithTrigger={false}>
+                {otherSources.map((source) => (
+                  <SelectItem key={source.id} value={source.id}>
+                    {source.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                    {source.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {scenePlacements.length > 0 && (
             <ul className="studio-list">
               {/* Top layer first, like a layers panel. */}
-              {[...sources.current].reverse().map((source, fromTop, list) => {
-                const isSelected = selectedSource === source.id;
-                const aspects = [canvasAspect(), sourceAspect(source.video)] as const;
-                return (
-                  <li
-                    key={source.id}
-                    className="studio-row"
-                    data-selected={isSelected || undefined}
-                  >
-                    <button
-                      type="button"
-                      className="studio-row-main"
-                      aria-pressed={isSelected}
-                      onClick={() => setSelectedSource(isSelected ? null : source.id)}
+              {[...scenePlacements].reverse().map((placement, fromTop, list) => {
+                const identity = placement.identity;
+                const live = sources.current.find(
+                  (s) => s.identity === identity || s.id === identity,
+                );
+
+                if (live) {
+                  const isSelected = selectedSource === live.id;
+                  const aspects = [
+                    editingProgram ? canvasAspect() : previewAspect(),
+                    sourceAspect(live.video),
+                  ] as const;
+                  return (
+                    <li
+                      key={live.id}
+                      className="studio-row"
+                      data-selected={isSelected || undefined}
                     >
-                      {source.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
-                      <span className="truncate">{source.label}</span>
-                    </button>
-                    {source.kind === "camera" && cameraDevices.length > 0 && (
-                      <Select
-                        value={source.deviceId || ""}
-                        onValueChange={(val) => {
-                          if (!val || val === source.deviceId) return;
-                          void switchCameraDevice(source.id, val);
-                        }}
+                      <button
+                        type="button"
+                        className="studio-row-main"
+                        aria-pressed={isSelected}
+                        onClick={() => setSelectedSource(isSelected ? null : live.id)}
                       >
-                        <SelectTrigger
-                          size="sm"
-                          aria-label={`Switch camera for ${source.label}`}
-                          title="Switch camera device"
-                          className="h-6 max-w-28 px-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                        {live.kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                        <span className="truncate">{live.label}</span>
+                      </button>
+                      {live.kind === "camera" && cameraDevices.length > 0 && (
+                        <Select
+                          value={live.deviceId || ""}
+                          onValueChange={(val) => {
+                            if (!val || val === live.deviceId) return;
+                            void switchCameraDevice(live.id, val);
+                          }}
                         >
-                          <SelectValue placeholder="Camera">
-                            {cameraDevices.find((d) => d.deviceId === source.deviceId)?.label ??
-                              cameraDevices[0]?.label ??
-                              "Camera"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent align="end" alignItemWithTrigger={false}>
-                          {cameraDevices.map((device) => {
-                            const isCurrent = device.deviceId === source.deviceId;
-                            const isUsed = usedCameraDeviceIds.has(device.deviceId) && !isCurrent;
-                            return (
-                              <SelectItem key={device.deviceId} value={device.deviceId}>
-                                {device.label}
-                                {isUsed ? " (in use)" : ""}
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    )}
+                          <SelectTrigger
+                            size="sm"
+                            aria-label={`Switch camera for ${live.label}`}
+                            title="Switch camera device"
+                            className="h-6 max-w-28 px-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                          >
+                            <SelectValue placeholder="Camera">
+                              {cameraDevices.find((d) => d.deviceId === live.deviceId)?.label ??
+                                cameraDevices[0]?.label ??
+                                "Camera"}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent align="end" alignItemWithTrigger={false}>
+                            {cameraDevices.map((device) => {
+                              const isCurrent = device.deviceId === live.deviceId;
+                              const isUsed = usedCameraDeviceIds.has(device.deviceId) && !isCurrent;
+                              return (
+                                <SelectItem key={device.deviceId} value={device.deviceId}>
+                                  {device.label}
+                                  {isUsed ? " (in use)" : ""}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Fit ${live.label} to the frame`}
+                        title="Fit to frame"
+                        onClick={() => placeSource(live.id, fitLayout(...aspects))}
+                      >
+                        <RiFullscreenExitLine />
+                      </Button>
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Fill the frame with ${live.label}`}
+                        title="Fill frame"
+                        onClick={() => placeSource(live.id, fillLayout(...aspects))}
+                      >
+                        <RiFullscreenLine />
+                      </Button>
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Bring ${live.label} forward`}
+                        title="Bring forward"
+                        disabled={fromTop === 0}
+                        onClick={() => restack(live.id, 1)}
+                      >
+                        <RiArrowUpLine />
+                      </Button>
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Send ${live.label} backward`}
+                        title="Send backward"
+                        disabled={fromTop === list.length - 1}
+                        onClick={() => restack(live.id, -1)}
+                      >
+                        <RiArrowDownLine />
+                      </Button>
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Remove ${live.label}`}
+                        title="Remove from this scene"
+                        onClick={() => removeSource(live.id)}
+                      >
+                        <RiCloseLine />
+                      </Button>
+                    </li>
+                  );
+                }
+
+                const { label, kind } = placement;
+                const deviceId =
+                  placement.deviceId ??
+                  (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
+
+                return (
+                  <li key={identity} className="studio-row opacity-60">
+                    <div className="studio-row-main min-w-0">
+                      {kind === "camera" ? <RiVideoOnLine /> : <RiComputerLine />}
+                      <span className="truncate">{label} · not connected</span>
+                    </div>
                     <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`Fit ${source.label} to the frame`}
-                      title="Fit to frame"
-                      onClick={() => placeSource(source.id, fitLayout(...aspects))}
+                      size="xs"
+                      variant="outline"
+                      onClick={() => {
+                        if (kind === "camera") {
+                          void addSource(
+                            "camera",
+                            deviceId === "default" ? undefined : deviceId,
+                            identity,
+                            label,
+                          );
+                        } else {
+                          void addSource("screen", undefined, identity, label);
+                        }
+                      }}
                     >
-                      <RiFullscreenExitLine />
+                      Reconnect
                     </Button>
                     <Button
                       size="icon-xs"
                       variant="ghost"
-                      aria-label={`Fill the frame with ${source.label}`}
-                      title="Fill frame"
-                      onClick={() => placeSource(source.id, fillLayout(...aspects))}
-                    >
-                      <RiFullscreenLine />
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`Bring ${source.label} forward`}
-                      title="Bring forward"
-                      disabled={fromTop === 0}
-                      onClick={() => restack(source.id, 1)}
-                    >
-                      <RiArrowUpLine />
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`Send ${source.label} backward`}
-                      title="Send backward"
-                      disabled={fromTop === list.length - 1}
-                      onClick={() => restack(source.id, -1)}
-                    >
-                      <RiArrowDownLine />
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`Remove ${source.label}`}
-                      title="Remove source"
-                      onClick={() => removeSource(source.id)}
+                      aria-label={`Remove ${label}`}
+                      title="Remove from this scene"
+                      onClick={() => removeSource(identity)}
                     >
                       <RiCloseLine />
                     </Button>
@@ -1441,7 +1818,7 @@ export default function StudioPanel({
             onDraftChange={setDraft}
             disabled={!selectedScene}
             dirty={JSON.stringify(draft) !== savedLook}
-            canPlace={Boolean(frame)}
+            canPlace={editingProgram ? frame !== null : previewing}
             selectedOverlay={selectedOverlay}
             onSelectOverlay={setSelectedOverlay}
             onSave={(goLive) => void applyLook(goLive)}
@@ -1458,6 +1835,11 @@ export default function StudioPanel({
               kind: input.kind,
               settings: settings[input.id] ?? DEFAULT_LIVE_AUDIO,
               level: meters[input.id] ?? 0,
+              gated: !isAudioInputOpen(
+                { sourceId: gateSourceKey(input, sources.current) },
+                liveKey,
+                arrangement,
+              ),
             }))}
             devices={audioDevices}
             onAddInput={(deviceId) => void addMicrophone(deviceId)}

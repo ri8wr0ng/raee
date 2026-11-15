@@ -184,6 +184,74 @@ try {
   });
   result.checks.sourceAspectChange = true;
 
+  // Sources belong to a scene: Scene 1 never got the camera, so cutting to it hides it.
+  await button("Switch to Scene 1").click();
+  await page.waitForTimeout(600);
+  assert.deepEqual((await pixel(0.5, 0.5)).slice(0, 3), [17, 24, 39], "camera leaked to Scene 1");
+  assert.equal(await dialog.getByRole("group", { name: /^Camera 1 position/ }).count(), 0);
+  await dialog.getByLabel("Add an open source").waitFor();
+  await button("Switch to Scene 2").click();
+  await cameraBox.waitFor();
+  result.checks.perSceneSources = true;
+
+  // A selected scene that is not live gets its own preview canvas; the program is untouched.
+  const programScene = await dialog.getByLabel("Program output").getAttribute("data-scene");
+  await dialog.locator("label.studio-row-main", { hasText: "Scene 1" }).click();
+  const preview = dialog.getByLabel("Preview output");
+  await preview.waitFor();
+  await page.waitForTimeout(600);
+  const previewScene = await preview.getAttribute("data-scene");
+  assert.ok(previewScene && previewScene !== programScene, "preview must show the selected scene");
+  assert.equal(
+    await dialog.getByLabel("Program output").getAttribute("data-scene"),
+    programScene,
+    "program must keep the live scene",
+  );
+  const previewPixel = (x, y) =>
+    preview.evaluate(
+      (canvas, [px, py]) => [
+        ...canvas.getContext("2d").getImageData(canvas.width * px, canvas.height * py, 1, 1).data,
+      ],
+      [x, y],
+    );
+  // Scene 1's saved look has no banner; Scene 2's banner stays on the program.
+  assert.deepEqual((await previewPixel(0.5, 0.5)).slice(0, 3), [17, 24, 39]);
+  assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
+
+  // Sources drag on the preview canvas, never on the program.
+  await dialog.getByLabel("Add an open source").click();
+  await page.getByRole("option", { name: "Camera 1", exact: true }).click();
+  const previewCamera = dialog.getByRole("group", { name: /^Camera 1 position/ });
+  await previewCamera.waitFor();
+  assert.equal(await previewCamera.count(), 1, "drag handles must sit on the preview only");
+  const previewStage = await preview.boundingBox();
+  const camBox = await previewCamera.boundingBox();
+  await page.mouse.move(camBox.x + camBox.width / 2, camBox.y + camBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(
+    camBox.x + camBox.width / 2 - previewStage.width * 0.3,
+    camBox.y + camBox.height / 2,
+    {
+      steps: 8,
+    },
+  );
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+  const movedBox = await previewCamera.boundingBox();
+  assert.ok(Math.abs(movedBox.x - camBox.x) > 4, "preview source did not drag");
+  assert.equal(
+    await dialog.getByLabel("Program output").getAttribute("data-scene"),
+    programScene,
+    "program must keep the live scene",
+  );
+  assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
+  result.checks.scenePreview = true;
+
+  // Back on the live scene the preview hides and the handles return to the program.
+  await dialog.locator("label.studio-row-main", { hasText: "Scene 2" }).click();
+  await cameraBox.waitFor();
+  await preview.waitFor({ state: "hidden" });
+
   // Screen source through the real picker path.
   await button("Add screen").click();
   await page.waitForTimeout(1500);
@@ -301,6 +369,25 @@ try {
   await page.waitForTimeout(600);
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
   result.checks.reloadRecovery = true;
+
+  // Reconnecting camera restores its saved position and layout.
+  const sourcesSection = dialog.locator('section[aria-label="Sources"]');
+  await sourcesSection.getByText("Camera 1 · not connected").waitFor();
+  await sourcesSection.getByRole("button", { name: "Reconnect", exact: true }).first().click();
+  await cameraBox.waitFor();
+  await page.waitForTimeout(800);
+  assert.notDeepEqual(
+    (await pixel(0.36, 0.72)).slice(0, 3),
+    [17, 24, 39],
+    "camera restored to dragged position",
+  );
+  const reconnectedBox = await cameraBox.boundingBox();
+  assert.ok(
+    Math.abs(reconnectedBox.width - afterAspect.width) < 2,
+    "camera restored to saved width",
+  );
+  assert.ok(Math.abs(reconnectedBox.x - afterAspect.x) < 2, "camera restored to saved x position");
+  result.checks.cameraArrangementRecovery = true;
 
   // A take cut off by a reload is kept on disk and offered back.
   await button("Start recording").click();
