@@ -184,7 +184,11 @@ export default function StudioPanel({
   const [frame, setFrame] = useState<string | null>(null);
   const [name, setName] = useState("Scene 1");
   const [selected, setSelected] = useState<string | null>(null);
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
   const [draft, setDraft] = useState<LiveAssets>(DEFAULT_LIVE_ASSETS);
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   /** While an overlay is selected the preview edits overlays instead of sources. */
   const [selectedOverlay, setSelectedOverlay] = useState<string | null>(null);
@@ -266,6 +270,10 @@ export default function StudioPanel({
     recording ||
     program.kind === "stopping" ||
     program.kind === "saving";
+  const captureActive =
+    program.kind !== "idle" && program.kind !== "failed" && program.kind !== "uploaded";
+  const captureActiveRef = useRef(captureActive);
+  captureActiveRef.current = captureActive;
   const uploading = program.kind === "saving" && program.cloud;
   const take = program.kind === "retained" || program.kind === "importing" ? program.take : null;
   const markCount = recording ? program.marks : 0;
@@ -356,6 +364,19 @@ export default function StudioPanel({
       .then((loaded) => {
         if (!alive || !canvas.current) return;
         studio.current = loaded;
+        const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
+        if (initialSelected) {
+          try {
+            const saved = liveAssets(
+              loaded.project(initialSelected).liveAssets ?? DEFAULT_LIVE_ASSETS,
+            );
+            draftRef.current = saved;
+            setDraft(saved);
+            setSavedLook(JSON.stringify(saved));
+          } catch {
+            // Keep default assets
+          }
+        }
         output.current = new LiveStudioOutput(
           canvas.current,
           loaded,
@@ -364,8 +385,19 @@ export default function StudioPanel({
           (context) => paintSources(context, sources.current),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
           1080,
+          () => {
+            if (captureActiveRef.current) return undefined;
+            if (
+              selectedRef.current &&
+              loaded.activeScene &&
+              selectedRef.current !== loaded.activeScene.id
+            ) {
+              return undefined;
+            }
+            return draftRef.current;
+          },
         );
-        setSelected(loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null);
+        setSelected(initialSelected);
         setName(`Scene ${loaded.list().length + 1}`);
         const origin = performance.now();
         // An interval, not rAF: a backgrounded window must keep feeding an active recording.
