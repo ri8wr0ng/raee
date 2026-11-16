@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 const electron = vi.hoisted(() => ({
   handlers: new Map<string, (...args: any[]) => any>(),
   request: undefined as any,
+  check: undefined as any,
   display: undefined as any,
   dialog: vi.fn(),
   sources: vi.fn(),
@@ -23,7 +24,9 @@ vi.mock("electron", () => ({
       setPermissionRequestHandler: (handler: any) => {
         electron.request = handler;
       },
-      setPermissionCheckHandler: () => {},
+      setPermissionCheckHandler: (handler: any) => {
+        electron.check = handler;
+      },
       setDisplayMediaRequestHandler: (handler: any) => {
         electron.display = handler;
       },
@@ -43,8 +46,12 @@ let contents: EventEmitter & {
   isDestroyed: () => boolean;
 };
 let event: { sender: typeof contents; senderFrame: typeof contents.mainFrame };
-const prepare = (source: string, microphone = false) =>
-  electron.handlers.get(bridgeChannels.capturePrepare)!(event, id, { source, microphone });
+const prepare = (source: string, microphone = false, display?: string) =>
+  electron.handlers.get(bridgeChannels.capturePrepare)!(event, id, {
+    source,
+    microphone,
+    ...(display ? { display } : {}),
+  });
 const allowAudio = () => {
   let allowed = false;
   electron.request(
@@ -135,4 +142,37 @@ it("requires screen consent before audio and accepts only one display request", 
   expect((await first).video.id).toBe("screen:1");
   expect(allowAudio()).toBe(true);
   expect(await display()).toEqual({});
+});
+
+it("uses a screen picked in the app without showing the system picker", async () => {
+  electron.sources.mockResolvedValue([
+    { id: "screen:1", name: "Screen" },
+    { id: "window:7:0", name: "Editor" },
+  ]);
+  await prepare("screen", false, "window:7:0");
+  const result = await new Promise<any>((resolve) =>
+    electron.display(
+      {
+        frame: contents.mainFrame,
+        securityOrigin: "trusted",
+        videoRequested: true,
+        audioRequested: false,
+      },
+      resolve,
+    ),
+  );
+  expect(result.video.id).toBe("window:7:0");
+  expect(electron.dialog).not.toHaveBeenCalled();
+});
+
+it("rejects a malformed picked source", async () => {
+  await expect(prepare("screen", false, "../etc")).rejects.toThrow("Invalid capture request.");
+});
+
+it("lets only the app's own page see device names", () => {
+  const check = (url: string) =>
+    electron.check(contents, "media", url, { isMainFrame: true, mediaType: "video" });
+  expect(check("trusted")).toBe(true);
+  expect(check("https://elsewhere.example")).toBe(false);
+  expect(electron.check(contents, "media", "trusted", { isMainFrame: false })).toBe(false);
 });

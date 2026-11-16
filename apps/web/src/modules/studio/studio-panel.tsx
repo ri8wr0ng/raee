@@ -89,6 +89,7 @@ import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
 import { openCamera, useCameraDevices } from "./camera-devices";
 import { withCaptureGrant } from "./capture-grant";
+import { useScreenPicker } from "./screen-picker";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
@@ -214,6 +215,7 @@ export default function StudioPanel({
   const output = useRef<LiveStudioOutput | null>(null);
   const previewOutput = useRef<LiveStudioOutput | null>(null);
   const mixer = useRef<LiveAudioMixer | null>(null);
+  const screenPicker = useScreenPicker();
   /** Every open camera, screen and video; scenes share these. */
   const sources = useRef<VideoSource[]>([]);
   /** This render's video opener, for the long-lived load effect. */
@@ -800,6 +802,19 @@ export default function StudioPanel({
     setSelectedSource(source.id);
     refresh();
   };
+  /** Null when the person closes the picker. */
+  const openScreen = async () => {
+    const display = await screenPicker.pick();
+    if (display === null) return null;
+    // In a browser, tab or system audio comes along when the user ticks "Share audio".
+    if (display === undefined)
+      return navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    return withCaptureGrant(
+      "screen",
+      () => navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }),
+      { display },
+    );
+  };
   const addSource = (
     kind: VideoSource["kind"],
     chosenDeviceId?: string,
@@ -821,12 +836,9 @@ export default function StudioPanel({
           }
         }
       } else {
-        // Tab or system audio comes along when the user ticks "Share audio". The desktop
-        // picker shares picture only.
-        const desktop = Boolean(nativeBridge()?.capturePrepare);
-        stream = await withCaptureGrant("screen", () =>
-          navigator.mediaDevices.getDisplayMedia({ video: true, audio: !desktop }),
-        );
+        const picked = await openScreen();
+        if (!picked) return;
+        stream = picked;
       }
       const video = document.createElement("video");
       video.muted = true;
@@ -1135,6 +1147,62 @@ export default function StudioPanel({
       void refreshCameraDevices();
       refresh();
     }, "Could not switch camera device.");
+  /** Points a screen source at another screen or window, keeping its place in every scene. */
+  const switchScreen = (id: string) =>
+    attempt(async () => {
+      const source = sources.current.find((item) => item.id === id || item.identity === id);
+      if (!source || source.kind !== "screen") return;
+      const stream = await openScreen();
+      if (!stream) return;
+      const video = document.createElement("video");
+      video.muted = true;
+      video.playsInline = true;
+      video.srcObject = stream;
+      try {
+        await video.play();
+      } catch (cause) {
+        for (const track of stream.getTracks()) track.stop();
+        throw cause;
+      }
+      if (!sources.current.includes(source)) {
+        for (const track of stream.getTracks()) track.stop();
+        return;
+      }
+      const audioID = `${source.id}:audio`;
+      mixer.current?.remove(audioID);
+      audioInputs.current = audioInputs.current.filter((input) => input.id !== audioID);
+      for (const track of source.stream?.getTracks() ?? []) track.stop();
+      source.video.onresize = null;
+      source.video.srcObject = null;
+      source.stream = stream;
+      source.video = video;
+      video.onresize = refresh;
+      stream.getVideoTracks()[0]?.addEventListener(
+        "ended",
+        () => {
+          if (sources.current.find((item) => item.id === source.id)?.stream === stream)
+            disconnectSource(source.id);
+        },
+        { once: true },
+      );
+      if (stream.getAudioTracks().length) {
+        const audio = await ensureMixer();
+        const channel = audio.addStream(audioID, new MediaStream(stream.getAudioTracks()));
+        setSettings((current) => ({ ...current, [audioID]: DEFAULT_LIVE_AUDIO }));
+        audioInputs.current = [
+          ...audioInputs.current,
+          {
+            id: audioID,
+            label: source.label,
+            kind: "screen",
+            sourceId: source.id,
+            stream,
+            channel,
+          },
+        ];
+      }
+      refresh();
+    }, "Could not switch the screen.");
   const placeSource = (id: string, layout: SourceLayout) => {
     const source = sources.current.find((item) => item.id === id || item.identity === id);
     const targetId = source ? source.identity : id;
@@ -1346,6 +1414,7 @@ export default function StudioPanel({
 
   return (
     <div className="studio-layout">
+      {screenPicker.dialog}
       <div className="grid gap-3">
         <div className="studio-frames" data-preview={previewing || undefined}>
           <div className="studio-program-frame" hidden={!previewing}>
@@ -1993,6 +2062,18 @@ export default function StudioPanel({
                             })}
                           </SelectContent>
                         </Select>
+                      )}
+                      {live.kind === "screen" && (
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          aria-label={`Change what ${live.label} shows`}
+                          title="Change screen or window"
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={() => void switchScreen(live.id)}
+                        >
+                          Change
+                        </Button>
                       )}
                       <Button
                         size="icon-xs"

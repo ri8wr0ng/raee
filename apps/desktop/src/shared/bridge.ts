@@ -19,6 +19,7 @@ export const bridgeChannels = {
   nativeRecordingReveal: "sidecut:native-recording-reveal",
   capturePrepare: "sidecut:capture-prepare",
   captureRelease: "sidecut:capture-release",
+  captureSources: "sidecut:capture-sources",
   recordingDirectory: "sidecut:recording-directory",
   recordingExport: "sidecut:recording-export",
   storageRequest: "sidecut:storage-request",

@@ -3,9 +3,9 @@ import { withCaptureGrant } from "./capture-grant";
 
 describe("withCaptureGrant", () => {
   it("opens directly when there is no desktop host", async () => {
-    await expect(withCaptureGrant("camera", async () => "stream", undefined)).resolves.toBe(
-      "stream",
-    );
+    await expect(
+      withCaptureGrant("camera", async () => "stream", { host: undefined }),
+    ).resolves.toBe("stream");
   });
 
   it("prepares a grant, opens inside it and releases it after", async () => {
@@ -24,7 +24,7 @@ describe("withCaptureGrant", () => {
         calls.push("open");
         return "stream";
       },
-      host,
+      { host },
     );
     expect(result).toBe("stream");
     expect(calls).toEqual(["prepare:microphone", "open", "release"]);
@@ -37,14 +37,27 @@ describe("withCaptureGrant", () => {
       captureRelease: vi.fn(async () => {}),
     };
     await expect(
-      withCaptureGrant("camera", () => Promise.reject(new Error("busy")), host),
+      withCaptureGrant("camera", () => Promise.reject(new Error("busy")), { host }),
     ).rejects.toThrow("busy");
     expect(host.captureRelease).toHaveBeenCalledTimes(1);
 
     const open = vi.fn(async () => "stream");
     host.capturePrepare.mockRejectedValueOnce(new Error("Recording permission cancelled."));
-    await expect(withCaptureGrant("camera", open, host)).rejects.toThrow("cancelled");
+    await expect(withCaptureGrant("camera", open, { host })).rejects.toThrow("cancelled");
     expect(open).not.toHaveBeenCalled();
+  });
+
+  it("passes a screen picked in the app to the desktop grant", async () => {
+    const host = {
+      capturePrepare: vi.fn(async () => {}),
+      captureRelease: vi.fn(async () => {}),
+    };
+    await withCaptureGrant("screen", async () => "stream", { host, display: "screen:1:0" });
+    expect(host.capturePrepare).toHaveBeenCalledWith(expect.any(String), {
+      source: "screen",
+      microphone: false,
+      display: "screen:1:0",
+    });
   });
 
   it("runs one grant at a time", async () => {
@@ -63,9 +76,9 @@ describe("withCaptureGrant", () => {
       return "stream";
     };
     await Promise.all([
-      withCaptureGrant("camera", open, host),
-      withCaptureGrant("screen", open, host),
-      withCaptureGrant("microphone", open, host),
+      withCaptureGrant("camera", open, { host }),
+      withCaptureGrant("screen", open, { host }),
+      withCaptureGrant("microphone", open, { host }),
     ]);
     expect(most).toBe(1);
   });

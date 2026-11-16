@@ -22,6 +22,7 @@ type Grant = {
   id: string;
   source: "screen" | "camera" | "microphone";
   microphone: boolean;
+  display?: string | undefined;
   /** The only lifecycle record: approval, display selection and revocation. */
   state: GrantState;
   frame: Electron.WebFrameMain;
@@ -59,7 +60,11 @@ export function registerCapturePermissions(isTrusted: (url: string) => boolean) 
       !("source" in input) ||
       !["screen", "camera", "microphone"].includes(String(input.source)) ||
       !("microphone" in input) ||
-      typeof input.microphone !== "boolean"
+      typeof input.microphone !== "boolean" ||
+      ("display" in input &&
+        input.display !== undefined &&
+        (typeof input.display !== "string" ||
+          !/^(screen|window):[\w:-]{1,100}$/.test(input.display)))
     )
       throw new Error("Invalid capture request.");
     const source = input.source;
@@ -72,6 +77,10 @@ export function registerCapturePermissions(isTrusted: (url: string) => boolean) 
       id,
       source,
       microphone: input.microphone || source === "microphone",
+      display:
+        source === "screen" && "display" in input
+          ? (input.display as string | undefined)
+          : undefined,
       state: { kind: "awaitingApproval", expires: Date.now() + 60_000 },
       frame,
       dispose: () => {},
@@ -140,6 +149,19 @@ export function registerCapturePermissions(isTrusted: (url: string) => boolean) 
       throw error;
     }
   });
+  ipcMain.handle(bridgeChannels.captureSources, async (event) => {
+    check(event);
+    const sources = await desktopCapturer.getSources({
+      types: ["screen", "window"],
+      thumbnailSize: { width: 320, height: 180 },
+    });
+    return sources.map((source) => ({
+      id: source.id,
+      name: source.name,
+      kind: source.id.startsWith("screen:") ? "screen" : "window",
+      thumbnail: source.thumbnail.toDataURL(),
+    }));
+  });
   ipcMain.handle(bridgeChannels.captureRelease, (event, id: unknown) => {
     check(event);
     const grant = current(event.sender.id);
@@ -184,10 +206,15 @@ export function registerCapturePermissions(isTrusted: (url: string) => boolean) 
         ),
     );
   });
+  // Checks only reveal device names to the app's own page; opening a device still needs a grant.
   session.defaultSession.setPermissionCheckHandler(
     (contents, permission, origin, details) =>
       details.isMainFrame &&
-      allowed(contents, permission, origin, details.mediaType ? [details.mediaType] : []),
+      ((permission === "media" &&
+        Boolean(contents) &&
+        isTrusted(origin) &&
+        isTrusted(contents!.getURL())) ||
+        allowed(contents, permission, origin, details.mediaType ? [details.mediaType] : [])),
   );
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
     const contents = request.frame && webContents.fromFrame(request.frame);
@@ -209,6 +236,27 @@ export function registerCapturePermissions(isTrusted: (url: string) => boolean) 
       advance(grant, { type: "displayRejected" });
       callback({});
     };
+    const preselected = grant.display;
+    if (preselected) {
+      void desktopCapturer
+        .getSources({ types: ["screen", "window"], thumbnailSize: { width: 0, height: 0 } })
+        .then((sources) => {
+          const live = sources.find((source) => source.id === preselected);
+          if (
+            !live ||
+            current(contents.id) !== grant ||
+            contents.isDestroyed() ||
+            request.frame !== contents.mainFrame
+          ) {
+            reject();
+            return;
+          }
+          advance(grant, { type: "displayChosen" });
+          callback({ video: live });
+        })
+        .catch(reject);
+      return;
+    }
     void (async () => {
       try {
         const sources = await desktopCapturer.getSources({

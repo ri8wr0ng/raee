@@ -51,6 +51,13 @@ export interface FolderMedia {
   role: string;
   shortAudioFallback: boolean;
 }
+export type CaptureSource = {
+  id: string;
+  name: string;
+  kind: "screen" | "window";
+  thumbnail: string;
+};
+
 export type UpdateState =
   | { status: "idle" }
   | { status: "checking" }
@@ -81,8 +88,14 @@ export interface NativeBridge {
   nativeRecordingReveal?: (id: string) => Promise<void>;
   capturePrepare?: (
     id: string,
-    request: { source: "screen" | "camera" | "microphone"; microphone: boolean },
+    request: {
+      source: "screen" | "camera" | "microphone";
+      microphone: boolean;
+      /** A screen or window picked in the app, so no second picker is shown. */
+      display?: string;
+    },
   ) => Promise<void>;
+  captureSources?: () => Promise<CaptureSource[]>;
   captureRelease?: (id: string) => Promise<void>;
   updateState?: () => Promise<UpdateState>;
   updateSubscribe?: (listener: (state: UpdateState) => void) => () => void;

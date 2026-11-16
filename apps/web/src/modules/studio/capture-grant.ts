@@ -13,13 +13,13 @@ let queue: Promise<unknown> = Promise.resolve();
 export function withCaptureGrant<T>(
   source: Source,
   open: () => Promise<T>,
-  host: Host | undefined = nativeBridge(),
+  { host = nativeBridge(), display }: { host?: Host | undefined; display?: string } = {},
 ): Promise<T> {
   const prepare = host?.capturePrepare;
   if (!prepare) return open();
   const run = async () => {
     const id = crypto.randomUUID();
-    await prepare(id, { source, microphone: false });
+    await prepare(id, { source, microphone: false, ...(display ? { display } : {}) });
     try {
       return await open();
     } finally {
