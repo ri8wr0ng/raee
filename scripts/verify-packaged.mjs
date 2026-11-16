@@ -57,10 +57,16 @@ try {
         clearTimeout(timer);
         reject(error);
       });
-      child.on("close", (code, signal) => {
+      child.on("close", async (code, signal) => {
         clearTimeout(timer);
         if (code === 0) resolveExit();
-        else reject(new Error(`Packaged app failed (${code ?? signal}).`));
+        else {
+          try {
+            const failureData = await readFile(output, "utf8");
+            console.error("Packaged failure output:\n" + failureData);
+          } catch {}
+          reject(new Error(`Packaged app failed (${code ?? signal}).`));
+        }
       });
     });
   await launch();
