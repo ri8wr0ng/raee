@@ -448,6 +448,7 @@ async function verifyPanelPreferences(
   for (let i = 0; i < unreadable.length; i++) {
     const raw = unreadable[i]!;
     const step = async () => {
+      await reload();
       await evaluate(
         `window.sidecutDesktop.storageRequest(${JSON.stringify({ type: "commit", checks: [], writes: [{ collection: "preferences", key, value: raw }] })})`,
       );
