@@ -140,20 +140,10 @@ export function WorkspaceHome() {
   const [preferenceError, setPreferenceError] = useState(false);
   const [keymapError, setKeymapError] = useState(false);
   const container = useRef<HTMLDivElement>(null);
-  const previousWidth = useRef(1280);
-  const observedSize = useRef({ width: 1280, height: 636 });
+  const observedSize = useRef<{ width: number; height: number } | null>(null);
   const view = withAutoHidden(sizes, autoHidden);
   const fitted = fitPanels(view, dimensions.width, dimensions.height);
   const { project } = snapshot;
-  useEffect(() => {
-    const width = dimensions.width;
-    if (width < INSPECTOR_AUTO_HIDE_WIDTH && previousWidth.current >= INSPECTOR_AUTO_HIDE_WIDTH)
-      setSizes((current) => ({ ...current, inspectorHidden: true }));
-    if (width < MEDIA_AUTO_HIDE_WIDTH && previousWidth.current >= MEDIA_AUTO_HIDE_WIDTH)
-      setSizes((current) => ({ ...current, mediaHidden: true }));
-    previousWidth.current = width;
-  }, [dimensions.width]);
-
   useEffect(() => {
     let active = true;
     void openPreferences()
@@ -161,7 +151,7 @@ export function WorkspaceHome() {
         if (!active) return;
         const savedSizes = readPanelSizes(readPreference(PANEL_STORAGE_KEY));
         setSizes(savedSizes ?? { ...DEFAULT_PANELS });
-        setAutoHidden(autoHiddenForWidth(observedSize.current.width));
+        if (observedSize.current) setAutoHidden(autoHiddenForWidth(observedSize.current.width));
         setLayoutProtected(savedSizes === null);
         setSideTab(readSideTab(readPreference(SIDE_TAB_KEY)));
         editor
@@ -178,13 +168,19 @@ export function WorkspaceHome() {
     if (!element) return;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
-      if (entry) {
-        observedSize.current = {
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        };
-        setDimensions(observedSize.current);
+      if (!entry) return;
+      const next = { width: entry.contentRect.width, height: entry.contentRect.height };
+      const previous = observedSize.current;
+      if (!previous) {
+        setAutoHidden(autoHiddenForWidth(next.width));
+      } else {
+        if (next.width < INSPECTOR_AUTO_HIDE_WIDTH && previous.width >= INSPECTOR_AUTO_HIDE_WIDTH)
+          setSizes((current) => ({ ...current, inspectorHidden: true }));
+        if (next.width < MEDIA_AUTO_HIDE_WIDTH && previous.width >= MEDIA_AUTO_HIDE_WIDTH)
+          setSizes((current) => ({ ...current, mediaHidden: true }));
       }
+      observedSize.current = next;
+      setDimensions(next);
     });
     observer.observe(element);
     return () => {
