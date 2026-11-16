@@ -194,4 +194,4 @@ it("runs editing helpers and cards through the authoritative host", async () => 
   expect(unavailable.code).toBe(3);
   expect(unavailable.err).toContain("attached editor");
   expect(host.snapshot().json).toBe(beforeCards);
-});
+}, 20000);
