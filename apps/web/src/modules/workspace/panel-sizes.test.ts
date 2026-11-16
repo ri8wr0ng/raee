@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
-import { DEFAULT_PANELS, fitPanels, readPanelSizes, readSideTab } from "./panel-sizes";
+import {
+  DEFAULT_PANELS,
+  autoHideForWidth,
+  fitPanels,
+  readPanelSizes,
+  readSideTab,
+} from "./panel-sizes";
 
 describe("editor panel sizing", () => {
   it("distinguishes unreadable preferences from an absent layout and clamps valid saved widths", () => {
@@ -55,6 +61,27 @@ describe("editor panel sizing", () => {
     expect(fitted.workspace).toBe(454);
     expect(fitPanels(saved, 1920, 996).media).toBe(560);
     expect(saved.workspace).toBe(9999);
+  });
+  it("hides side panels on narrow widths without un-hiding or touching saved widths", () => {
+    const saved = { media: 410, inspector: 330, workspace: null };
+    expect(autoHideForWidth({ ...DEFAULT_PANELS, ...saved }, 960)).toEqual({
+      ...DEFAULT_PANELS,
+      ...saved,
+      inspectorHidden: true,
+    });
+    expect(autoHideForWidth({ ...DEFAULT_PANELS, ...saved }, 700)).toEqual({
+      ...DEFAULT_PANELS,
+      ...saved,
+      inspectorHidden: true,
+      mediaHidden: true,
+    });
+    expect(autoHideForWidth({ ...DEFAULT_PANELS, ...saved }, 1280)).toEqual({
+      ...DEFAULT_PANELS,
+      ...saved,
+    });
+    expect(
+      autoHideForWidth({ ...DEFAULT_PANELS, inspectorHidden: true }, 1280).inspectorHidden,
+    ).toBe(true);
   });
   it("collapses hidden side panels to a rail and gives the viewer their space", () => {
     expect(

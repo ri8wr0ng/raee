@@ -37,13 +37,16 @@ import { protectsEditing, workspaceShortcut } from "./keyboard";
 import {
   DEFAULT_PANELS,
   DIVIDER_SIZE,
+  INSPECTOR_AUTO_HIDE_WIDTH,
   INSPECTOR_MIN,
+  MEDIA_AUTO_HIDE_WIDTH,
   MEDIA_MIN,
   PANEL_STORAGE_KEY,
   SIDE_TAB_KEY,
   TIMELINE_MIN,
   VIEWER_MIN,
   WORKSPACE_MIN,
+  autoHideForWidth,
   fitPanels,
   readPanelSizes,
   readSideTab,
@@ -133,13 +136,14 @@ export function WorkspaceHome() {
   const [keymapError, setKeymapError] = useState(false);
   const container = useRef<HTMLDivElement>(null);
   const previousWidth = useRef(1280);
+  const observedSize = useRef({ width: 1280, height: 636 });
   const fitted = fitPanels(sizes, dimensions.width, dimensions.height);
   const { project } = snapshot;
   useEffect(() => {
     const width = dimensions.width;
-    if (width < 1000 && previousWidth.current >= 1000)
+    if (width < INSPECTOR_AUTO_HIDE_WIDTH && previousWidth.current >= INSPECTOR_AUTO_HIDE_WIDTH)
       setSizes((current) => ({ ...current, inspectorHidden: true }));
-    if (width < 760 && previousWidth.current >= 760)
+    if (width < MEDIA_AUTO_HIDE_WIDTH && previousWidth.current >= MEDIA_AUTO_HIDE_WIDTH)
       setSizes((current) => ({ ...current, mediaHidden: true }));
     previousWidth.current = width;
   }, [dimensions.width]);
@@ -150,7 +154,7 @@ export function WorkspaceHome() {
       .then(() => {
         if (!active) return;
         const savedSizes = readPanelSizes(readPreference(PANEL_STORAGE_KEY));
-        setSizes(savedSizes ?? { ...DEFAULT_PANELS });
+        setSizes(autoHideForWidth(savedSizes ?? { ...DEFAULT_PANELS }, observedSize.current.width));
         setLayoutProtected(savedSizes === null);
         setSideTab(readSideTab(readPreference(SIDE_TAB_KEY)));
         editor
@@ -167,8 +171,13 @@ export function WorkspaceHome() {
     if (!element) return;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
-      if (entry)
-        setDimensions({ width: entry.contentRect.width, height: entry.contentRect.height });
+      if (entry) {
+        observedSize.current = {
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        };
+        setDimensions(observedSize.current);
+      }
     });
     observer.observe(element);
     return () => {
@@ -206,7 +215,7 @@ export function WorkspaceHome() {
   }
   // Hiding moves focus to the rail's show button; showing moves it to the panel's hide button.
   function setPanelHidden(panel: "media" | "inspector", hidden: boolean) {
-    if (!hidden && dimensions.width < 760)
+    if (!hidden && dimensions.width < MEDIA_AUTO_HIDE_WIDTH)
       updatePanel(panel === "media" ? "inspectorHidden" : "mediaHidden", true);
     updatePanel(panel === "media" ? "mediaHidden" : "inspectorHidden", hidden);
     requestAnimationFrame(() =>

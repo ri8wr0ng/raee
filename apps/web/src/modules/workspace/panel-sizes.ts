@@ -24,6 +24,8 @@ export const VIEWER_MIN = 420;
 export const WORKSPACE_MIN = 260;
 export const TIMELINE_MIN = 176;
 export const DIVIDER_SIZE = 6;
+export const INSPECTOR_AUTO_HIDE_WIDTH = 1000;
+export const MEDIA_AUTO_HIDE_WIDTH = 760;
 // Width of the strip a hidden side panel collapses to; it holds the button that shows it again.
 export const RAIL_SIZE = 32;
 export const clamp = (value: number, min: number, max: number) =>
@@ -65,6 +67,14 @@ export function readPanelSizes(value: string | null): PanelSizes | null {
   } catch {
     return null;
   }
+}
+
+export function autoHideForWidth(sizes: PanelSizes, width: number): PanelSizes {
+  return {
+    ...sizes,
+    inspectorHidden: sizes.inspectorHidden || width < INSPECTOR_AUTO_HIDE_WIDTH,
+    mediaHidden: sizes.mediaHidden || width < MEDIA_AUTO_HIDE_WIDTH,
+  };
 }
 
 export function fitPanels(sizes: PanelSizes, width: number, height: number) {
