@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { withCaptureGrant } from "./capture-grant";
 
 export type AudioInputDeviceInfo = {
   deviceId: string;
@@ -74,7 +75,7 @@ export async function openAudioInput(deviceId: string | null = null): Promise<Me
   if (deviceId) {
     audioConstraints.deviceId = { exact: deviceId };
   }
-  return navigator.mediaDevices.getUserMedia({
-    audio: audioConstraints,
-  });
+  return withCaptureGrant("microphone", () =>
+    navigator.mediaDevices.getUserMedia({ audio: audioConstraints }),
+  );
 }

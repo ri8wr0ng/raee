@@ -88,6 +88,7 @@ import {
 import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
 import { openCamera, useCameraDevices } from "./camera-devices";
+import { withCaptureGrant } from "./capture-grant";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
 import { SceneLookPanel } from "./scene-look-panel";
@@ -820,8 +821,12 @@ export default function StudioPanel({
           }
         }
       } else {
-        // Tab or system audio comes along when the user ticks "Share audio".
-        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        // Tab or system audio comes along when the user ticks "Share audio". The desktop
+        // picker shares picture only.
+        const desktop = Boolean(nativeBridge()?.capturePrepare);
+        stream = await withCaptureGrant("screen", () =>
+          navigator.mediaDevices.getDisplayMedia({ video: true, audio: !desktop }),
+        );
       }
       const video = document.createElement("video");
       video.muted = true;

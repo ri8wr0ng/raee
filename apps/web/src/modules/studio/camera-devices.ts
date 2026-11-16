@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { withCaptureGrant } from "./capture-grant";
 
 export type CameraDeviceInfo = {
   deviceId: string;
@@ -79,7 +80,7 @@ export async function openCamera(deviceId: string | null = null): Promise<MediaS
   const videoConstraints: MediaTrackConstraints | boolean = deviceId
     ? { deviceId: { exact: deviceId } }
     : true;
-  return navigator.mediaDevices.getUserMedia({
-    video: videoConstraints,
-  });
+  return withCaptureGrant("camera", () =>
+    navigator.mediaDevices.getUserMedia({ video: videoConstraints }),
+  );
 }
