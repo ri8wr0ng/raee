@@ -2,9 +2,11 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   DEFAULT_PANELS,
   autoHideForWidth,
+  autoHiddenForWidth,
   fitPanels,
   readPanelSizes,
   readSideTab,
+  withAutoHidden,
 } from "./panel-sizes";
 
 describe("editor panel sizing", () => {
@@ -82,6 +84,22 @@ describe("editor panel sizing", () => {
     expect(
       autoHideForWidth({ ...DEFAULT_PANELS, inspectorHidden: true }, 1280).inspectorHidden,
     ).toBe(true);
+  });
+  it("keeps width auto-hide in a transient overlay so saved sizes stay untouched", () => {
+    const saved = { ...DEFAULT_PANELS, media: 410, inspector: 330 };
+    expect(autoHiddenForWidth(900)).toEqual({ media: false, inspector: true });
+    expect(autoHiddenForWidth(700)).toEqual({ media: true, inspector: true });
+    expect(autoHiddenForWidth(1280)).toEqual({ media: false, inspector: false });
+    const view = withAutoHidden(saved, autoHiddenForWidth(900));
+    expect(view.inspectorHidden).toBe(true);
+    expect(view.mediaHidden).toBe(false);
+    expect(saved.inspectorHidden).toBe(false);
+    expect(withAutoHidden(saved, { media: false, inspector: false })).toEqual(saved);
+    expect(
+      withAutoHidden({ ...saved, inspectorHidden: true }, { media: false, inspector: false })
+        .inspectorHidden,
+    ).toBe(true);
+    expect(autoHideForWidth(saved, 900)).toEqual(view);
   });
   it("collapses hidden side panels to a rail and gives the viewer their space", () => {
     expect(

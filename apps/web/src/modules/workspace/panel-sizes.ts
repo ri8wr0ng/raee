@@ -69,12 +69,28 @@ export function readPanelSizes(value: string | null): PanelSizes | null {
   }
 }
 
-export function autoHideForWidth(sizes: PanelSizes, width: number): PanelSizes {
+export interface AutoHiddenPanels {
+  media: boolean;
+  inspector: boolean;
+}
+
+export function autoHiddenForWidth(width: number): AutoHiddenPanels {
+  return {
+    media: width < MEDIA_AUTO_HIDE_WIDTH,
+    inspector: width < INSPECTOR_AUTO_HIDE_WIDTH,
+  };
+}
+
+export function withAutoHidden(sizes: PanelSizes, auto: AutoHiddenPanels): PanelSizes {
   return {
     ...sizes,
-    inspectorHidden: sizes.inspectorHidden || width < INSPECTOR_AUTO_HIDE_WIDTH,
-    mediaHidden: sizes.mediaHidden || width < MEDIA_AUTO_HIDE_WIDTH,
+    mediaHidden: sizes.mediaHidden || auto.media,
+    inspectorHidden: sizes.inspectorHidden || auto.inspector,
   };
+}
+
+export function autoHideForWidth(sizes: PanelSizes, width: number): PanelSizes {
+  return withAutoHidden(sizes, autoHiddenForWidth(width));
 }
 
 export function fitPanels(sizes: PanelSizes, width: number, height: number) {

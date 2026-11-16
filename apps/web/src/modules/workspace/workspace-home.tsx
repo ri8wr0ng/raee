@@ -46,12 +46,13 @@ import {
   TIMELINE_MIN,
   VIEWER_MIN,
   WORKSPACE_MIN,
-  autoHideForWidth,
+  autoHiddenForWidth,
   fitPanels,
   readPanelSizes,
   readSideTab,
+  withAutoHidden,
 } from "./panel-sizes";
-import type { PanelSizes, SideTab } from "./panel-sizes";
+import type { AutoHiddenPanels, PanelSizes, SideTab } from "./panel-sizes";
 import "./workspace.css";
 import "./side-panels.css";
 
@@ -128,6 +129,10 @@ export function WorkspaceHome() {
   });
   const [sideTab, setSideTab] = useState<SideTab>("media");
   const [sizes, setSizes] = useState<PanelSizes>({ ...DEFAULT_PANELS });
+  const [autoHidden, setAutoHidden] = useState<AutoHiddenPanels>({
+    media: false,
+    inspector: false,
+  });
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 1280, height: 636 });
   const [preferencesReady, setPreferencesReady] = useState(false);
@@ -137,7 +142,8 @@ export function WorkspaceHome() {
   const container = useRef<HTMLDivElement>(null);
   const previousWidth = useRef(1280);
   const observedSize = useRef({ width: 1280, height: 636 });
-  const fitted = fitPanels(sizes, dimensions.width, dimensions.height);
+  const view = withAutoHidden(sizes, autoHidden);
+  const fitted = fitPanels(view, dimensions.width, dimensions.height);
   const { project } = snapshot;
   useEffect(() => {
     const width = dimensions.width;
@@ -154,7 +160,8 @@ export function WorkspaceHome() {
       .then(() => {
         if (!active) return;
         const savedSizes = readPanelSizes(readPreference(PANEL_STORAGE_KEY));
-        setSizes(autoHideForWidth(savedSizes ?? { ...DEFAULT_PANELS }, observedSize.current.width));
+        setSizes(savedSizes ?? { ...DEFAULT_PANELS });
+        setAutoHidden(autoHiddenForWidth(observedSize.current.width));
         setLayoutProtected(savedSizes === null);
         setSideTab(readSideTab(readPreference(SIDE_TAB_KEY)));
         editor
@@ -215,8 +222,14 @@ export function WorkspaceHome() {
   }
   // Hiding moves focus to the rail's show button; showing moves it to the panel's hide button.
   function setPanelHidden(panel: "media" | "inspector", hidden: boolean) {
-    if (!hidden && dimensions.width < MEDIA_AUTO_HIDE_WIDTH)
-      updatePanel(panel === "media" ? "inspectorHidden" : "mediaHidden", true);
+    if (!hidden) {
+      setAutoHidden((current) => ({ ...current, [panel]: false }));
+      if (dimensions.width < MEDIA_AUTO_HIDE_WIDTH)
+        setAutoHidden((current) => ({
+          ...current,
+          [panel === "media" ? "inspector" : "media"]: true,
+        }));
+    }
     updatePanel(panel === "media" ? "mediaHidden" : "inspectorHidden", hidden);
     requestAnimationFrame(() =>
       document.getElementById(`${panel}-${hidden ? "show" : "hide"}`)?.focus(),
@@ -233,9 +246,9 @@ export function WorkspaceHome() {
   );
   const columns = [
     `${fitted.media}px`,
-    ...(sizes.mediaHidden ? [] : [`${DIVIDER_SIZE}px`]),
+    ...(view.mediaHidden ? [] : [`${DIVIDER_SIZE}px`]),
     `minmax(${dimensions.width < 1000 ? 180 : VIEWER_MIN}px, 1fr)`,
-    ...(sizes.inspectorHidden ? [] : [`${DIVIDER_SIZE}px`]),
+    ...(view.inspectorHidden ? [] : [`${DIVIDER_SIZE}px`]),
     `${fitted.inspector}px`,
   ].join(" ");
   const workspaceMax = Math.max(WORKSPACE_MIN, dimensions.height - TIMELINE_MIN - DIVIDER_SIZE);
@@ -499,7 +512,7 @@ export function WorkspaceHome() {
               gridTemplateColumns: columns,
             }}
           >
-            {sizes.mediaHidden ? (
+            {view.mediaHidden ? (
               <PanelRail
                 id="media-show"
                 label="Show project media"
@@ -527,7 +540,7 @@ export function WorkspaceHome() {
                 }
               />
             )}
-            {!sizes.mediaHidden && (
+            {!view.mediaHidden && (
               <PanelDivider
                 label="Media panel width"
                 controls="side-panel"
@@ -540,7 +553,7 @@ export function WorkspaceHome() {
               />
             )}
             <Viewer />
-            {sizes.inspectorHidden ? (
+            {view.inspectorHidden ? (
               <PanelRail
                 id="inspector-show"
                 label="Show inspector"
