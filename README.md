@@ -36,7 +36,9 @@ vp run dev:landing
 ```
 
 The landing app uses Portless at `sidecut-landing.localhost`. Set
-`VITE_EDITOR_URL` in `apps/landing/.env.local` to link it to your editor deployment.
+`VITE_EDITOR_URL` in `apps/landing/.env.local` to link it to your editor deployment, and
+`VITE_SITE_URL` to the site's public origin for canonical URLs, social cards and
+`sitemap.xml`. On Vercel, `VITE_SITE_URL` defaults to the production domain.
 
 ## Edit and record
 
