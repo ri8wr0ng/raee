@@ -311,6 +311,14 @@ async function verifyPanelPreferences(
   const reset = `[...document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Reset layout')`;
   const protectedLayout = `[...document.querySelectorAll('[role="status"]')].some(element => element.textContent.includes('Temporary layout'))`;
   const divider = `document.querySelector('[role="separator"][aria-label="Media panel width"]')`;
+  const inspectorHide = `document.getElementById('inspector-hide')`;
+  const inspectorShow = `document.getElementById('inspector-show')`;
+  // Small windows fit every panel at its minimum; hiding the inspector frees room to grow media.
+  const ensureMediaRoom = async () => {
+    if (await evaluate(`Boolean(${inspectorShow})`)) return;
+    await evaluate(`${inspectorHide}.click()`);
+    await wait(`Boolean(${inspectorShow})`);
+  };
   const reload = async () => {
     const loaded = new Promise<void>((resolve) =>
       window.webContents.once("did-finish-load", () => resolve()),
@@ -331,6 +339,7 @@ async function verifyPanelPreferences(
     await reload();
     await wait(protectedLayout);
     assert.equal((await evaluate(read))[0]?.value, raw);
+    await ensureMediaRoom();
     const before = await evaluate(`Number(${divider}.getAttribute('aria-valuenow'))`);
     await evaluate(
       `${divider}.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))`,
@@ -350,6 +359,7 @@ async function verifyPanelPreferences(
   await reload();
   assert.equal(await evaluate(protectedLayout), false);
   assert.equal((await evaluate(read))[0]?.value, saved);
+  await ensureMediaRoom();
   const before = await evaluate(`Number(${divider}.getAttribute('aria-valuenow'))`);
   await evaluate(
     `${divider}.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))`,
