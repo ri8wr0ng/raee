@@ -7,8 +7,8 @@ type Source = "screen" | "camera" | "microphone";
 let queue: Promise<unknown> = Promise.resolve();
 
 /**
- * The desktop app only lets a page open a device inside an approved, one-request grant.
- * Grants are one at a time, so concurrent opens wait their turn.
+ * Tells the desktop app which device is about to open (and which screen was picked) before
+ * opening it, so it can point at blocked system settings. One open at a time.
  */
 export function withCaptureGrant<T>(
   source: Source,

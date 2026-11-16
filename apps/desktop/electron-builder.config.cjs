@@ -22,6 +22,11 @@ module.exports = {
     identity: "-",
     hardenedRuntime: false,
     notarize: false,
+    extendInfo: {
+      NSCameraUsageDescription: "raE.E uses the camera when you add it to a scene or record it.",
+      NSMicrophoneUsageDescription:
+        "raE.E uses the microphone when you add it to a scene or record it.",
+    },
   },
   win: { target: ["nsis"], executableName: "raE.E", signExecutable: false },
   nsis: {

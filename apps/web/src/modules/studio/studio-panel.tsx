@@ -811,7 +811,7 @@ export default function StudioPanel({
       return navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
     return withCaptureGrant(
       "screen",
-      () => navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }),
+      () => navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }),
       { display },
     );
   };

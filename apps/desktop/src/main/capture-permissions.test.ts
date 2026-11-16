@@ -1,6 +1,6 @@
 /* eslint-disable typescript/no-explicit-any -- Electron boundary mocks have partial shapes. */
 import { EventEmitter } from "node:events";
-import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
+import { beforeEach, expect, it, vi } from "vite-plus/test";
 
 const electron = vi.hoisted(() => ({
   handlers: new Map<string, (...args: any[]) => any>(),
@@ -9,6 +9,7 @@ const electron = vi.hoisted(() => ({
   display: undefined as any,
   dialog: vi.fn(),
   sources: vi.fn(),
+  status: vi.fn(),
   contents: undefined as any,
 }));
 vi.mock("electron", () => ({
@@ -32,7 +33,7 @@ vi.mock("electron", () => ({
       },
     },
   },
-  systemPreferences: { getMediaAccessStatus: () => "granted" },
+  systemPreferences: { getMediaAccessStatus: electron.status },
   webContents: { fromFrame: () => electron.contents },
 }));
 import { registerCapturePermissions } from "./capture-permissions";
@@ -46,29 +47,41 @@ let contents: EventEmitter & {
   isDestroyed: () => boolean;
 };
 let event: { sender: typeof contents; senderFrame: typeof contents.mainFrame };
-const prepare = (source: string, microphone = false, display?: string) =>
+const prepare = (source: string, display?: string) =>
   electron.handlers.get(bridgeChannels.capturePrepare)!(event, id, {
     source,
-    microphone,
+    microphone: false,
     ...(display ? { display } : {}),
   });
-const allowAudio = () => {
-  let allowed = false;
-  electron.request(
-    contents,
-    "media",
-    (value: boolean) => {
-      allowed = value;
-    },
-    { isMainFrame: true, requestingUrl: "trusted", mediaTypes: ["audio"] },
-  );
+const request = (permission: string, url = "trusted", isMainFrame = true) => {
+  let allowed: boolean | undefined;
+  electron.request(contents, permission, (value: boolean) => (allowed = value), {
+    isMainFrame,
+    requestingUrl: url,
+  });
   return allowed;
 };
+const display = (audioRequested = false) =>
+  new Promise<any>((resolve) =>
+    electron.display(
+      {
+        frame: contents.mainFrame,
+        securityOrigin: "trusted",
+        videoRequested: true,
+        audioRequested,
+      },
+      resolve,
+    ),
+  );
+
 beforeEach(() => {
-  vi.useFakeTimers();
   electron.handlers.clear();
   electron.dialog.mockReset().mockResolvedValue({ response: 1 });
-  electron.sources.mockReset().mockResolvedValue([{ id: "screen:1", name: "Screen" }]);
+  electron.status.mockReset().mockReturnValue("granted");
+  electron.sources.mockReset().mockResolvedValue([
+    { id: "screen:1", name: "Screen" },
+    { id: "window:7:0", name: "Editor" },
+  ]);
   contents = Object.assign(new EventEmitter(), {
     id: 1,
     mainFrame: { url: "trusted" },
@@ -79,100 +92,48 @@ beforeEach(() => {
   electron.contents = contents;
   registerCapturePermissions((url) => url === "trusted");
 });
-afterEach(() => {
-  vi.useRealTimers();
+
+it("lets the app's own page use the camera, microphone and screen without asking", async () => {
+  await prepare("camera");
+  expect(electron.dialog).not.toHaveBeenCalled();
+  expect(request("media")).toBe(true);
+  expect(request("display-capture")).toBe(true);
+  expect(electron.check(contents, "media", "trusted", { isMainFrame: true })).toBe(true);
 });
 
-it("expires stalled approval and rejects its late response", async () => {
-  let answer!: (value: { response: number }) => void;
-  electron.dialog.mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        answer = resolve;
-      }),
-  );
-  const pending = prepare("microphone");
-  vi.advanceTimersByTime(60_000);
-  answer({ response: 1 });
-  await expect(pending).rejects.toThrow("expired");
-  expect(allowAudio()).toBe(false);
+it("refuses other pages, frames and permissions", () => {
+  expect(request("media", "https://elsewhere.example")).toBe(false);
+  expect(request("media", "trusted", false)).toBe(false);
+  expect(request("geolocation")).toBe(false);
+  expect(
+    electron.check(contents, "media", "https://elsewhere.example", { isMainFrame: true }),
+  ).toBe(false);
 });
 
-it("revokes on crash and rejects a replacement document", async () => {
-  await prepare("microphone");
-  expect(allowAudio()).toBe(true);
-  contents.mainFrame = { url: "trusted" };
-  expect(allowAudio()).toBe(false);
-  contents.emit("render-process-gone");
-  event.senderFrame = contents.mainFrame;
-  await prepare("microphone");
-  expect(allowAudio()).toBe(true);
+it("points to system settings when the operating system blocks the device", async () => {
+  if (!["win32", "darwin"].includes(process.platform)) return;
+  electron.status.mockReturnValue("denied");
+  await expect(prepare("camera")).rejects.toThrow("system privacy settings");
 });
 
-it("expires an approved grant relative to approval", async () => {
-  let answer!: (value: { response: number }) => void;
-  electron.dialog.mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        answer = resolve;
-      }),
-  );
-  const pending = prepare("microphone");
-  vi.advanceTimersByTime(50_000);
-  answer({ response: 1 });
-  await pending;
-  vi.advanceTimersByTime(309_999);
-  expect(allowAudio()).toBe(true);
-  vi.advanceTimersByTime(1);
-  expect(allowAudio()).toBe(false);
-});
-
-it("requires screen consent before audio and accepts only one display request", async () => {
-  await prepare("screen", true);
-  expect(allowAudio()).toBe(false);
-  const request = {
-    frame: contents.mainFrame,
-    securityOrigin: "trusted",
-    videoRequested: true,
-    audioRequested: false,
-  };
-  const display = () => new Promise<any>((resolve) => electron.display(request, resolve));
-  const first = display();
-  expect(await display()).toEqual({});
-  expect((await first).video.id).toBe("screen:1");
-  expect(allowAudio()).toBe(true);
-  expect(await display()).toEqual({});
-});
-
-it("uses a screen picked in the app without showing the system picker", async () => {
-  electron.sources.mockResolvedValue([
-    { id: "screen:1", name: "Screen" },
-    { id: "window:7:0", name: "Editor" },
-  ]);
-  await prepare("screen", false, "window:7:0");
-  const result = await new Promise<any>((resolve) =>
-    electron.display(
-      {
-        frame: contents.mainFrame,
-        securityOrigin: "trusted",
-        videoRequested: true,
-        audioRequested: false,
-      },
-      resolve,
-    ),
-  );
-  expect(result.video.id).toBe("window:7:0");
+it("shares the screen picked in the app without a second picker", async () => {
+  await prepare("screen", "window:7:0");
+  expect((await display()).video.id).toBe("window:7:0");
   expect(electron.dialog).not.toHaveBeenCalled();
 });
 
-it("rejects a malformed picked source", async () => {
-  await expect(prepare("screen", false, "../etc")).rejects.toThrow("Invalid capture request.");
+it("adds system sound on Windows when it is asked for", async () => {
+  await prepare("screen", "screen:1");
+  const result = await display(true);
+  expect(result.video.id).toBe("screen:1");
+  expect(result.audio).toBe(process.platform === "win32" ? "loopback" : undefined);
 });
 
-it("lets only the app's own page see device names", () => {
-  const check = (url: string) =>
-    electron.check(contents, "media", url, { isMainFrame: true, mediaType: "video" });
-  expect(check("trusted")).toBe(true);
-  expect(check("https://elsewhere.example")).toBe(false);
-  expect(electron.check(contents, "media", "trusted", { isMainFrame: false })).toBe(false);
+it("falls back to the system picker when nothing was picked in the app", async () => {
+  expect((await display()).video.id).toBe("screen:1");
+  expect(electron.dialog).toHaveBeenCalledTimes(1);
+});
+
+it("rejects a malformed picked source", async () => {
+  await expect(prepare("screen", "../etc")).rejects.toThrow("Invalid capture request.");
 });

@@ -9,6 +9,9 @@ import {
 } from "@sidecut/ui/components/dialog";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
 
+/** The desktop app can capture system sound on Windows only. */
+const systemAudio = typeof navigator !== "undefined" && /Windows/.test(navigator.userAgent);
+
 type Listing =
   | { status: "loading" }
   | { status: "ready"; sources: CaptureSource[] }
@@ -78,7 +81,9 @@ export function useScreenPicker() {
         <DialogHeader>
           <DialogTitle>Choose what to share</DialogTitle>
           <DialogDescription>
-            Pick a screen or window. System audio is not included.
+            {systemAudio
+              ? "Pick a screen or window. System sound comes along."
+              : "Pick a screen or window. System sound is not included."}
           </DialogDescription>
         </DialogHeader>
         {listing.status === "loading" && <p className="studio-picker-note">Looking for screens…</p>}
