@@ -8,6 +8,7 @@ import {
   RiTeamLine,
 } from "@remixicon/react";
 import { useCloud } from "@/modules/cloud/cloud-provider";
+import { UpdateButton } from "./update-button";
 import "./shell.css";
 
 // AuthKit loads only when the signed-in dot is actually shown (cloud active on this page).
@@ -52,6 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           </span>
         </Link>
+        <UpdateButton />
       </nav>
       <div className="app-content">{children}</div>
     </div>

@@ -54,6 +54,16 @@
   background: color-mix(in oklch, var(--primary) 28%, transparent);
   color: var(--foreground);
 }
+.app-rail-update {
+  margin-top: auto;
+  border: 0;
+  background: color-mix(in oklch, var(--primary) 18%, transparent);
+  color: var(--foreground);
+  cursor: pointer;
+}
+div.app-rail-update {
+  cursor: default;
+}
 .app-rail-link:focus-visible,
 .app-rail-brand:focus-visible {
   outline: 2px solid var(--ring);

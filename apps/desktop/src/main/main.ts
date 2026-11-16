@@ -13,6 +13,7 @@ import {
 import { resolveRendererPath } from "./renderer-path.ts";
 import { registerRecordingStorage } from "./recording-ipc.ts";
 import { registerCapturePermissions } from "./capture-permissions.ts";
+import { registerUpdater } from "./updater-ipc.ts";
 import { DesktopAssetProviders } from "./asset-providers.ts";
 import { HostProjectService } from "./project-service.ts";
 import { NativeProjectStore } from "./project-store.ts";
@@ -221,6 +222,8 @@ void app
       },
     );
     registerCapturePermissions(isTrusted);
+
+    void registerUpdater(isTrusted, app.isPackaged && !smoke && !headlessProject);
 
     ipcMain.handle(bridgeChannels.appInfo, (event): DesktopAppInfo => {
       if (

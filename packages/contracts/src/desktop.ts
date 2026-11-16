@@ -51,6 +51,15 @@ export interface FolderMedia {
   role: string;
   shortAudioFallback: boolean;
 }
+export type UpdateState =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "current" }
+  | { status: "available"; version: string; manual: boolean }
+  | { status: "downloading"; version: string; percent: number }
+  | { status: "ready"; version: string }
+  | { status: "error"; message: string };
+
 export interface NativeBridge {
   supportReport?: () => Promise<string>;
   deliveryEncode?: (
@@ -75,6 +84,11 @@ export interface NativeBridge {
     request: { source: "screen" | "camera" | "microphone"; microphone: boolean },
   ) => Promise<void>;
   captureRelease?: (id: string) => Promise<void>;
+  updateState?: () => Promise<UpdateState>;
+  updateSubscribe?: (listener: (state: UpdateState) => void) => () => void;
+  updateCheck?: () => Promise<void>;
+  updateDownload?: () => Promise<void>;
+  updateInstall?: () => Promise<void>;
   recordingDirectory?: () => Promise<boolean>;
   recordingExport?: (id: string) => Promise<{ name: string; bytes: number }>;
   storageRequest?: (request: unknown) => Promise<unknown>;

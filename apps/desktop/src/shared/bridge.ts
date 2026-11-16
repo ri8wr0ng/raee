@@ -53,6 +53,11 @@ export const bridgeChannels = {
   providerCancel: "sidecut:provider-cancel",
   providerCredential: "sidecut:provider-credential",
   kickChannelLookup: "sidecut:kick-channel-lookup",
+  updateState: "sidecut:update-state",
+  updateChanged: "sidecut:update-changed",
+  updateCheck: "sidecut:update-check",
+  updateDownload: "sidecut:update-download",
+  updateInstall: "sidecut:update-install",
 } as const;
 
 export type DesktopAppInfo = {

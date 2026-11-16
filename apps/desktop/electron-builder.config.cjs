@@ -7,7 +7,7 @@ module.exports = {
   extraResources: [{ from: ".package/resources", to: "." }],
   asar: true,
   npmRebuild: false,
-  publish: null,
+  publish: { provider: "github", owner: "sharull9", repo: "SideCut", releaseType: "prerelease" },
   artifactName: "raE.E-${version}-${os}-${arch}.${ext}",
   linux: {
     target: ["AppImage", "deb"],

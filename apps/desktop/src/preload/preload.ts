@@ -101,6 +101,18 @@ const bridge: DesktopBridge = {
   providerCredential: (provider, action, secret) =>
     ipcRenderer.invoke(bridgeChannels.providerCredential, provider, action, secret),
   kickChannelLookup: (slug) => ipcRenderer.invoke(bridgeChannels.kickChannelLookup, slug),
+  updateState: () => ipcRenderer.invoke(bridgeChannels.updateState),
+  updateSubscribe: (listener) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: Parameters<typeof listener>[0]) =>
+      listener(state);
+    ipcRenderer.on(bridgeChannels.updateChanged, handler);
+    return () => {
+      ipcRenderer.removeListener(bridgeChannels.updateChanged, handler);
+    };
+  },
+  updateCheck: () => ipcRenderer.invoke(bridgeChannels.updateCheck),
+  updateDownload: () => ipcRenderer.invoke(bridgeChannels.updateDownload),
+  updateInstall: () => ipcRenderer.invoke(bridgeChannels.updateInstall),
 };
 
 contextBridge.exposeInMainWorld("sidecutDesktop", bridge);
