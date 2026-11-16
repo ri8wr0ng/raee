@@ -25,7 +25,7 @@ export const definitions = reference.tools.map((tool) => {
       minimum: 0,
       description: "Reject insertion if the project revision changed.",
     };
-  definition.description = `${tool.title} through the running SideCut desktop host. Returns readable text by default; json:true returns raw service data. Read warnings for adapter capability limits.`;
+  definition.description = `${tool.title} through the running raE.E desktop host. Returns readable text by default; json:true returns raw service data. Read warnings for adapter capability limits.`;
   return definition;
 });
 definitions.push({

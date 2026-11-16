@@ -15,11 +15,11 @@ const executable =
       ? join(
           release,
           `mac${process.arch === "arm64" ? "-arm64" : ""}`,
-          "SideCut.app/Contents/MacOS/SideCut",
+          "raE.E.app/Contents/MacOS/raE.E",
         )
       : process.platform === "linux"
-        ? join(release, `linux${process.arch === "arm64" ? "-arm64" : ""}-unpacked`, "sidecut")
-        : join(release, "win-unpacked/SideCut.exe");
+        ? join(release, `linux${process.arch === "arm64" ? "-arm64" : ""}-unpacked`, "raee")
+        : join(release, "win-unpacked/raE.E.exe");
 const profile = await mkdtemp(join(tmpdir(), "sidecut-packaged-smoke-侧剪 "));
 const output = join(profile, "result.json");
 const env = { ...process.env };

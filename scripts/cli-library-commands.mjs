@@ -293,12 +293,12 @@ export function libraryText(operation, r) {
         );
         if (r.referencedInPlace)
           lines.push(
-            `It stays in the shared library (${r.files.join(", ")}), where every SideCut render finds it; archiving copies it into the project's assets/font/.`,
+            `It stays in the shared library (${r.files.join(", ")}), where every raE.E render finds it; archiving copies it into the project's assets/font/.`,
           );
         if (r.fontsReached)
           lines.push(
             r.fontsReached === "app"
-              ? "The SideCut app has it now too."
+              ? "The raE.E app has it now too."
               : "sidecut serve has it now too.",
           );
         lines.push(...(r.fontWarnings ?? []).map((w) => `Warning: ${w}`));

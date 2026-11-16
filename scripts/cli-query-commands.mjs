@@ -330,7 +330,7 @@ export function queryText(operation, result) {
     if (result.headless) lines.push("  open in: nothing else, read from the file for this command");
     else if (result.openIn)
       lines.push(
-        `  open in: ${result.openIn.owner === "app" ? "the SideCut app" : `sidecut ${result.openIn.owner}`} (pid ${result.openIn.pid})${result.openIn.port ? `, serving the API on port ${result.openIn.port}` : ""}`,
+        `  open in: ${result.openIn.owner === "app" ? "the raE.E app" : `sidecut ${result.openIn.owner}`} (pid ${result.openIn.pid})${result.openIn.port ? `, serving the API on port ${result.openIn.port}` : ""}`,
       );
     for (const key of ["undo", "redo"]) if (result[key]) lines.push(`  ${key}: ${result[key]}`);
     if (result.recoveredEdits)

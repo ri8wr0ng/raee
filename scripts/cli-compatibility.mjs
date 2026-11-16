@@ -51,7 +51,7 @@ export async function installCompatibilityLauncher(binDir) {
         }
       }
       throw new Error(
-        `The command tandem already exists on PATH: ${candidate}. Choose SideCut's named CLI or remove the collision yourself.`,
+        `The command tandem already exists on PATH: ${candidate}. Choose raE.E's named CLI or remove the collision yourself.`,
       );
     }
   if (identical) return { path: destination, installed: false, command: "tandem" };

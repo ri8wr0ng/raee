@@ -3,7 +3,7 @@ set -eu
 
 cd "$(dirname "$0")/../.."
 SIDECUT_WORKSPACE=$(pwd)
-set -- "$SIDECUT_WORKSPACE"/apps/desktop/release/SideCut-*-linux-*.AppImage
+set -- "$SIDECUT_WORKSPACE"/apps/desktop/release/raE.E-*-linux-*.AppImage
 [ "$#" -eq 1 ] && [ -f "$1" ] || { echo "Build exactly one AppImage first." >&2; exit 1; }
 SIDECUT_APPIMAGE=$1
 SIDECUT_APPIMAGE_FIXTURE=$(mktemp -d /tmp/sidecut-appimage-XXXXXX)
@@ -19,11 +19,11 @@ eval "$(gnome-keyring-daemon --start --components=secrets)"
 # CLI resources there; both application launches still execute the AppImage.
 cd "$SIDECUT_APPIMAGE_FIXTURE"
 "$SIDECUT_APPIMAGE" --appimage-extract >/dev/null
-ln -s "$SIDECUT_APPIMAGE" SideCut.AppImage
+ln -s "$SIDECUT_APPIMAGE" raee.AppImage
 ln -s "$SIDECUT_APPIMAGE_FIXTURE/squashfs-root/resources" resources
 cd "$SIDECUT_WORKSPACE"
 export APPIMAGE_EXTRACT_AND_RUN=1
-vp exec node scripts/verify-packaged.mjs --executable "$SIDECUT_APPIMAGE_FIXTURE/SideCut.AppImage"
+vp exec node scripts/verify-packaged.mjs --executable "$SIDECUT_APPIMAGE_FIXTURE/raee.AppImage"
 vp exec node --input-type=module - "$SIDECUT_APPIMAGE" <<'NODE'
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';

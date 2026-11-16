@@ -9,7 +9,7 @@ import { definitions, prepareTool, toolResult, clientAuthor } from "./mcp-adapte
 import { acquireProjectHost } from "./headless-host.mjs";
 
 const instructions =
-  "SideCut edits local projects through one authoritative owner, starting a hidden desktop host for closed projects. Read status/timeline before editing. Use expectedRevision on mutations, label edits, and apply idempotencyKey for retries. Helpers preview unless apply:true. Resolve comments with removeMarker. Provider downloads/paid generation require explicit opt-in. Do not retry other mutations after a lost reply. Tools return readable text by default; json:true returns raw data. Read warnings and documented adapter limits.";
+  "raE.E edits local projects through one authoritative owner, starting a hidden desktop host for closed projects. Read status/timeline before editing. Use expectedRevision on mutations, label edits, and apply idempotencyKey for retries. Helpers preview unless apply:true. Resolve comments with removeMarker. Provider downloads/paid generation require explicit opt-in. Do not retry other mutations after a lost reply. Tools return readable text by default; json:true returns raw data. Read warnings and documented adapter limits.";
 
 async function main() {
   const options = new Map();
@@ -111,6 +111,6 @@ async function main() {
   process.once("SIGINT", () => void server.close());
 }
 main().catch((error) => {
-  process.stderr.write(`SideCut MCP could not start: ${error.message}\n`);
+  process.stderr.write(`raE.E MCP could not start: ${error.message}\n`);
   process.exitCode = 1;
 });

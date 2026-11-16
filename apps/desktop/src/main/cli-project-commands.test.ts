@@ -310,7 +310,7 @@ it("activates the application without changing the project, with explicit unsupp
     before = host.snapshot().json;
   const result = await run("app");
   expect(result.code, result.err).toBe(0);
-  expect(result.out).toContain("Opened SideCut");
+  expect(result.out).toContain("Opened raE.E");
   expect(activations()).toBe(1);
   expect(host.snapshot().json).toBe(before);
   expect((await run("app", "another.tandem")).code).toBe(6);

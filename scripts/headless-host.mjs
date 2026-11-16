@@ -20,7 +20,7 @@ process.once("beforeExit", () => {
 function executable() {
   if (process.env.SIDECUT_APP_EXECUTABLE)
     return { file: process.env.SIDECUT_APP_EXECUTABLE, args: [] };
-  if (/^sidecut(?:\.exe)?$/i.test(process.execPath.split(/[\\/]/).at(-1)))
+  if (/^(?:raE\.E|raee|sidecut)(?:\.exe)?$/i.test(process.execPath.split(/[\\/]/).at(-1)))
     return { file: process.execPath, args: [] };
   let root = dirname(fileURLToPath(import.meta.url));
   while (!existsSync(join(root, "apps/desktop/package.json")) && dirname(root) !== root)
@@ -30,7 +30,7 @@ function executable() {
   try {
     return { file: require("electron"), args: [desktop] };
   } catch {
-    throw new Error("Install SideCut or set SIDECUT_APP_EXECUTABLE to use headless hosting.");
+    throw new Error("Install raE.E or set SIDECUT_APP_EXECUTABLE to use headless hosting.");
   }
 }
 /** Reuse the authoritative owner, or acquire its existing file lock in a hidden desktop host. */

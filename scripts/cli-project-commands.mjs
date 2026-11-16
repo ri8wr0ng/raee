@@ -6,14 +6,16 @@ import { spawn } from "node:child_process";
 export async function launchApplication() {
   const executable =
     process.env.SIDECUT_APP_EXECUTABLE ??
-    (/^sidecut(?:\.exe)?$/i.test(basename(process.execPath)) ? process.execPath : undefined);
+    (/^(?:raE\.E|raee|sidecut)(?:\.exe)?$/i.test(basename(process.execPath))
+      ? process.execPath
+      : undefined);
   if (
     !executable ||
     !isAbsolute(executable) ||
     !(await stat(executable).catch(() => null))?.isFile()
   ) {
     const error = new Error(
-      "No running editor was found. Set SIDECUT_APP_EXECUTABLE to an installed SideCut executable, or start SideCut first.",
+      "No running editor was found. Set SIDECUT_APP_EXECUTABLE to an installed raE.E executable, or start raE.E first.",
     );
     error.exitCode = 3;
     throw error;
@@ -35,7 +37,7 @@ export async function launchApplication() {
       });
     });
   } catch (cause) {
-    const error = new Error(`Could not launch SideCut: ${cause.message}`, { cause });
+    const error = new Error(`Could not launch raE.E: ${cause.message}`, { cause });
     error.exitCode = 3;
     throw error;
   }
@@ -133,7 +135,7 @@ export function prepareProjectCommand(args, parsed) {
     text:
       native && !flags.has("json")
         ? (result) => {
-            if (command === "app") return "Opened SideCut.";
+            if (command === "app") return "Opened raE.E.";
             if (command === "new")
               return `Created ${result.path ?? result.name}, ${result.width}x${result.height}, with ${result.tracks.length} tracks (${result.tracks.join(", ")}).\nMedia discovery is explicit: run media --refresh.`;
             return `Imported ${result.name}: ${result.report?.clips ?? 0} clips, ${result.report?.media ?? 0} media.\n${(result.report?.warnings ?? []).join("\n")}\n${result.path ? `Wrote ${result.path}` : "Loaded in the active editor."}`;

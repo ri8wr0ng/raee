@@ -36,7 +36,7 @@ Use --json for machine-readable service results.
   -o PATH                Alias for --output; --expect aliases --expected-revision
   --                     End options
 Project discovery excludes render snapshots and rejects ambiguous folders.
-Closed projects can use a hidden desktop host. An installed or built SideCut is required.
+Closed projects can use a hidden desktop host. An installed or built raE.E is required.
   --endpoint-file PATH    Discovery file (or SIDECUT_API_FILE)
   --input PATH           Read request JSON from a file
   --request JSON         Request object as JSON

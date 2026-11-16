@@ -2,18 +2,18 @@ $ErrorActionPreference = 'Stop'
 if (-not $IsWindows) { throw 'Run installer acceptance on Windows.' }
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $release = Join-Path $workspace 'apps/desktop/release'
-$installer = Get-ChildItem -LiteralPath $release -Filter 'SideCut-*-win-*.exe' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$installer = Get-ChildItem -LiteralPath $release -Filter 'raE.E-*-win-*.exe' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if (-not $installer) { throw 'Build the Windows NSIS installer first.' }
 $uninstallRoots = @('HKCU:/Software/Microsoft/Windows/CurrentVersion/Uninstall', 'HKLM:/Software/Microsoft/Windows/CurrentVersion/Uninstall', 'HKLM:/Software/WOW6432Node/Microsoft/Windows/CurrentVersion/Uninstall')
 $existing = Get-ChildItem $uninstallRoots -ErrorAction SilentlyContinue | ForEach-Object { Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue } | Where-Object { $_.DisplayName -in @('SideCut', 'raE.E') }
-if ($existing) { throw 'An existing SideCut installation is registered. Installer acceptance will not replace it.' }
+if ($existing) { throw 'An existing raE.E installation is registered. Installer acceptance will not replace it.' }
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('sidecut-install-' + [guid]::NewGuid().ToString('N'))
-$installPath = Join-Path $testRoot 'SideCut 侧剪'
+$installPath = Join-Path $testRoot 'raE.E 侧剪'
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 try {
   $installed = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installPath") -WindowStyle Hidden -Wait -PassThru
   if ($installed.ExitCode -ne 0) { throw "Installer exited $($installed.ExitCode)." }
-  $executable = Join-Path $installPath 'SideCut.exe'
+  $executable = Join-Path $installPath 'raE.E.exe'
   if (-not (Test-Path -LiteralPath $executable)) { throw 'Installed executable was not found.' }
   $cli = Join-Path $installPath 'resources/cli/sidecut.cmd'
   $help = & $cli --help
@@ -33,7 +33,7 @@ try {
   Remove-Item -LiteralPath $resolvedTarget -Recurse -Force
 }
 $remaining = Get-ChildItem $uninstallRoots -ErrorAction SilentlyContinue | ForEach-Object { Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue } | Where-Object { $_.DisplayName -in @('SideCut', 'raE.E') }
-if ($remaining) { throw 'The test installation left a SideCut registration behind.' }
+if ($remaining) { throw 'The test installation left a raE.E registration behind.' }
 $resultPath = Join-Path $release 'installed-smoke-win32-x64.json'
 $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
 $result | Add-Member -NotePropertyName installation -NotePropertyValue @{ installer = $installer.Name; sha256 = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant(); unicodeSpacePath = $true; launcher = $true; uninstalled = $true } -Force

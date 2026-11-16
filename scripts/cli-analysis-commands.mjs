@@ -242,7 +242,7 @@ export function analysisText(operation, r) {
     lines.push(
       r.defaultDelay === 0
         ? "New camera takes keep their picture as recorded (sidecut sync <seconds> --default sets a delay for them)."
-        : `New camera takes get ${ms(r.defaultDelay)} (SideCut's settings).`,
+        : `New camera takes get ${ms(r.defaultDelay)} (raE.E's settings).`,
     );
     return lines.join("\n");
   }

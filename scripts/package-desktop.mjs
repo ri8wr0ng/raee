@@ -95,10 +95,10 @@ await cp(zodRoot, join(cli, "node_modules/zod"), { recursive: true });
 if (process.platform === "win32")
   await writeFile(
     join(cli, "sidecut.cmd"),
-    '@echo off\r\nsetlocal\r\nset "ELECTRON_RUN_AS_NODE=1"\r\n"%~dp0..\\..\\SideCut.exe" "%~dp0sidecut-cli.mjs" %*\r\n',
+    '@echo off\r\nsetlocal\r\nset "ELECTRON_RUN_AS_NODE=1"\r\n"%~dp0..\\..\\raE.E.exe" "%~dp0sidecut-cli.mjs" %*\r\n',
   );
 else {
-  const binary = process.platform === "darwin" ? "../../MacOS/SideCut" : "../../sidecut";
+  const binary = process.platform === "darwin" ? "../../MacOS/raE.E" : "../../raee";
   await writeFile(
     join(cli, "sidecut"),
     `#!/bin/sh\nSIDECUT_CLI_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexport ELECTRON_RUN_AS_NODE=1\nexec "$SIDECUT_CLI_DIR/${binary}" "$SIDECUT_CLI_DIR/sidecut-cli.mjs" "$@"\n`,

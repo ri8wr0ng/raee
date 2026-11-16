@@ -157,7 +157,7 @@ export async function discoverEndpoint(flags, env = process.env, directory = pro
   } catch (error) {
     if (error.code === "ENOENT" && project)
       throw new Error(
-        `No running owner for ${basename(project)}. Open it in SideCut or select its profile with --endpoint-file. Headless editing is unsupported.`,
+        `No running owner for ${basename(project)}. Open it in raE.E or select its profile with --endpoint-file. Headless editing is unsupported.`,
         { cause: error },
       );
     throw error;
@@ -169,7 +169,7 @@ export async function discoverEndpoint(flags, env = process.env, directory = pro
       process.kill(endpoint.pid, 0);
     } catch {
       throw new Error(
-        "The discovery file names an owner that is no longer running. Start SideCut and select the correct profile.",
+        "The discovery file names an owner that is no longer running. Start raE.E and select the correct profile.",
       );
     }
   }
