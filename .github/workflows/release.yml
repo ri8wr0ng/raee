@@ -157,7 +157,7 @@ jobs:
         run: sh scripts/verify-macos-install.sh
       - name: Verify installed Debian package
         if: runner.os == 'Linux'
-        run: xvfb-run -a sh scripts/verify-linux-install.sh
+        run: sudo apt-get update -qq && xvfb-run -a sh scripts/verify-linux-install.sh
       - uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
