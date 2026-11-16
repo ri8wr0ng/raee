@@ -57,12 +57,60 @@
 .app-rail-update {
   margin-top: auto;
   border: 0;
-  background: color-mix(in oklch, var(--primary) 18%, transparent);
+  background: none;
   color: var(--foreground);
   cursor: pointer;
 }
 div.app-rail-update {
   cursor: default;
+}
+.app-rail-update:hover {
+  background: none;
+}
+.app-rail-update-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--primary) 18%, transparent);
+  transition: background-color 120ms ease-out;
+}
+.app-rail-update:hover .app-rail-update-icon {
+  background: color-mix(in oklch, var(--primary) 30%, transparent);
+}
+.app-rail-update-icon > svg:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  fill: none;
+  stroke-width: 2.5;
+}
+.app-rail-update-icon > svg:last-child {
+  width: 18px;
+  height: 18px;
+}
+.app-rail-update-track {
+  stroke: color-mix(in oklch, var(--primary) 30%, transparent);
+}
+.app-rail-update-ring {
+  stroke: var(--primary);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 300ms ease-out;
+}
+.app-rail-update[data-state="error"] .app-rail-update-icon {
+  background: color-mix(in oklch, var(--destructive) 18%, transparent);
+}
+.app-rail-update[data-state="error"] .app-rail-update-track {
+  stroke: color-mix(in oklch, var(--destructive) 45%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-rail-update-ring {
+    transition: none;
+  }
 }
 .app-rail-link:focus-visible,
 .app-rail-brand:focus-visible {

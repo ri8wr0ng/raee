@@ -1,7 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { RiDownloadLine, RiErrorWarningLine, RiRestartLine } from "@remixicon/react";
 import type { UpdateState } from "@sidecut/contracts/desktop";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
+
+const RADIUS = 17;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+/** A round icon whose ring fills with the download. */
+function UpdateIcon({ icon: Icon, progress }: { icon: ComponentType; progress: number }) {
+  return (
+    <span className="app-rail-update-icon">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle className="app-rail-update-track" cx="20" cy="20" r={RADIUS} />
+        <circle
+          className="app-rail-update-ring"
+          cx="20"
+          cy="20"
+          r={RADIUS}
+          strokeDasharray={CIRCUMFERENCE}
+          strokeDashoffset={CIRCUMFERENCE * (1 - progress / 100)}
+        />
+      </svg>
+      <Icon aria-hidden="true" />
+    </span>
+  );
+}
 
 /** Shown in the rail only while the desktop app has an update to offer. */
 export function UpdateButton() {
@@ -28,10 +51,11 @@ export function UpdateButton() {
       <button
         type="button"
         className="app-rail-link app-rail-update"
+        data-state="error"
         title={`Update failed: ${state.message}. Select to try again.`}
         onClick={() => void bridge?.updateCheck?.()}
       >
-        <RiErrorWarningLine aria-hidden="true" />
+        <UpdateIcon icon={RiErrorWarningLine} progress={0} />
         <span>Retry</span>
       </button>
     );
@@ -40,6 +64,7 @@ export function UpdateButton() {
       <button
         type="button"
         className="app-rail-link app-rail-update"
+        data-state="available"
         title={
           state.manual
             ? `Version ${state.version} is available. Open the download page.`
@@ -50,7 +75,7 @@ export function UpdateButton() {
           void bridge?.updateDownload?.();
         }}
       >
-        <RiDownloadLine aria-hidden="true" />
+        <UpdateIcon icon={RiDownloadLine} progress={0} />
         <span>Update</span>
       </button>
     );
@@ -58,10 +83,15 @@ export function UpdateButton() {
     return (
       <div
         className="app-rail-link app-rail-update"
-        role="status"
+        data-state="downloading"
+        role="progressbar"
+        aria-label={`Downloading version ${state.version}`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={state.percent}
         title={`Downloading version ${state.version}`}
       >
-        <RiDownloadLine aria-hidden="true" />
+        <UpdateIcon icon={RiDownloadLine} progress={state.percent} />
         <span>{state.percent}%</span>
       </div>
     );
@@ -70,10 +100,11 @@ export function UpdateButton() {
       <button
         type="button"
         className="app-rail-link app-rail-update"
+        data-state="ready"
         title={`Restart to install version ${state.version}`}
         onClick={() => void bridge?.updateInstall?.()}
       >
-        <RiRestartLine aria-hidden="true" />
+        <UpdateIcon icon={RiRestartLine} progress={100} />
         <span>Restart</span>
       </button>
     );
