@@ -82,7 +82,10 @@ export function parseArrangements(text: string): SavedArrangements {
     const placements: Placement[] = [];
     for (const item of list as unknown[]) {
       if (!item || typeof item !== "object") continue;
-      const { identity, label, kind, layout, deviceId, mediaId } = item as Record<string, unknown>;
+      const { identity, label, kind, layout, deviceId, mediaId, display } = item as Record<
+        string,
+        unknown
+      >;
       const box = (layout ?? {}) as Record<string, unknown>;
       if (typeof identity !== "string" || !identity || seen.has(identity)) continue;
       if (typeof kind !== "string" || !Object.hasOwn(KIND_NAMES, kind)) continue;
@@ -97,6 +100,7 @@ export function parseArrangements(text: string): SavedArrangements {
         layout: { x: box.x, y: box.y, w: box.w },
         ...(typeof deviceId === "string" && deviceId ? { deviceId } : {}),
         ...(typeof mediaId === "string" && mediaId ? { mediaId } : {}),
+        ...(typeof display === "string" && display ? { display } : {}),
       });
     }
     if (placements.length) scenes[scene] = placements;

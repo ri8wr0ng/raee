@@ -13,6 +13,7 @@ import { useEditorSession } from "./editor-session";
 import { nativeBridge } from "./host-coordinator";
 import { MediaSection } from "./media-section";
 import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { describeQuality, useOutputQuality, videoBitrate } from "@/modules/studio/output-quality";
 
 export function NativeRecordingControls() {
   const { snapshot } = useEditorSession();
@@ -28,6 +29,7 @@ export function NativeRecordingControls() {
   const [open, setOpen] = useState(false);
   const [streamURL, setStreamURL] = useState("");
   const [streamStatus, setStreamStatus] = useState<NativeStreamStatus>({ state: "off" });
+  const quality = useOutputQuality();
   useEffect(() => {
     if (!open || !bridge?.nativeRecordingList || !bridge.nativeRecordingDevices) return;
     let alive = true;
@@ -197,6 +199,9 @@ export function NativeRecordingControls() {
               <SelectItem value="software">Software</SelectItem>
             </OptionSelect>
           </Field>
+          <p className="text-xs text-muted-foreground">
+            Quality: {describeQuality(quality)}. Change it in Studio.
+          </p>
           {error && <p role="alert">{error}</p>}
           {active ? (
             <>
@@ -229,6 +234,9 @@ export function NativeRecordingControls() {
                     projectID: snapshot.project.id,
                     source,
                     encoder,
+                    frameRate: quality.frameRate,
+                    maxHeight: quality.height,
+                    videoBitrate: Math.round(videoBitrate(quality) / 1000),
                     ...(deviceID && source !== "screen" ? { deviceID } : {}),
                     ...(microphoneID && source !== "microphone" ? { microphoneID } : {}),
                     ...(streamURL.trim() ? { streamURL: streamURL.trim() } : {}),

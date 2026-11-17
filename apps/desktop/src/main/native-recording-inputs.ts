@@ -147,7 +147,16 @@ export function assembleNativeInputs(
   if (audio) args.push("-thread_queue_size", "32", "-f", "dshow", "-i", `audio=${audio.input}`);
   if (camera) args.push("-thread_queue_size", "4", "-f", "dshow", "-i", `video=${camera.input}`);
   else if (request.source === "screen")
-    args.push("-thread_queue_size", "4", "-f", "gdigrab", "-framerate", "30", "-i", "desktop");
+    args.push(
+      "-thread_queue_size",
+      "4",
+      "-f",
+      "gdigrab",
+      "-framerate",
+      String(request.frameRate ?? 30),
+      "-i",
+      "desktop",
+    );
   const video = request.source !== "microphone";
   if (video) args.push("-map", `${audio ? 1 : 0}:v:0`);
   if (audio) args.push("-map", "0:a:0");

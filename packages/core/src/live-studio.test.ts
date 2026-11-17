@@ -121,7 +121,7 @@ describe("saved live scenes", () => {
     expect(() => studio.switch({ id: "a", expectedRevision: 0 })).toThrow("changed");
     studio.switch({ id: "a", expectedRevision: 1 });
     studio.save({ id: "b", name: "B", project: project(1280), expectedRevision: 2 });
-    expect(() => studio.switch({ id: "b", expectedRevision: 3 })).toThrow("same output");
+    expect(() => studio.switch({ id: "b", expectedRevision: 3 })).toThrow("same aspect ratio");
     expect(() => studio.remove({ id: "a", expectedRevision: 3 })).toThrow("Switch away");
     expect(() => studio.frame(NaN)).toThrow("Invalid");
     expect(studio.frame(0).sceneId).toBe("a");

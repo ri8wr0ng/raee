@@ -10,7 +10,7 @@ import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
 import type { LiveAssets } from "@sidecut/core/live-assets";
 import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
-import { liveQualityProfiles, type LiveStudio } from "@sidecut/core/live-studio";
+import type { LiveStudio } from "@sidecut/core/live-studio";
 import { LiveAudioMixer, type LiveAudioChannel } from "@sidecut/platform-browser/live-audio";
 import { LiveStudioOutput } from "@sidecut/platform-browser/live-studio";
 import { LocalMediaReader } from "@sidecut/platform-browser/preview";
@@ -89,6 +89,15 @@ import { AudioMixerPanel } from "./audio-mixer-panel";
 import { openAudioInput, useAudioInputDevices } from "./audio-devices";
 import { openCamera, useCameraDevices } from "./camera-devices";
 import { withCaptureGrant } from "./capture-grant";
+import {
+  AUDIO_BITRATE,
+  FRAME_RATES,
+  OUTPUT_HEIGHTS,
+  describeQuality,
+  setOutputQuality,
+  useOutputQuality,
+  videoBitrate,
+} from "./output-quality";
 import { useScreenPicker } from "./screen-picker";
 import { OverlayStage } from "./overlay-stage";
 import { SceneDeck } from "./scene-deck";
@@ -118,6 +127,8 @@ type VideoSource = {
   url?: string | undefined;
   deviceId?: string | undefined;
   mediaId?: string | undefined;
+  /** The desktop app's id for the screen or window being captured. */
+  display?: string | undefined;
 };
 type AudioInput = {
   id: string;
@@ -220,6 +231,13 @@ export default function StudioPanel({
   const sources = useRef<VideoSource[]>([]);
   /** This render's video opener, for the long-lived load effect. */
   const latestOpenVideo = useRef<((mediaId: string) => Promise<VideoSource>) | null>(null);
+  /** This render's source restorer, for the long-lived load effect. */
+  const latestRestore = useRef<(() => Promise<void>) | null>(null);
+  /** Set while the panel is closing, so a source that opens late is stopped, not kept. */
+  const closing = useRef(false);
+  const quality = useOutputQuality();
+  const qualityRef = useRef(quality);
+  qualityRef.current = quality;
   /** Which open sources each scene shows, and where. */
   const arrangement = useRef(new SceneSources()).current;
   /** The sources a scene shows, bottom layer first. */
@@ -346,11 +364,10 @@ export default function StudioPanel({
   capture.current ??= new StudioCapture({
     acquire: async () => (await latestStream.current!()).stream,
     createRecorder: (stream) => {
-      const profile = liveQualityProfiles.standard;
       return new MediaRecorder(stream, {
         mimeType: "video/webm;codecs=vp8,opus",
-        videoBitsPerSecond: profile.videoBitsPerSecond,
-        audioBitsPerSecond: profile.audioBitsPerSecond,
+        videoBitsPerSecond: videoBitrate(qualityRef.current),
+        audioBitsPerSecond: AUDIO_BITRATE,
       });
     },
     openSink: (fileName, report) => latestSink.current!(fileName, report),
@@ -448,10 +465,15 @@ export default function StudioPanel({
     return mixer.current;
   }, []);
 
+  // A new quality resizes the program from its next frame; it is locked while capturing.
+  useEffect(() => {
+    output.current?.setMaxOutputHeight(quality.height);
+  }, [quality.height]);
   // Program output: loads saved scenes, then paints the active one while the panel is open.
   useEffect(() => {
     let alive = true;
-    let timer: ReturnType<typeof setInterval> | undefined;
+    closing.current = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const readers = new Map<string, Promise<LocalMediaReader>>();
     const reader = (id: string) => {
       let entry = readers.get(id);
@@ -490,6 +512,8 @@ export default function StudioPanel({
         );
         for (const mediaId of savedVideos)
           if (mediaId) void latestOpenVideo.current?.(mediaId).catch(() => {});
+        // Cameras, microphones and screens come back too when no prompt is needed.
+        void latestRestore.current?.();
         const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
         if (initialSelected) {
           try {
@@ -515,7 +539,7 @@ export default function StudioPanel({
           { target: "stream", chat: liveChatRef.current },
           (context) => paintSources(context, shown(loaded.activeScene?.id ?? "")),
           // Real-time software compositing and VP8 encoding cannot sustain a 4K project canvas.
-          1080,
+          qualityRef.current.height,
           (sceneId) =>
             programLook(sceneId, lookRef.current, {
               // Captures must not include unsaved looks.
@@ -541,8 +565,9 @@ export default function StudioPanel({
         setSelected(initialSelected);
         setName(`Scene ${loaded.list().length + 1}`);
         const origin = performance.now();
-        // An interval, not rAF: a backgrounded window must keep feeding an active recording.
-        timer = setInterval(() => {
+        // A timer, not rAF: a backgrounded window must keep feeding an active recording.
+        // It re-arms each frame so a new output frame rate applies straight away.
+        const tick = () => {
           const time = (performance.now() - origin) / 1000;
           if (loaded.activeScene) {
             output.current
@@ -566,7 +591,9 @@ export default function StudioPanel({
                   setError(message(cause, "The scene could not be rendered."));
               });
           }
-        }, 1000 / liveQualityProfiles.standard.framesPerSecond);
+          if (alive) timer = setTimeout(tick, 1000 / qualityRef.current.frameRate);
+        };
+        tick();
       })
       .catch((cause: unknown) => {
         if (alive) setError(`Saved scenes could not be opened. ${message(cause, "")}`.trim());
@@ -576,7 +603,8 @@ export default function StudioPanel({
       });
     return () => {
       alive = false;
-      clearInterval(timer);
+      closing.current = true;
+      clearTimeout(timer);
       void clips.current?.close();
       capture.current?.close();
       output.current?.close();
@@ -767,6 +795,7 @@ export default function StudioPanel({
         kind: source.kind,
         deviceId: source.deviceId,
         mediaId: source.mediaId,
+        display: source.display,
         layout,
       },
       at,
@@ -802,155 +831,181 @@ export default function StudioPanel({
     setSelectedSource(source.id);
     refresh();
   };
-  /** Null when the person closes the picker. */
-  const openScreen = async () => {
-    const display = await screenPicker.pick();
+  /**
+   * Null when the person closes the picker. A saved desktop `display` reopens without the picker.
+   * `display` in the result is the desktop app's id for what was picked, to reopen it later.
+   */
+  const openScreen = async (saved?: string) => {
+    const display = saved ?? (await screenPicker.pick());
     if (display === null) return null;
     // In a browser, tab or system audio comes along when the user ticks "Share audio".
     if (display === undefined)
-      return navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-    return withCaptureGrant(
+      return { stream: await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) };
+    const stream = await withCaptureGrant(
       "screen",
       () => navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }),
       { display },
     );
+    return { stream, display };
   };
-  const addSource = (
+  /**
+   * Opens a camera or screen. `restore` reopens a saved source quietly: it keeps its saved
+   * places, takes no other device in its stead, and leaves the selection alone.
+   */
+  const connectSource = async (
     kind: VideoSource["kind"],
     chosenDeviceId?: string,
     targetIdentity?: string,
     targetLabel?: string,
-  ) =>
-    attempt(async () => {
-      // The scene picked when the user asked, even if they pick another while a prompt is open.
-      const scene = selectedRef.current ?? "";
-      let stream: MediaStream;
-      if (kind === "camera") {
-        try {
-          stream = await openCamera(chosenDeviceId);
-        } catch (err) {
-          if (chosenDeviceId) {
-            stream = await openCamera();
-          } else {
-            throw err;
-          }
-        }
-      } else {
-        const picked = await openScreen();
-        if (!picked) return;
-        stream = picked;
-      }
-      const video = document.createElement("video");
-      video.muted = true;
-      video.playsInline = true;
-      video.srcObject = stream;
-      const id = crypto.randomUUID();
+    { restore = false, display: savedDisplay }: { restore?: boolean; display?: string } = {},
+  ) => {
+    // The scene picked when the user asked, even if they pick another while a prompt is open.
+    const scene = selectedRef.current ?? "";
+    let stream: MediaStream;
+    let display: string | undefined;
+    if (kind === "camera") {
       try {
-        await video.play();
-      } catch (cause) {
-        for (const track of stream.getTracks()) track.stop();
-        throw cause;
-      }
-
-      let identity: string;
-      let label: string;
-      const deviceId =
-        kind === "camera"
-          ? chosenDeviceId || stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
-          : undefined;
-
-      if (kind === "camera") {
-        if (targetIdentity) {
-          identity = targetIdentity;
-          label = targetLabel || `Camera ${sourceNumbers.current.camera || 1}`;
+        stream = await openCamera(chosenDeviceId);
+      } catch (err) {
+        if (chosenDeviceId && !restore) {
+          stream = await openCamera();
         } else {
-          const baseIdentity = `camera:${deviceId || "default"}`;
-          const sceneCandidates = [
-            ...arrangement.of(scene),
-            ...Array.from(arrangement.scenesWith(baseIdentity)).flatMap((s) => arrangement.of(s)),
-          ];
-          const missingPlacement = sceneCandidates.find((p) => {
-            const placementId = p.identity;
-            const matchesDevice =
-              placementId === baseIdentity || placementId.startsWith(`${baseIdentity}#`);
-            const isLive = sources.current.some((s) => s.identity === placementId);
-            return matchesDevice && !isLive;
-          });
-
-          if (missingPlacement) {
-            identity = missingPlacement.identity;
-            label = missingPlacement.label;
-          } else {
-            const isBaseIdentityLive = sources.current.some((s) => s.identity === baseIdentity);
-            const n = ++sourceNumbers.current.camera;
-            label = `Camera ${n}`;
-            identity = isBaseIdentityLive ? `${baseIdentity}#${n}` : baseIdentity;
-          }
-        }
-      } else {
-        if (targetIdentity) {
-          identity = targetIdentity;
-          label = targetLabel || targetIdentity.replace("screen:", "Screen ");
-        } else {
-          // Normal Add screen: check if there is an unconnected missing screen (prioritizing current scene)
-          const allScenes = Object.keys(arrangement.serialize());
-          const sceneCandidates = [
-            ...arrangement.of(scene),
-            ...allScenes.flatMap((s) => arrangement.of(s)),
-          ];
-          const missingScreen = sceneCandidates.find((p) => {
-            const placementId = p.identity;
-            const isScreen = p.kind === "screen" || placementId.startsWith("screen:");
-            const isLive = sources.current.some((s) => s.identity === placementId);
-            return isScreen && !isLive;
-          });
-          if (missingScreen) {
-            identity = missingScreen.identity;
-            label = missingScreen.label;
-          } else {
-            const n = ++sourceNumbers.current.screen;
-            identity = `screen:${n}`;
-            label = `Screen ${n}`;
-          }
+          throw err;
         }
       }
+    } else {
+      const picked = await openScreen(savedDisplay);
+      if (!picked) return;
+      stream = picked.stream;
+      display = picked.display;
+    }
+    // The panel closed, or the same source came back another way, while it was opening.
+    if (
+      closing.current ||
+      (targetIdentity && sources.current.some((item) => item.identity === targetIdentity))
+    ) {
+      for (const track of stream.getTracks()) track.stop();
+      return;
+    }
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.srcObject = stream;
+    const id = crypto.randomUUID();
+    try {
+      await video.play();
+    } catch (cause) {
+      for (const track of stream.getTracks()) track.stop();
+      throw cause;
+    }
 
-      const source: VideoSource = { id, identity, kind, label, video, stream, deviceId };
-      sources.current = [...sources.current, source];
+    let identity: string;
+    let label: string;
+    const deviceId =
+      kind === "camera"
+        ? chosenDeviceId || stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
+        : undefined;
 
-      // Restore into every scene that had it at its saved layout and layer order.
-      // If the current scene did not have it saved, place it with default layout.
-      const scenesWithSource = arrangement.scenesWith(identity);
-      if (!scenesWithSource.includes(scene)) {
-        placeOnScene(scene, source);
+    if (kind === "camera") {
+      if (targetIdentity) {
+        identity = targetIdentity;
+        label = targetLabel || `Camera ${sourceNumbers.current.camera || 1}`;
       } else {
-        commitArrangements();
-      }
-
-      video.onresize = refresh;
-      const onEnded = () => {
-        const current = sources.current.find((item) => item.id === id);
-        if (current?.stream === stream) {
-          disconnectSource(id);
-        }
-      };
-      stream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
-      if (stream.getAudioTracks().length) {
-        const audio = await ensureMixer();
-        const audioID = `${id}:audio`;
-        const channel = audio.addStream(audioID, new MediaStream(stream.getAudioTracks()));
-        setSettings((current) => ({ ...current, [audioID]: DEFAULT_LIVE_AUDIO }));
-        audioInputs.current = [
-          ...audioInputs.current,
-          { id: audioID, label, kind, sourceId: id, stream, channel },
+        const baseIdentity = `camera:${deviceId || "default"}`;
+        const sceneCandidates = [
+          ...arrangement.of(scene),
+          ...Array.from(arrangement.scenesWith(baseIdentity)).flatMap((s) => arrangement.of(s)),
         ];
+        const missingPlacement = sceneCandidates.find((p) => {
+          const placementId = p.identity;
+          const matchesDevice =
+            placementId === baseIdentity || placementId.startsWith(`${baseIdentity}#`);
+          const isLive = sources.current.some((s) => s.identity === placementId);
+          return matchesDevice && !isLive;
+        });
+
+        if (missingPlacement) {
+          identity = missingPlacement.identity;
+          label = missingPlacement.label;
+        } else {
+          const isBaseIdentityLive = sources.current.some((s) => s.identity === baseIdentity);
+          const n = ++sourceNumbers.current.camera;
+          label = `Camera ${n}`;
+          identity = isBaseIdentityLive ? `${baseIdentity}#${n}` : baseIdentity;
+        }
       }
-      setSelectedSource(id);
-      if (kind === "camera") {
-        void refreshCameraDevices();
+    } else {
+      if (targetIdentity) {
+        identity = targetIdentity;
+        label = targetLabel || targetIdentity.replace("screen:", "Screen ");
+      } else {
+        // Normal Add screen: check if there is an unconnected missing screen (prioritizing current scene)
+        const allScenes = Object.keys(arrangement.serialize());
+        const sceneCandidates = [
+          ...arrangement.of(scene),
+          ...allScenes.flatMap((s) => arrangement.of(s)),
+        ];
+        const missingScreen = sceneCandidates.find((p) => {
+          const placementId = p.identity;
+          const isScreen = p.kind === "screen" || placementId.startsWith("screen:");
+          const isLive = sources.current.some((s) => s.identity === placementId);
+          return isScreen && !isLive;
+        });
+        if (missingScreen) {
+          identity = missingScreen.identity;
+          label = missingScreen.label;
+        } else {
+          const n = ++sourceNumbers.current.screen;
+          identity = `screen:${n}`;
+          label = `Screen ${n}`;
+        }
       }
-      refresh();
-    }, `Could not start the ${kind}.`);
+    }
+
+    const source: VideoSource = { id, identity, kind, label, video, stream, deviceId, display };
+    sources.current = [...sources.current, source];
+
+    // Remember what was opened, so Reconnect and the next visit open the same thing.
+    const scenesWithSource = arrangement.scenesWith(identity);
+    if (scenesWithSource.length && (deviceId || display))
+      arrangement.annotate(identity, {
+        ...(kind === "camera" && deviceId ? { deviceId } : {}),
+        ...(display ? { display } : {}),
+      });
+    // Restore into every scene that had it at its saved layout and layer order.
+    // If the current scene did not have it saved, place it with default layout.
+    if (!restore && !scenesWithSource.includes(scene)) {
+      placeOnScene(scene, source);
+    } else {
+      commitArrangements();
+    }
+
+    video.onresize = refresh;
+    const onEnded = () => {
+      const current = sources.current.find((item) => item.id === id);
+      if (current?.stream === stream) {
+        disconnectSource(id);
+      }
+    };
+    stream.getVideoTracks()[0]?.addEventListener("ended", onEnded, { once: true });
+    if (stream.getAudioTracks().length) {
+      const audio = await ensureMixer();
+      const audioID = `${id}:audio`;
+      const channel = audio.addStream(audioID, new MediaStream(stream.getAudioTracks()));
+      setSettings((current) => ({ ...current, [audioID]: DEFAULT_LIVE_AUDIO }));
+      audioInputs.current = [
+        ...audioInputs.current,
+        { id: audioID, label, kind, sourceId: id, stream, channel },
+      ];
+    }
+    if (!restore) setSelectedSource(id);
+    if (kind === "camera") {
+      void refreshCameraDevices();
+    }
+    refresh();
+  };
+  const addSource = (...args: Parameters<typeof connectSource>) =>
+    attempt(() => connectSource(...args), `Could not start the ${args[0]}.`);
 
   /** Opens a project video as a looping source; scenes that saved it show it again. */
   const openVideo = async (mediaId: string) => {
@@ -1082,8 +1137,81 @@ export default function StudioPanel({
         (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
       return addSource("camera", deviceId === "default" ? undefined : deviceId, identity, label);
     }
-    return addSource("screen", undefined, identity, label);
+    // The same screen or window when the desktop app still offers it, else the picker.
+    return attempt(async () => {
+      const display = placement.display;
+      const offered =
+        display &&
+        (
+          (await nativeBridge()
+            ?.captureSources?.()
+            .catch(() => [])) ?? []
+        ).some((item) => item.id === display);
+      await connectSource("screen", undefined, identity, label, offered ? { display } : {});
+    }, "Could not start the screen.");
   };
+  /** Connects a saved camera that is not connected with another camera device. */
+  const reconnectWith = (placement: Placement, deviceId: string) =>
+    addSource("camera", deviceId, placement.identity, placement.label);
+
+  /** Reopens saved sources that need no prompt: granted cameras and mics, desktop screens. */
+  const restoreSources = async () => {
+    const saved = new Map<string, Placement>();
+    for (const placement of Object.values(arrangement.serialize()).flat())
+      if (!saved.has(placement.identity)) saved.set(placement.identity, placement);
+    if (!saved.size) return;
+    const bridge = nativeBridge();
+    const granted = async (device: "camera" | "microphone") => {
+      // The desktop app holds standing camera and microphone access.
+      if (bridge?.capturePrepare) return true;
+      try {
+        const permission = await navigator.permissions.query({
+          name: device,
+        } as unknown as PermissionDescriptor);
+        return permission.state === "granted";
+      } catch {
+        return false;
+      }
+    };
+    const [camera, microphone] = await Promise.all([granted("camera"), granted("microphone")]);
+    const placements = [...saved.values()];
+    const screens = placements.some((item) => item.kind === "screen" && item.display)
+      ? new Set(((await bridge?.captureSources?.().catch(() => [])) ?? []).map((item) => item.id))
+      : new Set<string>();
+    // One at a time, so devices never race for the same prompt or capture grant.
+    for (const placement of placements) {
+      if (closing.current) return;
+      const { identity, label, kind } = placement;
+      const open =
+        sources.current.some((item) => item.identity === identity) ||
+        audioInputs.current.some((input) => input.identity === identity);
+      if (open) continue;
+      try {
+        if (kind === "camera" && camera) {
+          const deviceId =
+            placement.deviceId ??
+            (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
+          await connectSource(
+            "camera",
+            deviceId === "default" ? undefined : deviceId,
+            identity,
+            label,
+            { restore: true },
+          );
+        } else if (kind === "audio" && microphone) {
+          await openSceneAudio(placement.deviceId, identity, label);
+        } else if (kind === "screen" && placement.display && screens.has(placement.display)) {
+          await connectSource("screen", undefined, identity, label, {
+            restore: true,
+            display: placement.display,
+          });
+        }
+      } catch {
+        // It stays listed as not connected, with Reconnect.
+      }
+    }
+  };
+  latestRestore.current = restoreSources;
 
   const switchingCameras = useRef(new Set<string>());
   const switchCameraDevice = (id: string, newDeviceId: string) =>
@@ -1152,8 +1280,9 @@ export default function StudioPanel({
     attempt(async () => {
       const source = sources.current.find((item) => item.id === id || item.identity === id);
       if (!source || source.kind !== "screen") return;
-      const stream = await openScreen();
-      if (!stream) return;
+      const picked = await openScreen();
+      if (!picked) return;
+      const { stream } = picked;
       const video = document.createElement("video");
       video.muted = true;
       video.playsInline = true;
@@ -1176,6 +1305,11 @@ export default function StudioPanel({
       source.video.srcObject = null;
       source.stream = stream;
       source.video = video;
+      source.display = picked.display;
+      if (picked.display) {
+        arrangement.annotate(source.identity, { display: picked.display });
+        commitArrangements();
+      }
       video.onresize = refresh;
       stream.getVideoTracks()[0]?.addEventListener(
         "ended",
@@ -1494,6 +1628,50 @@ export default function StudioPanel({
               </label>
             ))}
           </RadioGroup>
+          <div className="studio-quality">
+            <span>Quality</span>
+            <Select
+              value={String(quality.height)}
+              disabled={capturing}
+              onValueChange={(value) => {
+                const height = OUTPUT_HEIGHTS.find((item) => String(item) === value);
+                if (height) setOutputQuality({ height });
+              }}
+            >
+              <SelectTrigger aria-label="Video quality" className="min-w-24">
+                <SelectValue>{(value: string) => `${value}p`}</SelectValue>
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                {OUTPUT_HEIGHTS.map((height) => (
+                  <SelectItem key={height} value={String(height)}>
+                    {height}p
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={String(quality.frameRate)}
+              disabled={capturing}
+              onValueChange={(value) => {
+                const frameRate = FRAME_RATES.find((item) => String(item) === value);
+                if (frameRate) setOutputQuality({ frameRate });
+              }}
+            >
+              <SelectTrigger aria-label="Frame rate" className="min-w-24">
+                <SelectValue>{(value: string) => `${value} fps`}</SelectValue>
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                {FRAME_RATES.map((rate) => (
+                  <SelectItem key={rate} value={String(rate)}>
+                    {rate} fps
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <small className="text-muted-foreground">
+              {describeQuality(quality)}. Used for recordings and streams.
+            </small>
+          </div>
           {mode !== "record" &&
             (canStream ? (
               <>
@@ -2129,12 +2307,43 @@ export default function StudioPanel({
                 const { label, kind } = placement;
 
                 return (
-                  <li key={identity} className="studio-row opacity-60">
-                    <div className="studio-row-main min-w-0">
+                  <li key={identity} className="studio-row">
+                    <div className="studio-row-main min-w-0 opacity-60">
                       <SourceIcon kind={kind} />
                       <span className="truncate">{label} · not connected</span>
                     </div>
-                    <Button size="xs" variant="outline" onClick={() => void reconnect(placement)}>
+                    {kind === "camera" && cameraDevices.length > 1 && (
+                      <Select
+                        value=""
+                        onValueChange={(deviceId) => {
+                          if (typeof deviceId === "string" && deviceId)
+                            void reconnectWith(placement, deviceId);
+                        }}
+                      >
+                        <SelectTrigger
+                          size="sm"
+                          aria-label={`Connect ${label} with another camera`}
+                          title="Connect with another camera"
+                          className="h-6 max-w-28 px-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                        >
+                          <SelectValue placeholder="Camera…" />
+                        </SelectTrigger>
+                        <SelectContent align="end" alignItemWithTrigger={false}>
+                          {cameraDevices.map((device) => (
+                            <SelectItem key={device.deviceId} value={device.deviceId}>
+                              {device.label}
+                              {usedCameraDeviceIds.has(device.deviceId) ? " (in use)" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      title={`Open ${label} again`}
+                      onClick={() => void reconnect(placement)}
+                    >
                       Reconnect
                     </Button>
                     <Button

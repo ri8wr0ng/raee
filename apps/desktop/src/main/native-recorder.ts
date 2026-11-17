@@ -310,6 +310,15 @@ export class NativeRecorder {
         },
       };
       await this.save(recording);
+      const fps = request.frameRate ?? 30;
+      const bitrate = (kbps: number) => [
+        "-b:v",
+        `${kbps}k`,
+        "-maxrate",
+        `${kbps}k`,
+        "-bufsize",
+        `${kbps * 2}k`,
+      ];
       const args = [
         "-hide_banner",
         "-loglevel",
@@ -325,10 +334,22 @@ export class NativeRecorder {
               encoder,
               "-pix_fmt",
               "yuv420p",
+              "-r",
+              String(fps),
               "-g",
-              "60",
+              String(fps * 2),
+              ...(request.maxHeight ? ["-vf", `scale=-2:'min(${request.maxHeight},ih)'`] : []),
               ...(encoder === "libx264"
-                ? ["-preset", "veryfast", "-crf", "23", "-threads", "2"]
+                ? [
+                    "-preset",
+                    "veryfast",
+                    ...(request.videoBitrate ? [] : ["-crf", "23"]),
+                    "-threads",
+                    "2",
+                  ]
+                : []),
+              ...(request.videoBitrate && !destinations.length
+                ? bitrate(request.videoBitrate)
                 : []),
             ]
           : ["-vn"]),
@@ -340,7 +361,7 @@ export class NativeRecorder {
                     .filter((arg) => arg === "-i")
                     .flatMap((_, index) => ["-map", `${index}:v?`, "-map", `${index}:a?`])
                 : []),
-              ...(input.video ? ["-b:v", "4000k", "-maxrate", "4000k", "-bufsize", "8000k"] : []),
+              ...(input.video ? bitrate(request.videoBitrate ?? 4000) : []),
               ...streamingOutputs(
                 join(this.folder(recording.id), "recording.mkv"),
                 destinations,

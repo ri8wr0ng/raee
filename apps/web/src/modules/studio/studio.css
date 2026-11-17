@@ -316,6 +316,14 @@
   color: var(--muted-foreground);
   font-size: 12px;
 }
+.studio-quality {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
 
 /* Rows: scenes, sources, overlays */
 .studio-list {

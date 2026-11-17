@@ -8,6 +8,12 @@ export type NativeRecordingRequest = {
   encoder: "auto" | "software";
   streamURL?: string;
   streamURLs?: string[];
+  /** Output frames per second; defaults to 30. */
+  frameRate?: 24 | 30 | 60;
+  /** Largest output height in pixels; taller pictures are scaled down. */
+  maxHeight?: 720 | 1080 | 1440;
+  /** Target video bitrate in kilobits per second. */
+  videoBitrate?: number;
 };
 
 export type NativeStreamStatus = {

@@ -113,15 +113,16 @@ export class LiveStudio {
     const scene = this.scenes.get(args.id);
     if (!scene) throw new Error("Scene unavailable.");
     const project = freeze(sceneProject(scene));
+    // The program is scaled to the Studio output quality and paced at its frame rate, so scenes
+    // only need the same shape; a different shape would resize a recording mid-take.
     if (
       this.active &&
-      (this.active.project.settings.width !== project.settings.width ||
-        this.active.project.settings.height !== project.settings.height ||
-        this.active.project.settings.frameRate.numerator !== project.settings.frameRate.numerator ||
-        this.active.project.settings.frameRate.denominator !==
-          project.settings.frameRate.denominator)
+      Math.abs(
+        this.active.project.settings.width / this.active.project.settings.height -
+          project.settings.width / project.settings.height,
+      ) > 0.01
     )
-      throw new Error("Live scenes must use the same output size and frame rate.");
+      throw new Error("Live scenes must use the same aspect ratio.");
     this.revision++;
     this.active = { scene, project, commitRevision: this.revision };
     return this.revision;

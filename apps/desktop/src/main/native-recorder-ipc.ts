@@ -66,6 +66,9 @@ export function registerNativeRecorder(
             "encoder",
             "streamURL",
             "streamURLs",
+            "frameRate",
+            "maxHeight",
+            "videoBitrate",
           ].includes(key),
       ) ||
       typeof input.projectID !== "string" ||
@@ -81,7 +84,14 @@ export function registerNativeRecorder(
           input.microphoneID.length > 512)) ||
       (input.source === "screen" && input.deviceID !== undefined) ||
       (input.source !== "screen" && !input.deviceID) ||
-      (input.source === "microphone" && input.microphoneID !== undefined)
+      (input.source === "microphone" && input.microphoneID !== undefined) ||
+      (input.frameRate !== undefined && ![24, 30, 60].includes(input.frameRate as number)) ||
+      (input.maxHeight !== undefined && ![720, 1080, 1440].includes(input.maxHeight as number)) ||
+      (input.videoBitrate !== undefined &&
+        (typeof input.videoBitrate !== "number" ||
+          !Number.isInteger(input.videoBitrate) ||
+          input.videoBitrate < 500 ||
+          input.videoBitrate > 50_000))
     )
       throw new Error("Invalid native recording request.");
     const destinations = streamDestinations(input.streamURL, input.streamURLs);
@@ -91,6 +101,9 @@ export function registerNativeRecorder(
       encoder: input.encoder,
       ...(typeof input.deviceID === "string" ? { deviceID: input.deviceID } : {}),
       ...(typeof input.microphoneID === "string" ? { microphoneID: input.microphoneID } : {}),
+      ...(input.frameRate !== undefined ? { frameRate: input.frameRate as 24 | 30 | 60 } : {}),
+      ...(input.maxHeight !== undefined ? { maxHeight: input.maxHeight as 720 | 1080 | 1440 } : {}),
+      ...(typeof input.videoBitrate === "number" ? { videoBitrate: input.videoBitrate } : {}),
       ...(input.streamURLs !== undefined ? { streamURLs: destinations } : {}),
       ...(input.streamURL !== undefined
         ? { streamURL: streamDestination(input.streamURL).url }

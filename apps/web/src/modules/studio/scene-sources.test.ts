@@ -81,3 +81,14 @@ describe("scene sources", () => {
     expect(scenes.of("two")[0]?.layout).toEqual(at(0.5));
   });
 });
+
+describe("SceneSources.annotate", () => {
+  it("remembers what a source opens in every scene that places it", () => {
+    const scenes = new SceneSources();
+    scenes.add("a", screen("screen:1"));
+    scenes.add("b", screen("screen:1"));
+    scenes.annotate("screen:1", { display: "screen:0:0" });
+    expect(scenes.of("a")[0]?.display).toBe("screen:0:0");
+    expect(scenes.of("b")[0]?.display).toBe("screen:0:0");
+  });
+});

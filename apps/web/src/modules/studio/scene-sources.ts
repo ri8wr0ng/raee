@@ -19,6 +19,8 @@ export type Placement = {
   deviceId?: string | undefined;
   /** The project media a video source plays. */
   mediaId?: string | undefined;
+  /** The desktop app's id for the screen or window a screen source captured. */
+  display?: string | undefined;
 };
 
 /** Whether a source kind draws a picture on the program. */
@@ -125,6 +127,15 @@ export class SceneSources {
             ? { ...item, identity: to, ...(deviceId ? { deviceId } : {}) }
             : item,
         ),
+      );
+  }
+
+  /** Updates what a source opens on Reconnect in every scene that places it. */
+  annotate(identity: string, patch: { deviceId?: string; display?: string }) {
+    for (const [scene, list] of this.#scenes)
+      this.#scenes.set(
+        scene,
+        list.map((item) => (item.identity === identity ? { ...item, ...patch } : item)),
       );
   }
 

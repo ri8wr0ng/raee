@@ -30,7 +30,7 @@ export class LiveStudioOutput {
     private readonly reader: Parameters<typeof paintPicture>[3],
     private readonly engagement?: LiveEngagement,
     private readonly liveLayers?: (context: CanvasRenderingContext2D, time: number) => void,
-    private readonly maxOutputHeight = Number.POSITIVE_INFINITY,
+    private maxOutputHeight = Number.POSITIVE_INFINITY,
     /** Paints the draft look instead of the saved one, for the scene it is asked about. */
     previewAssets?: LivePreviewAssets,
     /**
@@ -50,6 +50,10 @@ export class LiveStudioOutput {
   }
   get currentFrame() {
     return this.committed ? { ...this.committed } : null;
+  }
+  /** Caps the output height; the canvas resizes on the next frame. */
+  setMaxOutputHeight(height: number) {
+    this.maxOutputHeight = height;
   }
   /** The override also reaches recordings: return undefined from it while capturing. */
   setPreviewAssets(assets?: LiveAssets | LivePreviewAssets | null) {
