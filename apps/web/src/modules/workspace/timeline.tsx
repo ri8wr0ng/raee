@@ -147,6 +147,22 @@ export function Timeline({
   const selected = useEditorView((state) => state.selected);
   const showTranscript = useEditorView((state) => state.showTranscript);
   const scroll = useRef<HTMLDivElement>(null);
+  // A clip selected from elsewhere (placed from Project media, picked in a panel) may sit on a
+  // track outside the visible rows, so bring it into the timeline viewport.
+  const single = selected.length === 1 ? selected[0] : null;
+  useEffect(() => {
+    const view = scroll.current;
+    if (!single || !view) return;
+    const frame = requestAnimationFrame(() => {
+      const clip = view.querySelector<HTMLElement>(`[data-clip-id="${CSS.escape(single)}"]`);
+      if (!clip) return;
+      const area = view.getBoundingClientRect();
+      const box = clip.getBoundingClientRect();
+      if (box.top < area.top) view.scrollTop -= area.top - box.top;
+      else if (box.bottom > area.bottom) view.scrollTop += box.bottom - area.bottom;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [single]);
   const { track: trackAutoScroll, stop: stopAutoScroll } = useDragAutoScroll();
   const [trackHeights, setTrackHeights] = useState<Record<string, number>>({});
   const drag = useRef<{

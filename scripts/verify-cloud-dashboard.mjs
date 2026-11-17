@@ -160,7 +160,7 @@ try {
   assert.ok(mobileWidth <= 390);
   result.checks.mobileAccount = true;
   await toggle.click();
-  await nav.getByRole("link", { name: "Editor", exact: true }).click();
+  await nav.getByRole("link", { name: "Edit", exact: true }).click();
   await page.getByTestId("project-name").waitFor();
   assert.equal(await page.getByTestId("project-name").innerText(), original);
   await page.getByRole("button", { name: "Teams", exact: true }).click();

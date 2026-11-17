@@ -16,6 +16,9 @@ const FRAME_RATES = [
   [60, 1, "60"],
 ] as const;
 
+// Smaller frames export as unusable slivers (a 1 px canvas still rendered at full height).
+const MIN_CANVAS = 64;
+
 export function ProjectSettings() {
   const { session, snapshot } = useEditorSession();
   const { project } = snapshot;
@@ -67,7 +70,7 @@ export function ProjectSettings() {
               value={project.settings.width}
               unit="px"
               prefix="W"
-              min={1}
+              min={MIN_CANVAS}
               step={1}
               disabled={disabled}
               onCommit={(width) => settings({ width: Math.round(Number(width)) })}
@@ -78,7 +81,7 @@ export function ProjectSettings() {
               value={project.settings.height}
               unit="px"
               prefix="H"
-              min={1}
+              min={MIN_CANVAS}
               step={1}
               disabled={disabled}
               onCommit={(height) => settings({ height: Math.round(Number(height)) })}

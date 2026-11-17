@@ -1,4 +1,4 @@
-import { ClientOnly, HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import { ClientOnly, HeadContent, Link, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "@sidecut/ui/globals.css?url";
 import { CloudProvider } from "@/modules/cloud/cloud-provider";
 import { CloudRouteGuard } from "@/modules/cloud/cloud-route-guard";
@@ -33,6 +33,11 @@ export const Route = createRootRoute({
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>
       <p>The requested page could not be found.</p>
+      <p className="mt-4">
+        <Link to="/" className="underline underline-offset-4">
+          Back to the editor
+        </Link>
+      </p>
     </main>
   ),
   shellComponent: RootDocument,
