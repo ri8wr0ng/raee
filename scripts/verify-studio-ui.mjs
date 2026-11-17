@@ -92,8 +92,8 @@ try {
 
   // Scenes, explicit switching and look.
   await openStudio();
+  // The first scene goes on air as soon as it is saved.
   await button("Save from editor").click();
-  await button("Switch to Scene 1").click();
   await dialog.locator(".studio-live-badge").waitFor();
   await page.waitForTimeout(500);
   const solid = await pixel(0.5, 0.5);
@@ -107,7 +107,7 @@ try {
   await button("Save look").click();
   await page.waitForTimeout(400);
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [17, 24, 39], "save must not go live");
-  await button("Switch to Scene 2").click();
+  await button("Put Scene 2 on air").click();
   await page.waitForTimeout(600);
   assert.deepEqual((await pixel(0.1, 0.86)).slice(0, 3), [56, 189, 248]);
   assert.equal(await button("Remove Scene 2").isDisabled(), true);
@@ -185,12 +185,12 @@ try {
   result.checks.sourceAspectChange = true;
 
   // Sources belong to a scene: Scene 1 never got the camera, so cutting to it hides it.
-  await button("Switch to Scene 1").click();
+  await button("Put Scene 1 on air").click();
   await page.waitForTimeout(600);
   assert.deepEqual((await pixel(0.5, 0.5)).slice(0, 3), [17, 24, 39], "camera leaked to Scene 1");
   assert.equal(await dialog.getByRole("group", { name: /^Camera 1 position/ }).count(), 0);
   await dialog.getByLabel("Add an open source").waitFor();
-  await button("Switch to Scene 2").click();
+  await button("Put Scene 2 on air").click();
   await cameraBox.waitFor();
   result.checks.perSceneSources = true;
 
@@ -278,9 +278,9 @@ try {
   await sceneMicRow.waitFor();
   const gatedHint = dialog.getByText("Not in live scene", { exact: true });
   assert.equal(await gatedHint.count(), 0, "scene audio must be heard on its own scene");
-  await button("Switch to Scene 1").click();
+  await button("Put Scene 1 on air").click();
   await gatedHint.first().waitFor();
-  await button("Switch to Scene 2").click();
+  await button("Put Scene 2 on air").click();
   await cameraBox.waitFor();
   await gatedHint.first().waitFor({ state: "detached" });
   result.checks.sceneAudio = true;
