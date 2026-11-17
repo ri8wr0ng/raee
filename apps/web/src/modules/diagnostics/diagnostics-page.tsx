@@ -9,6 +9,8 @@ import { useEditorSession } from "../workspace/editor-session";
 import { runSessionProbe } from "./session-probe";
 import { nativeBridge } from "../workspace/host-coordinator";
 
+const SAMPLE_EDIT = "Prepare sample sequence";
+
 export function DiagnosticsPage() {
   const { session, snapshot } = useEditorSession();
   const bridge = nativeBridge();
@@ -145,8 +147,9 @@ export function DiagnosticsPage() {
             Validation and command session
           </h2>
           <p className="text-sm text-muted-foreground">
-            Check atomic batches, revision conflicts, retries, and undo/redo. The sample edit below
-            changes the current editor session without adding media.
+            Check atomic batches, revision conflicts, retries, and undo/redo. The sample edit
+            renames the open project to “Compatibility study” and sets its canvas to 1280 × 720;
+            undo it here to put them back.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button
@@ -167,7 +170,7 @@ export function DiagnosticsPage() {
                 setError(null);
                 try {
                   session.apply({
-                    label: "Prepare sample sequence",
+                    label: SAMPLE_EDIT,
                     expectedRevision: snapshot.revision,
                     idempotencyKey: crypto.randomUUID(),
                     commands: [
@@ -180,12 +183,21 @@ export function DiagnosticsPage() {
                 }
               }}
             >
-              Apply sample batch to editor
+              Apply sample edit to this project
             </Button>
-            <Button variant="outline" disabled={!snapshot.undoLabel} onClick={() => session.undo()}>
+            {/* Only the sample edit: the editor's own last edit must not be undone from here. */}
+            <Button
+              variant="outline"
+              disabled={snapshot.undoLabel !== SAMPLE_EDIT}
+              onClick={() => session.undo()}
+            >
               Undo sample edit
             </Button>
-            <Button variant="outline" disabled={!snapshot.redoLabel} onClick={() => session.redo()}>
+            <Button
+              variant="outline"
+              disabled={snapshot.redoLabel !== SAMPLE_EDIT}
+              onClick={() => session.redo()}
+            >
               Redo sample edit
             </Button>
           </div>

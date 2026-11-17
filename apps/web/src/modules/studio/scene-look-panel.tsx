@@ -424,7 +424,7 @@ export function SceneLookPanel({
                           ? "Show this overlay to place it on the preview."
                           : canPlace
                             ? "Drag it on the preview to move it, or pull its edges to resize."
-                            : "Go live with a scene to place this overlay on the preview."}
+                            : "Put a scene on air to place this overlay on the preview."}
                       </p>
                     </div>
                   )}
@@ -443,7 +443,7 @@ export function SceneLookPanel({
           Save look
         </Button>
         <Button size="sm" onClick={() => onSave(true)}>
-          Save and go live
+          Save and put on air
         </Button>
       </footer>
     </div>

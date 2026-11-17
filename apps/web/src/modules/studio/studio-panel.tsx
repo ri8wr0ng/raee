@@ -343,13 +343,15 @@ export default function StudioPanel({
     null,
   );
   const clips = useRef<ClipCapture | null>(null);
-  // The clip controller is the only source for buffer and saved-clip UI.
-  clips.current ??= new ClipCapture({
-    buffer: new RecentClips(),
-    acquire: () => latestStream.current!(),
-    createURL: (file) => URL.createObjectURL(file),
-    revokeURL: (url) => URL.revokeObjectURL(url),
-  });
+  // The clip controller is the only source for buffer and saved-clip UI. The program effect's
+  // cleanup closes it, so a re-run of that effect (StrictMode in development) needs a new one.
+  if (!clips.current || clips.current.state.product.kind === "closed")
+    clips.current = new ClipCapture({
+      buffer: new RecentClips(),
+      acquire: () => latestStream.current!(),
+      createURL: (file) => URL.createObjectURL(file),
+      revokeURL: (url) => URL.revokeObjectURL(url),
+    });
   const clipState = useSyncExternalStore(clips.current.subscribe, () => clips.current!.state);
   const armed = clipState.buffer.kind === "armed";
   const saving = clipState.product.kind === "saving";
@@ -361,22 +363,24 @@ export default function StudioPanel({
   const latestSink = useRef<CaptureDeps["openSink"] | null>(null);
   const capture = useRef<StudioCapture | null>(null);
   // The capture controller is the only source for recording, saving, upload and take UI.
-  capture.current ??= new StudioCapture({
-    acquire: async () => (await latestStream.current!()).stream,
-    createRecorder: (stream) => {
-      return new MediaRecorder(stream, {
-        mimeType: "video/webm;codecs=vp8,opus",
-        videoBitsPerSecond: videoBitrate(qualityRef.current),
-        audioBitsPerSecond: AUDIO_BITRATE,
-      });
-    },
-    openSink: (fileName, report) => latestSink.current!(fileName, report),
-    fileName: () => `studio-${Date.now()}.webm`,
-    now: () => performance.now(),
-    revokeURL: (url) => URL.revokeObjectURL(url),
-    removeStored: (fileName) => void removeTake(fileName),
-    encoderMessage: "The recording encoder failed. Add or discard this take.",
-  });
+  // Like the clip controller, it is replaced once the program effect's cleanup has closed it.
+  if (!capture.current || capture.current.state.kind === "closed")
+    capture.current = new StudioCapture({
+      acquire: async () => (await latestStream.current!()).stream,
+      createRecorder: (stream) => {
+        return new MediaRecorder(stream, {
+          mimeType: "video/webm;codecs=vp8,opus",
+          videoBitsPerSecond: videoBitrate(qualityRef.current),
+          audioBitsPerSecond: AUDIO_BITRATE,
+        });
+      },
+      openSink: (fileName, report) => latestSink.current!(fileName, report),
+      fileName: () => `studio-${Date.now()}.webm`,
+      now: () => performance.now(),
+      revokeURL: (url) => URL.revokeObjectURL(url),
+      removeStored: (fileName) => void removeTake(fileName),
+      encoderMessage: "The recording encoder failed. Add or discard this take.",
+    });
   const program = useSyncExternalStore(capture.current.subscribe, () => capture.current!.state);
   const recording = program.kind === "recording";
   const capturing =
@@ -473,6 +477,9 @@ export default function StudioPanel({
   useEffect(() => {
     let alive = true;
     closing.current = false;
+    // A re-run follows a cleanup that closed both controllers; render again to replace them.
+    if (capture.current?.state.kind === "closed" || clips.current?.state.product.kind === "closed")
+      setVersion((value) => value + 1);
     let timer: ReturnType<typeof setTimeout> | undefined;
     const readers = new Map<string, Promise<LocalMediaReader>>();
     const reader = (id: string) => {
@@ -698,6 +705,9 @@ export default function StudioPanel({
         if (!selectedRef.current) arrangement.drop("");
         commitArrangements();
       }
+      // With nothing on air yet, the first scene goes straight to the program.
+      if (!existing && !current.activeScene)
+        current.switch({ id, expectedRevision: current.currentRevision });
       setSelected(id);
       if (!existing) setName(`Scene ${current.list().length + 1}`);
       commit();
@@ -1578,7 +1588,7 @@ export default function StudioPanel({
               <span className="studio-canvas-tag">Program</span>
               {!active && !loading && (
                 <p className="studio-program-empty">
-                  Save a scene from the editor, then go live with it to start the program output.
+                  Save a scene from the editor to put it on air.
                 </p>
               )}
               {recording && (
@@ -1769,7 +1779,7 @@ export default function StudioPanel({
                 ) : program.kind === "stopping" || (program.kind === "saving" && !program.cloud) ? (
                   <span role="status">Saving the take…</span>
                 ) : !frame ? (
-                  "Go live with a scene to enable recording."
+                  "Put a scene on air to enable recording."
                 ) : cloud.state !== "ready" ? (
                   cloud.reason
                 ) : toCloud ? (
@@ -1825,7 +1835,10 @@ export default function StudioPanel({
               {recovered.map((item) => (
                 <li key={item.fileName} className="studio-item">
                   <span className="min-w-0 flex-1 truncate">
-                    {new Date(item.startedAt).toLocaleString()} · {megabytes(item.bytes)}
+                    {new Date(item.startedAt).toLocaleString()} ·{" "}
+                    {item.bytes < 1024 * 1024
+                      ? `${Math.max(1, Math.round(item.bytes / 1024))} KB`
+                      : megabytes(item.bytes)}
                     {item.state === "recording" ? " · interrupted" : ""}
                   </span>
                   <Button
@@ -1934,7 +1947,7 @@ export default function StudioPanel({
       <div className="grid gap-3">
         <Section
           title="Scenes"
-          description="Pick a scene to edit its look. Go live puts it on the program."
+          description="Pick a scene to edit its look. Put on air sends it to the program."
         >
           {scenes.length > 0 && (
             <RadioGroup
@@ -1955,15 +1968,15 @@ export default function StudioPanel({
                     <label className="studio-row-main">
                       <RadioPrimitive.Root value={scene.id} className="sr-only" />
                       <span className="truncate">{scene.name}</span>
-                      {live && <span className="studio-live-badge">Live</span>}
+                      {live && <span className="studio-live-badge">On air</span>}
                     </label>
                     {!live && (
                       <Button
                         size="xs"
-                        aria-label={`Switch to ${scene.name}`}
+                        aria-label={`Put ${scene.name} on air`}
                         onClick={() => void switchTo(scene.id)}
                       >
-                        Go live
+                        Put on air
                       </Button>
                     )}
                     <Button
@@ -1979,7 +1992,7 @@ export default function StudioPanel({
                       size="icon-xs"
                       variant="ghost"
                       aria-label={`Remove ${scene.name}`}
-                      title={live ? "Go live with another scene first" : "Remove scene"}
+                      title={live ? "Put another scene on air first" : "Remove scene"}
                       disabled={live}
                       onClick={() => void remove(scene.id)}
                     >

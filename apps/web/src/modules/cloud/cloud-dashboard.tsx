@@ -72,7 +72,7 @@ const SidebarTeam = lazy(() => import("./sidebar-team"));
 // The "Create" group: destinations outside the cloud workspace.
 const appLinks = [
   { to: "/studio", label: "Studio", icon: RiLiveLine },
-  { to: "/", label: "Editor", icon: RiFilmLine },
+  { to: "/", label: "Edit", icon: RiFilmLine },
 ] as const;
 
 function sectionLabel(section: Section) {

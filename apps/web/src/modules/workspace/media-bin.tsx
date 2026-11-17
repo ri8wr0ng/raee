@@ -442,7 +442,7 @@ export function MediaBin({
           ? "Working with local files…"
           : dragging
             ? "Drop files to import"
-            : `${media.length} sources · local files only`}
+            : `${media.length} ${media.length === 1 ? "source" : "sources"} · local files only`}
       </div>
     </section>
   );

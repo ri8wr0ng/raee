@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { Button } from "@sidecut/ui/components/button";
 import { useCloud } from "@/modules/cloud/cloud-provider";
@@ -33,6 +33,14 @@ export function StudioPage() {
     enableBeforeUnload: () => busy.current,
     withResolver: true,
   });
+  // The alert sits above the panels, so bring it into view: Studio is usually scrolled down.
+  const leaveAlert = useRef<HTMLDivElement>(null);
+  const stay = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (blocker.status !== "blocked") return;
+    leaveAlert.current?.scrollIntoView({ block: "nearest" });
+    stay.current?.focus({ preventScroll: true });
+  }, [blocker.status]);
   return (
     <AppPage
       title="Studio"
@@ -40,14 +48,16 @@ export function StudioPage() {
     >
       {blocker.status === "blocked" && (
         <div
+          ref={leaveAlert}
           role="alert"
           className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3"
         >
           <p>
-            Stop the recording, let the upload finish, or add or discard the take before leaving.
+            Stop the recording, let the upload finish, or add or discard the take or clip before
+            leaving.
           </p>
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => blocker.reset()}>
+            <Button ref={stay} size="sm" onClick={() => blocker.reset()}>
               Stay in Studio
             </Button>
             <Button size="sm" variant="destructive" onClick={() => blocker.proceed()}>
