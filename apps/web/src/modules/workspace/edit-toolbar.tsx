@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@sidecut/ui/components/button";
+import { Toggle } from "@ui-sdk/react/toggle";
 import { Input } from "@sidecut/ui/components/input";
 import { FieldLabel } from "@sidecut/ui/components/field";
 import {
@@ -90,15 +91,19 @@ export function EditToolbar({
           </OptionSelect>
         </label>
         <ToolTip label="Toggle snapping" shortcut="S">
-          <Button
-            size="icon-xs"
-            variant={snapping ? "secondary" : "ghost"}
-            aria-label="Toggle snapping"
-            aria-pressed={snapping}
-            onClick={() => editor.getState().setSnapping(!snapping)}
+          <Toggle
+            pressed={snapping}
+            onPressedChange={(next) => editor.getState().setSnapping(next)}
+            render={
+              <Button
+                size="icon-xs"
+                variant={snapping ? "secondary" : "ghost"}
+                aria-label="Toggle snapping"
+              />
+            }
           >
             <RiFocus2Line aria-hidden="true" />
-          </Button>
+          </Toggle>
         </ToolTip>
       </div>
       <div className="editor-toolbar-group">

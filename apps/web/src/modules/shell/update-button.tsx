@@ -1,5 +1,6 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { RiDownloadLine, RiErrorWarningLine, RiRestartLine } from "@remixicon/react";
+import { Progress } from "@ui-sdk/react/progress";
 import type { UpdateState } from "@sidecut/contracts/desktop";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
 
@@ -81,19 +82,16 @@ export function UpdateButton() {
     );
   if (state.status === "downloading")
     return (
-      <div
+      <Progress
         className="app-rail-link app-rail-update"
         data-state="downloading"
-        role="progressbar"
         aria-label={`Downloading version ${state.version}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={state.percent}
+        value={state.percent}
         title={`Downloading version ${state.version}`}
       >
         <UpdateIcon icon={RiDownloadLine} progress={state.percent} />
         <span>{state.percent}%</span>
-      </div>
+      </Progress>
     );
   if (state.status === "ready")
     return (

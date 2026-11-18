@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { LIVE_BACKGROUNDS, type LiveAssets, type LiveOverlay } from "@sidecut/core/live-assets";
 import { paintLiveBackground } from "@sidecut/platform-browser/live-assets";
 import { Button } from "@sidecut/ui/components/button";
-import { RadioGroup } from "@sidecut/ui/components/radio-group";
+import { Radio, RadioGroup } from "@ui-sdk/react/radio";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/components/select";
 import { Slider } from "@sidecut/ui/components/slider";
 import { Switch } from "@sidecut/ui/components/switch";
 import { Textarea } from "@sidecut/ui/components/textarea";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
+import { Toggle } from "@ui-sdk/react/toggle";
 import {
   RiAddLine,
   RiArrowDownSLine,
@@ -122,13 +123,13 @@ function Segmented<T extends string>({
   return (
     <RadioGroup
       aria-label={name}
-      className="look-segmented"
+      className="grid w-full gap-2 look-segmented"
       value={value}
-      onValueChange={(next) => onChange(next as T)}
+      onValueChange={(next) => next && onChange(next as T)}
     >
       {options.map((option) => (
         <label key={option.value} data-checked={value === option.value || undefined}>
-          <RadioPrimitive.Root value={option.value} className="sr-only" />
+          <Radio value={option.value} className="sr-only" />
           {option.label}
         </label>
       ))}
@@ -215,9 +216,11 @@ export function SceneLookPanel({
       <Field label="Background">
         <RadioGroup
           aria-label="Background"
-          className="look-backgrounds"
+          className="grid w-full gap-2 look-backgrounds"
           value={draft.background}
-          onValueChange={(background) => set({ background: background as Background })}
+          onValueChange={(background) =>
+            background && set({ background: background as Background })
+          }
         >
           {LIVE_BACKGROUNDS.map((background) => (
             <label
@@ -226,7 +229,7 @@ export function SceneLookPanel({
               data-checked={draft.background === background || undefined}
               title={label(background)}
             >
-              <RadioPrimitive.Root value={background} className="sr-only" />
+              <Radio value={background} className="sr-only" />
               <BackgroundSwatch assets={{ ...draft, background }} />
               <span>{label(background)}</span>
             </label>
@@ -272,14 +275,14 @@ export function SceneLookPanel({
 
       <section className="look-overlays" aria-label="Overlays">
         <header>
-          <h4>
+          <h3>
             Overlays
             {draft.overlays.length > 0 && (
               <span className="look-count">
                 {draft.overlays.length} of {MAX_OVERLAYS}
               </span>
             )}
-          </h4>
+          </h3>
           <Select
             key={addKey}
             value=""
@@ -314,18 +317,15 @@ export function SceneLookPanel({
               const open = selectedOverlay === overlay.id;
               const Icon = KINDS.find((kind) => kind.value === overlay.kind)!.icon;
               return (
-                <li
+                <Collapsible
                   key={overlay.id}
-                  data-open={open || undefined}
+                  render={<li />}
+                  open={open}
+                  onOpenChange={(next) => onSelectOverlay(next ? overlay.id : null)}
                   data-hidden={!overlay.enabled || undefined}
                 >
                   <div className="look-overlay-row">
-                    <button
-                      type="button"
-                      className="look-overlay-main"
-                      aria-expanded={open}
-                      onClick={() => onSelectOverlay(open ? null : overlay.id)}
-                    >
+                    <CollapsibleTrigger className="look-overlay-main">
                       <span className="look-overlay-icon" style={{ background: overlay.color }}>
                         <Icon aria-hidden style={{ color: overlay.textColor }} />
                       </span>
@@ -333,17 +333,16 @@ export function SceneLookPanel({
                         {overlay.text.trim() || <em>No text</em>}
                       </span>
                       <RiArrowDownSLine className="look-overlay-chevron" aria-hidden />
-                    </button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
+                    </CollapsibleTrigger>
+                    <Toggle
                       aria-label={overlay.enabled ? `Hide ${overlay.text}` : `Show ${overlay.text}`}
-                      aria-pressed={!overlay.enabled}
                       title={overlay.enabled ? "Hide" : "Show"}
-                      onClick={() => setOverlay(overlay.id, { enabled: !overlay.enabled })}
+                      pressed={!overlay.enabled}
+                      onPressedChange={(hidden) => setOverlay(overlay.id, { enabled: !hidden })}
+                      render={<Button size="icon-xs" variant="ghost" />}
                     >
                       {overlay.enabled ? <RiEyeLine /> : <RiEyeOffLine />}
-                    </Button>
+                    </Toggle>
                     <Button
                       size="icon-xs"
                       variant="ghost"
@@ -357,7 +356,7 @@ export function SceneLookPanel({
                       <RiDeleteBinLine />
                     </Button>
                   </div>
-                  {open && (
+                  <CollapsiblePanel>
                     <div className="look-overlay-editor">
                       <Textarea
                         aria-label="Overlay text"
@@ -427,8 +426,8 @@ export function SceneLookPanel({
                             : "Put a scene on air to place this overlay on the preview."}
                       </p>
                     </div>
-                  )}
-                </li>
+                  </CollapsiblePanel>
+                </Collapsible>
               );
             })}
           </ul>

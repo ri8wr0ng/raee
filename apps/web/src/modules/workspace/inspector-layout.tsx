@@ -1,6 +1,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { RiArrowDownSLine } from "@remixicon/react";
 import { Tip } from "@sidecut/ui/components/tooltip";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 
 // Collapsed sections stay collapsed while switching tabs or clips, but not across reloads.
 const collapsed = new Set<string>();
@@ -20,31 +21,30 @@ export function InspectorSection({
 }) {
   const [open, setOpen] = useState(() => !collapsed.has(id));
   const uid = useId();
-  const titleID = `${uid}-title`,
-    bodyID = `${uid}-body`;
+  const titleID = `${uid}-title`;
   return (
     <section
       className="editor-section"
       {...(label ? { "aria-label": label } : { "aria-labelledby": titleID })}
     >
-      <h3 id={titleID} className="editor-section-title">
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={bodyID}
-          onClick={() => {
-            if (open) collapsed.add(id);
-            else collapsed.delete(id);
-            setOpen(!open);
-          }}
-        >
-          <RiArrowDownSLine aria-hidden="true" data-open={open} />
-          {title}
-        </button>
-      </h3>
-      <div id={bodyID} className="editor-section-body" hidden={!open}>
-        {children}
-      </div>
+      <Collapsible
+        open={open}
+        onOpenChange={(next) => {
+          if (next) collapsed.delete(id);
+          else collapsed.add(id);
+          setOpen(next);
+        }}
+      >
+        <h3 id={titleID} className="editor-section-title">
+          <CollapsibleTrigger>
+            <RiArrowDownSLine aria-hidden="true" data-open={open} />
+            {title}
+          </CollapsibleTrigger>
+        </h3>
+        <CollapsiblePanel keepMounted className="editor-section-body">
+          {children}
+        </CollapsiblePanel>
+      </Collapsible>
     </section>
   );
 }
