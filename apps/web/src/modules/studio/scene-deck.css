@@ -59,7 +59,7 @@
   font-weight: 700;
 }
 .scene-deck-button[data-pressed] .scene-deck-key {
-  background: #ef4444;
+  background: #dc2626;
   color: #fff;
 }
 .scene-deck-name {
@@ -72,7 +72,7 @@
   flex: none;
   padding: 1px 6px;
   border-radius: 4px;
-  background: #ef4444;
+  background: #dc2626;
   color: #fff;
   font-size: 10px;
   font-weight: 700;

@@ -82,7 +82,7 @@ export function SceneDeck({
               className="scene-deck-button"
               pressed={onAir}
               onPressedChange={() => goLive(scene)}
-              aria-label={hotkey === null ? action : `${action} (${hotkey})`}
+              aria-keyshortcuts={hotkey === null ? undefined : String(hotkey)}
               title={hotkey === null ? action : `${action} — press ${hotkey}`}
             >
               {hotkey !== null && (

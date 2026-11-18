@@ -196,7 +196,7 @@ function Section({
     <section className="studio-section" aria-label={title}>
       <header>
         <div className="min-w-0">
-          <h3>{title}</h3>
+          <h2>{title}</h2>
           {description && <p>{description}</p>}
         </div>
         {action && <div className="flex shrink-0 flex-wrap justify-end gap-1.5">{action}</div>}
@@ -2041,12 +2041,8 @@ export default function StudioPanel({
                         {live && <span className="studio-live-badge">On air</span>}
                       </label>
                       {!live && (
-                        <Button
-                          size="xs"
-                          aria-label={`Put ${scene.name} on air`}
-                          onClick={() => void switchTo(scene.id)}
-                        >
-                          Put on air
+                        <Button size="xs" onClick={() => void switchTo(scene.id)}>
+                          Put <span className="sr-only">{scene.name} </span>on air
                         </Button>
                       )}
                       <Button

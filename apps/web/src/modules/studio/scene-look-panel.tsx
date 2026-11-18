@@ -275,14 +275,14 @@ export function SceneLookPanel({
 
       <section className="look-overlays" aria-label="Overlays">
         <header>
-          <h4>
+          <h3>
             Overlays
             {draft.overlays.length > 0 && (
               <span className="look-count">
                 {draft.overlays.length} of {MAX_OVERLAYS}
               </span>
             )}
-          </h4>
+          </h3>
           <Select
             key={addKey}
             value=""

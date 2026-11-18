@@ -14,6 +14,9 @@ const ignored = [
   "**/routeTree.gen.ts",
   "**/_generated/**",
   "pnpm-lock.yaml",
+  // Vendored agent skills; `npx skills` owns their formatting.
+  ".agents/skills/**",
+  ".claude/skills/**",
 ];
 
 export default defineConfig({

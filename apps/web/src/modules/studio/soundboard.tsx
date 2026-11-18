@@ -621,7 +621,7 @@ export function Soundboard({
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="text-[13px] font-semibold text-foreground">Soundboard</span>
                 {playingPads.size > 0 && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/20 text-primary border border-primary/30">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/20 text-foreground border border-primary/30">
                     {playingPads.size} playing
                   </span>
                 )}
@@ -634,7 +634,7 @@ export function Soundboard({
                   size="sm"
                   variant="destructive"
                   onClick={stopAll}
-                  className="h-6 px-2 text-[11px] gap-1"
+                  className="h-6 px-2 text-[11px] gap-1 text-red-300"
                   aria-label="Stop all sounds"
                 >
                   <RiStopFill className="size-3" />
@@ -1024,7 +1024,7 @@ export function Soundboard({
 
                               {/* Replace audio file */}
                               <div className="pt-1 flex justify-end">
-                                <label className="text-[11px] text-primary hover:underline cursor-pointer inline-flex items-center gap-1">
+                                <label className="text-[11px] text-foreground underline underline-offset-2 hover:text-primary cursor-pointer inline-flex items-center gap-1">
                                   Replace sound file
                                   <input
                                     type="file"

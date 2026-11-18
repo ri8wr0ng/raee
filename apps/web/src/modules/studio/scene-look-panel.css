@@ -160,7 +160,7 @@
   justify-content: space-between;
   gap: 8px;
 }
-.look-overlays h4 {
+.look-overlays h3 {
   display: flex;
   align-items: baseline;
   gap: 8px;
