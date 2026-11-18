@@ -26,6 +26,8 @@ import {
   RiCloseCircleLine,
 } from "@remixicon/react";
 import { Button } from "@sidecut/ui/components/button";
+import { Toggle } from "@ui-sdk/react/toggle";
+import { Toolbar, ToolbarButton, ToolbarGroup } from "@ui-sdk/react/toolbar";
 import { Input } from "@sidecut/ui/components/input";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { projectDuration, atFrame, stepFrame, timecode } from "./timeline-model";
@@ -39,6 +41,8 @@ import "./toolbar.css";
 import { useDragAutoScroll } from "./drag-autoscroll";
 
 const HEADER = 248;
+// Toolbar items stay focusable and report aria-disabled, which Button's `disabled:` classes don't match.
+const DISABLED_LOOK = "aria-disabled:pointer-events-none aria-disabled:[&_svg]:opacity-50";
 const RIPPLE_HELP = {
   cut: "Ripple edits split and shift clips on this track",
   follow: "Ripple edits shift clips on this track without splitting them",
@@ -528,43 +532,55 @@ export function Timeline({
                     disabled={disabled}
                     onRename={(name) => patch(track.id, { name })}
                   />
-                  <div className="editor-track-controls">
-                    <Button
-                      size="icon-xs"
-                      variant={track.locked ? "secondary" : "ghost"}
+                  <Toolbar
+                    className="editor-track-controls"
+                    aria-label={`${track.name} track controls`}
+                  >
+                    <Toggle
                       disabled={disabled}
                       aria-label={`Lock track ${track.name}`}
                       title={track.locked ? "Unlock track" : "Lock track"}
-                      aria-pressed={track.locked}
-                      onClick={() => patch(track.id, { locked: !track.locked })}
+                      pressed={track.locked}
+                      onPressedChange={(locked) => patch(track.id, { locked })}
+                      render={
+                        <Button
+                          size="icon-xs"
+                          variant={track.locked ? "secondary" : "ghost"}
+                          className={DISABLED_LOOK}
+                        />
+                      }
                     >
                       {track.locked ? (
                         <RiLockLine aria-hidden="true" />
                       ) : (
                         <RiLockUnlockLine aria-hidden="true" />
                       )}
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant={track.muted ? "secondary" : "ghost"}
+                    </Toggle>
+                    <Toggle
                       disabled={disabled}
                       aria-label={`Mute track ${track.name}`}
                       title={track.muted ? "Unmute track" : "Mute track"}
-                      aria-pressed={track.muted}
-                      onClick={() => patch(track.id, { muted: !track.muted })}
+                      pressed={track.muted}
+                      onPressedChange={(muted) => patch(track.id, { muted })}
+                      render={
+                        <Button
+                          size="icon-xs"
+                          variant={track.muted ? "secondary" : "ghost"}
+                          className={DISABLED_LOOK}
+                        />
+                      }
                     >
                       {track.muted ? (
                         <RiVolumeMuteLine aria-hidden="true" />
                       ) : (
                         <RiVolumeUpLine aria-hidden="true" />
                       )}
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
+                    </Toggle>
+                    <ToolbarButton
                       disabled={disabled}
                       aria-label={`Ripple mode ${track.name}: ${track.rippleMode}`}
                       title={`${RIPPLE_HELP[track.rippleMode]}. Click to change.`}
+                      render={<Button size="icon-xs" variant="ghost" className={DISABLED_LOOK} />}
                       onClick={() =>
                         patch(track.id, {
                           rippleMode:
@@ -583,14 +599,16 @@ export function Timeline({
                       ) : (
                         <RiLinkUnlinkM aria-hidden="true" />
                       )}
-                    </Button>
-                    <span className="editor-track-extra">
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
+                    </ToolbarButton>
+                    <ToolbarGroup
+                      className="editor-track-extra"
+                      aria-label={`${track.name} track order`}
+                    >
+                      <ToolbarButton
                         disabled={disabled || index + step < 0 || index + step >= list.length}
                         aria-label={`Move track ${track.name} up`}
                         title="Move track up"
+                        render={<Button size="icon-xs" variant="ghost" className={DISABLED_LOOK} />}
                         onClick={() =>
                           run(() =>
                             session.apply({
@@ -601,13 +619,12 @@ export function Timeline({
                         }
                       >
                         <RiArrowUpSLine aria-hidden="true" />
-                      </Button>
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
+                      </ToolbarButton>
+                      <ToolbarButton
                         disabled={disabled || index - step < 0 || index - step >= list.length}
                         aria-label={`Move track ${track.name} down`}
                         title="Move track down"
+                        render={<Button size="icon-xs" variant="ghost" className={DISABLED_LOOK} />}
                         onClick={() =>
                           run(() =>
                             session.apply({
@@ -618,13 +635,12 @@ export function Timeline({
                         }
                       >
                         <RiArrowDownSLine aria-hidden="true" />
-                      </Button>
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
+                      </ToolbarButton>
+                      <ToolbarButton
                         disabled={disabled || track.locked}
                         aria-label={`Remove track ${track.name}`}
                         title="Remove track and its clips; Undo restores them"
+                        render={<Button size="icon-xs" variant="ghost" className={DISABLED_LOOK} />}
                         onClick={() =>
                           run(() =>
                             session.apply({
@@ -635,9 +651,9 @@ export function Timeline({
                         }
                       >
                         <RiDeleteBinLine aria-hidden="true" />
-                      </Button>
-                    </span>
-                  </div>
+                      </ToolbarButton>
+                    </ToolbarGroup>
+                  </Toolbar>
                 </div>
                 <div
                   className="editor-track-lane"

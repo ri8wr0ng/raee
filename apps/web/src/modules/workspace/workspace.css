@@ -761,6 +761,13 @@
 .editor-track-controls [aria-pressed="false"] {
   color: var(--muted-foreground);
 }
+.editor-track-controls [aria-pressed="true"]:not(:focus-visible) {
+  box-shadow: inset 0 0 0 1px var(--muted-foreground);
+}
+/* The group clips overflow for its collapse, so an outer focus ring would be cut off. */
+.editor-track-extra [data-slot="toolbar-button"]:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
 /* Reorder and remove collapse to zero width (still focusable) until the header is hovered or focused. */
 .editor-track-extra {
   display: flex;
@@ -1258,6 +1265,13 @@ button.editor-track-name:focus-visible {
   border-right: 1px solid var(--border);
   color: var(--muted-foreground);
 }
+.editor-marker-actions {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 2px;
+}
 .editor-marker-header > span {
   margin-right: auto;
 }
@@ -1374,6 +1388,11 @@ button.editor-track-name:focus-visible {
   }
   .editor-shell [data-slot="button"].size-6,
   .editor-shell [data-slot="button"].size-7 {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .editor-track-controls :is([data-slot="toggle"], [data-slot="toolbar-button"]),
+  .editor-marker-header [data-slot="toolbar-button"] {
     min-width: 36px;
     min-height: 36px;
   }
