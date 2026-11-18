@@ -22,6 +22,8 @@
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-start": "catalog:",
+    "@ui-sdk/core": "0.1.0-beta.6",
+    "@ui-sdk/react": "0.1.0-beta.6",
     "@workos-inc/authkit-react": "^0.16.3",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.0",
