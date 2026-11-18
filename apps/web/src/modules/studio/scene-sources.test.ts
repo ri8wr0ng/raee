@@ -94,6 +94,18 @@ describe("SceneSources.annotate", () => {
 });
 
 describe("scenes own their sources", () => {
+  it("keeps multiple copies of one device distinct when splitting older saves", () => {
+    const restored = new SceneSources();
+    restored.restore({
+      one: [camera("camera:cam-a"), camera("camera:cam-a#2", 0.5)],
+      two: [camera("camera:cam-a"), camera("camera:cam-a#2", 0.5)],
+    });
+    expect(ids(restored.of("two"))).toEqual(["camera:cam-a#3", "camera:cam-a#4"]);
+    restored.remove("two", "camera:cam-a#3");
+    expect(ids(restored.of("two"))).toEqual(["camera:cam-a#4"]);
+    expect(restored.of("two")[0]?.layout).toEqual(at(0.5));
+  });
+
   it("hands out identities no scene uses yet", () => {
     const scenes = new SceneSources();
     expect(scenes.unique("screen:1")).toBe("screen:1");

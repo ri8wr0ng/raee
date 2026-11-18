@@ -1197,7 +1197,7 @@ export default function StudioPanel({
     const { identity, label, kind } = placement;
     if (kind === "video" && placement.mediaId) {
       const mediaId = placement.mediaId;
-      return attempt(() => openVideo(mediaId), "Could not open the video.");
+      return attempt(() => openVideo(mediaId, identity), "Could not open the video.");
     }
     if (kind === "audio")
       return attempt(

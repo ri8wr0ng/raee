@@ -169,15 +169,15 @@ export class SceneSources {
   restore(scenes: Record<string, readonly Placement[]>) {
     this.#scenes.clear();
     for (const [scene, list] of Object.entries(scenes)) {
+      const taken = new Set(list.map((item) => item.identity));
       const own = list.map((item) => {
         if (!this.used(item.identity)) return clone(item);
         const deviceId = item.deviceId ?? deviceOf(item.identity);
+        const identity = this.unique(baseIdentity(item.identity), taken);
+        taken.add(identity);
         return {
           ...clone(item),
-          identity: this.unique(
-            baseIdentity(item.identity),
-            list.map((other) => other.identity),
-          ),
+          identity,
           ...(deviceId ? { deviceId } : {}),
         };
       });
