@@ -26,6 +26,7 @@ import {
   RiCloseCircleLine,
 } from "@remixicon/react";
 import { Button } from "@sidecut/ui/components/button";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 import { Toggle } from "@ui-sdk/react/toggle";
 import { Toolbar, ToolbarButton, ToolbarGroup } from "@ui-sdk/react/toolbar";
 import { Input } from "@sidecut/ui/components/input";
@@ -304,28 +305,25 @@ export function Timeline({
     );
 
   return (
-    <section
-      id="timeline-panel"
-      aria-labelledby="timeline-title"
+    <Collapsible
+      open={!collapsed}
+      onOpenChange={onToggleCollapsed}
+      render={<section id="timeline-panel" aria-labelledby="timeline-title" />}
       className="editor-timeline"
       data-collapsed={collapsed}
     >
       <div className="editor-timeline-toolbar">
-        <Button
-          size="icon-xs"
-          variant="ghost"
+        <CollapsibleTrigger
           aria-label={collapsed ? "Expand timeline" : "Collapse timeline"}
           title={collapsed ? "Expand timeline" : "Collapse timeline"}
-          aria-expanded={!collapsed}
-          aria-controls="timeline-tracks"
-          onClick={onToggleCollapsed}
+          render={<Button size="icon-xs" variant="ghost" />}
         >
           {collapsed ? (
             <RiArrowUpSLine aria-hidden="true" />
           ) : (
             <RiArrowDownSLine aria-hidden="true" />
           )}
-        </Button>
+        </CollapsibleTrigger>
         <h2 id="timeline-title">Timeline</h2>
         <div className="editor-toolbar-group">
           <TitleDialog />
@@ -424,9 +422,10 @@ export function Timeline({
         </span>
       </div>
       <EditToolbar run={run} actions={actions} />
-      <div
+      <CollapsiblePanel
         id="timeline-tracks"
         ref={scroll}
+        keepMounted
         className="editor-timeline-scroll"
         role="region"
         aria-label="Timeline tracks"
@@ -799,7 +798,7 @@ export function Timeline({
             );
           })}
         </div>
-      </div>
-    </section>
+      </CollapsiblePanel>
+    </Collapsible>
   );
 }

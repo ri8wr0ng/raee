@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { LIVE_BACKGROUNDS, type LiveAssets, type LiveOverlay } from "@sidecut/core/live-assets";
 import { paintLiveBackground } from "@sidecut/platform-browser/live-assets";
 import { Button } from "@sidecut/ui/components/button";
-import { RadioGroup } from "@sidecut/ui/components/radio-group";
+import { Radio, RadioGroup } from "@ui-sdk/react/radio";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/components/select";
 import { Slider } from "@sidecut/ui/components/slider";
 import { Switch } from "@sidecut/ui/components/switch";
@@ -124,13 +123,13 @@ function Segmented<T extends string>({
   return (
     <RadioGroup
       aria-label={name}
-      className="look-segmented"
+      className="grid w-full gap-2 look-segmented"
       value={value}
-      onValueChange={(next) => onChange(next as T)}
+      onValueChange={(next) => next && onChange(next as T)}
     >
       {options.map((option) => (
         <label key={option.value} data-checked={value === option.value || undefined}>
-          <RadioPrimitive.Root value={option.value} className="sr-only" />
+          <Radio value={option.value} className="sr-only" />
           {option.label}
         </label>
       ))}
@@ -217,9 +216,11 @@ export function SceneLookPanel({
       <Field label="Background">
         <RadioGroup
           aria-label="Background"
-          className="look-backgrounds"
+          className="grid w-full gap-2 look-backgrounds"
           value={draft.background}
-          onValueChange={(background) => set({ background: background as Background })}
+          onValueChange={(background) =>
+            background && set({ background: background as Background })
+          }
         >
           {LIVE_BACKGROUNDS.map((background) => (
             <label
@@ -228,7 +229,7 @@ export function SceneLookPanel({
               data-checked={draft.background === background || undefined}
               title={label(background)}
             >
-              <RadioPrimitive.Root value={background} className="sr-only" />
+              <Radio value={background} className="sr-only" />
               <BackgroundSwatch assets={{ ...draft, background }} />
               <span>{label(background)}</span>
             </label>
