@@ -100,6 +100,8 @@ const bridge: DesktopBridge = {
   providerCancel: (requestID) => ipcRenderer.invoke(bridgeChannels.providerCancel, requestID),
   providerCredential: (provider, action, secret) =>
     ipcRenderer.invoke(bridgeChannels.providerCredential, provider, action, secret),
+  assistantConnect: () => ipcRenderer.invoke(bridgeChannels.assistantConnect),
+  assistantKeys: () => ipcRenderer.invoke(bridgeChannels.assistantKeys),
   kickChannelLookup: (slug) => ipcRenderer.invoke(bridgeChannels.kickChannelLookup, slug),
   captureSources: () => ipcRenderer.invoke(bridgeChannels.captureSources),
   updateState: () => ipcRenderer.invoke(bridgeChannels.updateState),
