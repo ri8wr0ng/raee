@@ -44,6 +44,8 @@ import {
   type MacroStep,
   type Pad,
 } from "./soundboard-store";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
+import { isTabNavigationKey } from "../workspace/tab-keys";
 import "./soundboard.css";
 import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 import { Checkbox } from "@sidecut/ui/components/checkbox";
@@ -276,7 +278,7 @@ export function Soundboard({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (capturingRef.current) return;
-      if (isInteractiveElement(event.target)) return;
+      if (isInteractiveElement(event.target) || isTabNavigationKey(event)) return;
 
       // Check pads the live scene can play
       for (const pad of livePadsRef.current) {
@@ -314,6 +316,7 @@ export function Soundboard({
     if (!capturing) return;
 
     const handleCaptureKeyDown = (event: KeyboardEvent) => {
+      if (isTabNavigationKey(event)) return;
       event.preventDefault();
       event.stopPropagation();
 
@@ -674,41 +677,27 @@ export function Soundboard({
 
           {/* Panel Body (hidden when collapsed) */}
           {!isCollapsed && (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <Tabs
+              value={activeTab}
+              onValueChange={(next) => next && setActiveTab(next)}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden"
+            >
               {/* Tab Navigation */}
               <div className="flex items-center justify-between border-b border-border/40 px-3 py-1.5 bg-muted/10">
-                <div
-                  className="flex items-center gap-1"
-                  role="tablist"
-                  aria-label="Soundboard view"
-                >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "pads"}
-                    onClick={() => setActiveTab("pads")}
-                    className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                      activeTab === "pads"
-                        ? "bg-accent text-foreground shadow-xs"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                    }`}
+                <TabsList className="flex items-center gap-1" aria-label="Soundboard view">
+                  <TabsTab
+                    value="pads"
+                    className="px-2.5 py-1 text-xs font-medium rounded-md transition-colors aria-selected:bg-accent aria-selected:text-foreground aria-selected:shadow-xs not-aria-selected:text-muted-foreground not-aria-selected:hover:bg-accent/50 not-aria-selected:hover:text-foreground"
                   >
                     Pads ({data.pads.length})
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "macros"}
-                    onClick={() => setActiveTab("macros")}
-                    className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                      activeTab === "macros"
-                        ? "bg-accent text-foreground shadow-xs"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                    }`}
+                  </TabsTab>
+                  <TabsTab
+                    value="macros"
+                    className="px-2.5 py-1 text-xs font-medium rounded-md transition-colors aria-selected:bg-accent aria-selected:text-foreground aria-selected:shadow-xs not-aria-selected:text-muted-foreground not-aria-selected:hover:bg-accent/50 not-aria-selected:hover:text-foreground"
                   >
                     Macros ({data.macros.length})
-                  </button>
-                </div>
+                  </TabsTab>
+                </TabsList>
 
                 {capturing && (
                   <div className="flex items-center gap-1.5 text-xs text-primary animate-pulse font-medium">
@@ -735,496 +724,490 @@ export function Soundboard({
                 </div>
               )}
 
-              {/* Tab Content */}
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-3">
-                {activeTab === "pads" ? (
-                  <>
-                    {/* Add Sound Drop Zone in Edit Mode */}
-                    {isEditing && (
-                      <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed transition-colors ${
-                          isDraggingOver
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border/60 hover:border-border text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <RiAddLine className="size-6 mb-1 text-muted-foreground" />
-                        <span className="text-xs font-medium">Add sounds</span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5">
-                          Drag & drop audio files here, or
-                        </span>
-                        <label className="mt-1.5 inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-pointer transition-colors">
-                          Browse files
-                          <input
-                            type="file"
-                            accept="audio/*"
-                            multiple
-                            className="hidden"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                              if (e.target.files && e.target.files.length > 0) {
-                                void addAudioFiles(e.target.files);
-                                e.target.value = "";
-                              }
-                            }}
-                          />
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Empty State */}
-                    {livePads.length === 0 && !isEditing && (
-                      <div className="flex flex-col items-center justify-center py-8 text-center px-4">
-                        <RiMusic2Line className="size-10 text-muted-foreground/40 mb-2" />
-                        <p className="text-xs font-medium text-foreground">
-                          {data.pads.length ? "No pads for this scene" : "No sound pads yet"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-1 max-w-xs">
-                          {data.pads.length ? (
-                            <>
-                              Pads set to another scene appear when that scene is live. Use{" "}
-                              <strong className="text-foreground">Edit</strong> to set a pad to all
-                              scenes.
-                            </>
-                          ) : (
-                            <>
-                              Click <strong className="text-foreground">Edit</strong> above to add
-                              audio clips for applause, rimshots, music or sound effects.
-                            </>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {!isEditing && liveSceneName && data.pads.some((pad) => pad.scene) && (
-                      <p className="mb-2 text-[11px] text-muted-foreground">
-                        Pads for <strong className="text-foreground">{liveSceneName}</strong> and
-                        all scenes
-                      </p>
-                    )}
-
-                    {/* Pads Grid (Play Mode) */}
-                    {!isEditing && livePads.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2.5">
-                        {livePads.map((pad) => {
-                          const isPlaying = playingPads.has(pad.id);
-                          return (
-                            <button
-                              key={pad.id}
-                              type="button"
-                              role="button"
-                              aria-pressed={isPlaying}
-                              aria-label={`${pad.name}${pad.shortcut ? ` (${pad.shortcut})` : ""}`}
-                              onClick={() => {
-                                if (isPlaying) {
-                                  stopPad(pad.id);
-                                } else {
-                                  void playPad(pad);
-                                }
-                              }}
-                              style={
-                                {
-                                  "--pad-color": pad.color,
-                                  "--pad-glow": `${pad.color}80`,
-                                } as CSSProperties
-                              }
-                              className={`soundboard-pad group text-left ${
-                                isPlaying ? "is-playing" : ""
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span className="soundboard-pad-led" />
-                                {pad.loop && (
-                                  <RiRepeatLine className="size-3 text-muted-foreground" />
-                                )}
-                              </div>
-
-                              <div className="my-1 w-full min-w-0">
-                                <span className="block text-xs font-semibold text-foreground truncate">
-                                  {pad.name}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center justify-between w-full mt-auto pt-1">
-                                {pad.shortcut ? (
-                                  <span className="soundboard-shortcut-chip">{pad.shortcut}</span>
-                                ) : (
-                                  <span className="text-[10px] text-muted-foreground/50">—</span>
-                                )}
-                                {isPlaying && (
-                                  <RiStopFill className="size-3 text-primary animate-pulse" />
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Pads Editor (Edit Mode) */}
-                    {isEditing && (
-                      <div className="space-y-2">
-                        {data.pads.map((pad) => {
-                          const isExpanded = expandedPadId === pad.id;
-                          return (
-                            <div
-                              key={pad.id}
-                              className="rounded-lg border border-border/50 bg-card/60 p-2.5 space-y-2.5 transition-colors"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <div
-                                    className="size-3.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: pad.color }}
-                                  />
-                                  <Input
-                                    value={pad.name}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                      updatePad(pad.id, { name: e.target.value })
-                                    }
-                                    className="h-7 text-xs font-medium"
-                                    placeholder="Pad name"
-                                  />
-                                </div>
-
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setExpandedPadId(isExpanded ? null : pad.id)}
-                                    className="h-7 px-2 text-xs"
-                                  >
-                                    {isExpanded ? "Less" : "Settings"}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => void removePad(pad.id)}
-                                    className="h-7 px-1.5 text-destructive hover:text-destructive"
-                                    aria-label={`Remove ${pad.name}`}
-                                  >
-                                    <RiDeleteBinLine className="size-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {/* Expanded Pad Settings */}
-                              {isExpanded && (
-                                <div className="pt-2 border-t border-border/30 space-y-3 text-xs">
-                                  {/* Color Palette */}
-                                  <div>
-                                    <span className="text-[11px] text-muted-foreground block mb-1.5">
-                                      Color
-                                    </span>
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      {DEFAULT_PAD_COLORS.map((c) => (
-                                        <button
-                                          key={c}
-                                          type="button"
-                                          onClick={() => updatePad(pad.id, { color: c })}
-                                          style={{ backgroundColor: c }}
-                                          className={`size-5 rounded-full transition-transform ${
-                                            pad.color === c
-                                              ? "scale-110 ring-2 ring-white/60"
-                                              : "hover:scale-105 opacity-80 hover:opacity-100"
-                                          }`}
-                                          aria-label={`Color ${c}`}
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-
-                                  {/* Volume Slider */}
-                                  <div>
-                                    <div className="flex items-center justify-between text-[11px] mb-1">
-                                      <span className="text-muted-foreground flex items-center gap-1">
-                                        <RiVolumeUpLine className="size-3" />
-                                        Volume
-                                      </span>
-                                      <span className="font-mono text-muted-foreground">
-                                        {pad.volumeDB > 0 ? `+${pad.volumeDB}` : pad.volumeDB} dB
-                                      </span>
-                                    </div>
-                                    <Slider
-                                      min={-30}
-                                      max={6}
-                                      step={1}
-                                      value={pad.volumeDB}
-                                      onValueChange={(val) => {
-                                        const v = typeof val === "number" ? val : (val[0] ?? 0);
-                                        updatePad(pad.id, { volumeDB: v });
-                                      }}
-                                      aria-label={`${pad.name} volume`}
-                                    />
-                                  </div>
-
-                                  {/* Scene */}
-                                  <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[11px] text-muted-foreground">
-                                      Plays on
-                                    </span>
-                                    <OptionSelect
-                                      value={pad.scene ?? "all"}
-                                      onValueChange={(value) =>
-                                        updatePad(pad.id, {
-                                          scene: value === "all" ? null : String(value),
-                                        })
-                                      }
-                                      aria-label={`Scene for ${pad.name}`}
-                                      className="h-7 w-auto max-w-[160px] text-xs"
-                                    >
-                                      <SelectItem value="all">All scenes</SelectItem>
-                                      {actions.scenes.map((scene) => (
-                                        <SelectItem key={scene.id} value={scene.id}>
-                                          {scene.name}
-                                        </SelectItem>
-                                      ))}
-                                    </OptionSelect>
-                                  </div>
-
-                                  {/* Loop & Shortcut Controls */}
-                                  <div className="flex items-center justify-between gap-3 pt-1">
-                                    <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none">
-                                      <Checkbox
-                                        checked={pad.loop}
-                                        onCheckedChange={(checked) =>
-                                          updatePad(pad.id, { loop: Boolean(checked) })
-                                        }
-                                      />
-                                      <span>Loop playback</span>
-                                    </label>
-
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-[11px] text-muted-foreground">
-                                        Shortcut:
-                                      </span>
-                                      <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        onClick={() => {
-                                          if (
-                                            capturing?.target === "pad" &&
-                                            capturing.id === pad.id
-                                          ) {
-                                            setCapturing(null);
-                                          } else {
-                                            setCapturing({ target: "pad", id: pad.id });
-                                          }
-                                        }}
-                                        className={`h-6 px-2 text-[11px] font-mono ${
-                                          capturing?.target === "pad" && capturing.id === pad.id
-                                            ? "bg-primary text-primary-foreground animate-pulse"
-                                            : ""
-                                        }`}
-                                      >
-                                        {capturing?.target === "pad" && capturing.id === pad.id
-                                          ? "Press keys…"
-                                          : (pad.shortcut ?? "None")}
-                                      </Button>
-                                      {pad.shortcut && (
-                                        <button
-                                          type="button"
-                                          onClick={() => updatePad(pad.id, { shortcut: null })}
-                                          className="text-[10px] text-muted-foreground hover:text-foreground"
-                                          aria-label="Clear shortcut"
-                                        >
-                                          Clear
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Replace audio file */}
-                                  <div className="pt-1 flex justify-end">
-                                    <label className="text-[11px] text-primary hover:underline cursor-pointer inline-flex items-center gap-1">
-                                      Replace sound file
-                                      <input
-                                        type="file"
-                                        accept="audio/*"
-                                        className="hidden"
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            void replacePadSound(pad.id, file);
-                                            e.target.value = "";
-                                          }
-                                        }}
-                                      />
-                                    </label>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  /* Macros Tab */
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        Trigger multiple actions with one shortcut
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={addMacro}
-                        className="h-6 px-2 text-xs gap-1"
-                      >
-                        <RiAddLine className="size-3.5" />
-                        New macro
-                      </Button>
-                    </div>
-
-                    {data.macros.length === 0 && (
-                      <div className="text-center py-8 px-4 text-muted-foreground">
-                        <p className="text-xs font-medium text-foreground">No macros configured</p>
-                        <p className="text-[11px] mt-1">
-                          Create a macro to change scenes, play stings, toggle overlays, and record
-                          with a single cue.
-                        </p>
-                      </div>
-                    )}
-
-                    {data.macros.map((macro) => (
-                      <div
-                        key={macro.id}
-                        className="rounded-lg border border-border/50 bg-card/60 p-2.5 space-y-2.5"
-                      >
-                        {/* Macro header */}
-                        <div className="flex items-center justify-between gap-2">
-                          <Input
-                            value={macro.name}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              updateMacro(macro.id, { name: e.target.value })
-                            }
-                            className="h-7 text-xs font-semibold flex-1"
-                            placeholder="Macro name"
-                          />
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {/* Shortcut button */}
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => {
-                                if (capturing?.target === "macro" && capturing.id === macro.id) {
-                                  setCapturing(null);
-                                } else {
-                                  setCapturing({ target: "macro", id: macro.id });
-                                }
-                              }}
-                              className={`h-6 px-2 text-[11px] font-mono ${
-                                capturing?.target === "macro" && capturing.id === macro.id
-                                  ? "bg-primary text-primary-foreground animate-pulse"
-                                  : ""
-                              }`}
-                            >
-                              {capturing?.target === "macro" && capturing.id === macro.id
-                                ? "Press keys…"
-                                : (macro.shortcut ?? "Shortcut")}
-                            </Button>
-                            {macro.shortcut && (
-                              <button
-                                type="button"
-                                onClick={() => updateMacro(macro.id, { shortcut: null })}
-                                className="text-[10px] text-muted-foreground hover:text-foreground"
-                              >
-                                Clear
-                              </button>
-                            )}
-
-                            {/* Run macro */}
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => void runMacro(macro)}
-                              className="h-6 px-2 text-[11px] gap-1"
-                            >
-                              <RiPlayFill className="size-3" />
-                              Run
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeMacro(macro.id)}
-                              className="h-6 px-1.5 text-destructive hover:text-destructive"
-                            >
-                              <RiDeleteBinLine className="size-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Steps List */}
-                        <div className="space-y-1.5">
-                          {macro.steps.length === 0 && (
-                            <p className="text-[11px] text-muted-foreground italic py-1">
-                              No steps yet. Add a step below.
-                            </p>
-                          )}
-                          {macro.steps.map((step, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between gap-1.5 px-2 py-1 rounded-md bg-muted/20 border border-border/30 text-xs"
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="font-mono text-[10px] text-muted-foreground w-4">
-                                  {idx + 1}.
-                                </span>
-                                <span className="truncate">
-                                  {renderStepDescription(step, data.pads, actions)}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center gap-0.5 shrink-0">
-                                <button
-                                  type="button"
-                                  disabled={idx === 0}
-                                  onClick={() => moveMacroStep(macro.id, idx, "up")}
-                                  className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                                  aria-label="Move step up"
-                                >
-                                  <RiArrowUpLine className="size-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={idx === macro.steps.length - 1}
-                                  onClick={() => moveMacroStep(macro.id, idx, "down")}
-                                  className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                                  aria-label="Move step down"
-                                >
-                                  <RiArrowDownLine className="size-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => removeMacroStep(macro.id, idx)}
-                                  className="p-0.5 text-muted-foreground hover:text-destructive ml-1"
-                                  aria-label="Remove step"
-                                >
-                                  <RiCloseLine className="size-3" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Add Step Selector */}
-                        <MacroStepAdder
-                          pads={data.pads}
-                          actions={actions}
-                          onAddStep={(step) => addMacroStep(macro.id, step)}
-                        />
-                      </div>
-                    ))}
+              <TabsPanel
+                value="pads"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-3"
+              >
+                {/* Add Sound Drop Zone in Edit Mode */}
+                {isEditing && (
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed transition-colors ${
+                      isDraggingOver
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/60 hover:border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <RiAddLine className="size-6 mb-1 text-muted-foreground" />
+                    <span className="text-xs font-medium">Add sounds</span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5">
+                      Drag & drop audio files here, or
+                    </span>
+                    <label className="mt-1.5 inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-pointer transition-colors">
+                      Browse files
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            void addAudioFiles(e.target.files);
+                            e.target.value = "";
+                          }
+                        }}
+                      />
+                    </label>
                   </div>
                 )}
-              </div>
-            </div>
+
+                {/* Empty State */}
+                {livePads.length === 0 && !isEditing && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+                    <RiMusic2Line className="size-10 text-muted-foreground/40 mb-2" />
+                    <p className="text-xs font-medium text-foreground">
+                      {data.pads.length ? "No pads for this scene" : "No sound pads yet"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-1 max-w-xs">
+                      {data.pads.length ? (
+                        <>
+                          Pads set to another scene appear when that scene is live. Use{" "}
+                          <strong className="text-foreground">Edit</strong> to set a pad to all
+                          scenes.
+                        </>
+                      ) : (
+                        <>
+                          Click <strong className="text-foreground">Edit</strong> above to add audio
+                          clips for applause, rimshots, music or sound effects.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {!isEditing && liveSceneName && data.pads.some((pad) => pad.scene) && (
+                  <p className="mb-2 text-[11px] text-muted-foreground">
+                    Pads for <strong className="text-foreground">{liveSceneName}</strong> and all
+                    scenes
+                  </p>
+                )}
+
+                {/* Pads Grid (Play Mode) */}
+                {!isEditing && livePads.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {livePads.map((pad) => {
+                      const isPlaying = playingPads.has(pad.id);
+                      return (
+                        <button
+                          key={pad.id}
+                          type="button"
+                          role="button"
+                          aria-pressed={isPlaying}
+                          aria-label={`${pad.name}${pad.shortcut ? ` (${pad.shortcut})` : ""}`}
+                          onClick={() => {
+                            if (isPlaying) {
+                              stopPad(pad.id);
+                            } else {
+                              void playPad(pad);
+                            }
+                          }}
+                          style={
+                            {
+                              "--pad-color": pad.color,
+                              "--pad-glow": `${pad.color}80`,
+                            } as CSSProperties
+                          }
+                          className={`soundboard-pad group text-left ${
+                            isPlaying ? "is-playing" : ""
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="soundboard-pad-led" />
+                            {pad.loop && <RiRepeatLine className="size-3 text-muted-foreground" />}
+                          </div>
+
+                          <div className="my-1 w-full min-w-0">
+                            <span className="block text-xs font-semibold text-foreground truncate">
+                              {pad.name}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between w-full mt-auto pt-1">
+                            {pad.shortcut ? (
+                              <span className="soundboard-shortcut-chip">{pad.shortcut}</span>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground/50">—</span>
+                            )}
+                            {isPlaying && (
+                              <RiStopFill className="size-3 text-primary animate-pulse" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Pads Editor (Edit Mode) */}
+                {isEditing && (
+                  <div className="space-y-2">
+                    {data.pads.map((pad) => {
+                      const isExpanded = expandedPadId === pad.id;
+                      return (
+                        <div
+                          key={pad.id}
+                          className="rounded-lg border border-border/50 bg-card/60 p-2.5 space-y-2.5 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div
+                                className="size-3.5 rounded-full shrink-0"
+                                style={{ backgroundColor: pad.color }}
+                              />
+                              <Input
+                                value={pad.name}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                  updatePad(pad.id, { name: e.target.value })
+                                }
+                                className="h-7 text-xs font-medium"
+                                placeholder="Pad name"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setExpandedPadId(isExpanded ? null : pad.id)}
+                                className="h-7 px-2 text-xs"
+                              >
+                                {isExpanded ? "Less" : "Settings"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => void removePad(pad.id)}
+                                className="h-7 px-1.5 text-destructive hover:text-destructive"
+                                aria-label={`Remove ${pad.name}`}
+                              >
+                                <RiDeleteBinLine className="size-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Expanded Pad Settings */}
+                          {isExpanded && (
+                            <div className="pt-2 border-t border-border/30 space-y-3 text-xs">
+                              {/* Color Palette */}
+                              <div>
+                                <span className="text-[11px] text-muted-foreground block mb-1.5">
+                                  Color
+                                </span>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {DEFAULT_PAD_COLORS.map((c) => (
+                                    <button
+                                      key={c}
+                                      type="button"
+                                      onClick={() => updatePad(pad.id, { color: c })}
+                                      style={{ backgroundColor: c }}
+                                      className={`size-5 rounded-full transition-transform ${
+                                        pad.color === c
+                                          ? "scale-110 ring-2 ring-white/60"
+                                          : "hover:scale-105 opacity-80 hover:opacity-100"
+                                      }`}
+                                      aria-label={`Color ${c}`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Volume Slider */}
+                              <div>
+                                <div className="flex items-center justify-between text-[11px] mb-1">
+                                  <span className="text-muted-foreground flex items-center gap-1">
+                                    <RiVolumeUpLine className="size-3" />
+                                    Volume
+                                  </span>
+                                  <span className="font-mono text-muted-foreground">
+                                    {pad.volumeDB > 0 ? `+${pad.volumeDB}` : pad.volumeDB} dB
+                                  </span>
+                                </div>
+                                <Slider
+                                  min={-30}
+                                  max={6}
+                                  step={1}
+                                  value={pad.volumeDB}
+                                  onValueChange={(val) => {
+                                    const v = typeof val === "number" ? val : (val[0] ?? 0);
+                                    updatePad(pad.id, { volumeDB: v });
+                                  }}
+                                  aria-label={`${pad.name} volume`}
+                                />
+                              </div>
+
+                              {/* Scene */}
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-[11px] text-muted-foreground">Plays on</span>
+                                <OptionSelect
+                                  value={pad.scene ?? "all"}
+                                  onValueChange={(value) =>
+                                    updatePad(pad.id, {
+                                      scene: value === "all" ? null : String(value),
+                                    })
+                                  }
+                                  aria-label={`Scene for ${pad.name}`}
+                                  className="h-7 w-auto max-w-[160px] text-xs"
+                                >
+                                  <SelectItem value="all">All scenes</SelectItem>
+                                  {actions.scenes.map((scene) => (
+                                    <SelectItem key={scene.id} value={scene.id}>
+                                      {scene.name}
+                                    </SelectItem>
+                                  ))}
+                                </OptionSelect>
+                              </div>
+
+                              {/* Loop & Shortcut Controls */}
+                              <div className="flex items-center justify-between gap-3 pt-1">
+                                <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none">
+                                  <Checkbox
+                                    checked={pad.loop}
+                                    onCheckedChange={(checked) =>
+                                      updatePad(pad.id, { loop: Boolean(checked) })
+                                    }
+                                  />
+                                  <span>Loop playback</span>
+                                </label>
+
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[11px] text-muted-foreground">
+                                    Shortcut:
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => {
+                                      if (capturing?.target === "pad" && capturing.id === pad.id) {
+                                        setCapturing(null);
+                                      } else {
+                                        setCapturing({ target: "pad", id: pad.id });
+                                      }
+                                    }}
+                                    className={`h-6 px-2 text-[11px] font-mono ${
+                                      capturing?.target === "pad" && capturing.id === pad.id
+                                        ? "bg-primary text-primary-foreground animate-pulse"
+                                        : ""
+                                    }`}
+                                  >
+                                    {capturing?.target === "pad" && capturing.id === pad.id
+                                      ? "Press keys…"
+                                      : (pad.shortcut ?? "None")}
+                                  </Button>
+                                  {pad.shortcut && (
+                                    <button
+                                      type="button"
+                                      onClick={() => updatePad(pad.id, { shortcut: null })}
+                                      className="text-[10px] text-muted-foreground hover:text-foreground"
+                                      aria-label="Clear shortcut"
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Replace audio file */}
+                              <div className="pt-1 flex justify-end">
+                                <label className="text-[11px] text-primary hover:underline cursor-pointer inline-flex items-center gap-1">
+                                  Replace sound file
+                                  <input
+                                    type="file"
+                                    accept="audio/*"
+                                    className="hidden"
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        void replacePadSound(pad.id, file);
+                                        e.target.value = "";
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </TabsPanel>
+              <TabsPanel
+                value="macros"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-3"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      Trigger multiple actions with one shortcut
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={addMacro}
+                      className="h-6 px-2 text-xs gap-1"
+                    >
+                      <RiAddLine className="size-3.5" />
+                      New macro
+                    </Button>
+                  </div>
+
+                  {data.macros.length === 0 && (
+                    <div className="text-center py-8 px-4 text-muted-foreground">
+                      <p className="text-xs font-medium text-foreground">No macros configured</p>
+                      <p className="text-[11px] mt-1">
+                        Create a macro to change scenes, play stings, toggle overlays, and record
+                        with a single cue.
+                      </p>
+                    </div>
+                  )}
+
+                  {data.macros.map((macro) => (
+                    <div
+                      key={macro.id}
+                      className="rounded-lg border border-border/50 bg-card/60 p-2.5 space-y-2.5"
+                    >
+                      {/* Macro header */}
+                      <div className="flex items-center justify-between gap-2">
+                        <Input
+                          value={macro.name}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            updateMacro(macro.id, { name: e.target.value })
+                          }
+                          className="h-7 text-xs font-semibold flex-1"
+                          placeholder="Macro name"
+                        />
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Shortcut button */}
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              if (capturing?.target === "macro" && capturing.id === macro.id) {
+                                setCapturing(null);
+                              } else {
+                                setCapturing({ target: "macro", id: macro.id });
+                              }
+                            }}
+                            className={`h-6 px-2 text-[11px] font-mono ${
+                              capturing?.target === "macro" && capturing.id === macro.id
+                                ? "bg-primary text-primary-foreground animate-pulse"
+                                : ""
+                            }`}
+                          >
+                            {capturing?.target === "macro" && capturing.id === macro.id
+                              ? "Press keys…"
+                              : (macro.shortcut ?? "Shortcut")}
+                          </Button>
+                          {macro.shortcut && (
+                            <button
+                              type="button"
+                              onClick={() => updateMacro(macro.id, { shortcut: null })}
+                              className="text-[10px] text-muted-foreground hover:text-foreground"
+                            >
+                              Clear
+                            </button>
+                          )}
+
+                          {/* Run macro */}
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => void runMacro(macro)}
+                            className="h-6 px-2 text-[11px] gap-1"
+                          >
+                            <RiPlayFill className="size-3" />
+                            Run
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeMacro(macro.id)}
+                            className="h-6 px-1.5 text-destructive hover:text-destructive"
+                          >
+                            <RiDeleteBinLine className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Steps List */}
+                      <div className="space-y-1.5">
+                        {macro.steps.length === 0 && (
+                          <p className="text-[11px] text-muted-foreground italic py-1">
+                            No steps yet. Add a step below.
+                          </p>
+                        )}
+                        {macro.steps.map((step, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between gap-1.5 px-2 py-1 rounded-md bg-muted/20 border border-border/30 text-xs"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="font-mono text-[10px] text-muted-foreground w-4">
+                                {idx + 1}.
+                              </span>
+                              <span className="truncate">
+                                {renderStepDescription(step, data.pads, actions)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveMacroStep(macro.id, idx, "up")}
+                                className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                aria-label="Move step up"
+                              >
+                                <RiArrowUpLine className="size-3" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === macro.steps.length - 1}
+                                onClick={() => moveMacroStep(macro.id, idx, "down")}
+                                className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                aria-label="Move step down"
+                              >
+                                <RiArrowDownLine className="size-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeMacroStep(macro.id, idx)}
+                                className="p-0.5 text-muted-foreground hover:text-destructive ml-1"
+                                aria-label="Remove step"
+                              >
+                                <RiCloseLine className="size-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Step Selector */}
+                      <MacroStepAdder
+                        pads={data.pads}
+                        actions={actions}
+                        onAddStep={(step) => addMacroStep(macro.id, step)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </TabsPanel>
+            </Tabs>
           )}
         </div>
       )}
