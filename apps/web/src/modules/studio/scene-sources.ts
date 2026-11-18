@@ -36,10 +36,20 @@ export const PRE_SCENE = "";
 
 const clone = (item: Placement): Placement => ({ ...item, layout: { ...item.layout } });
 
+/** The identity without its "#n" copy number, e.g. "camera:abc#2" → "camera:abc". */
+export const baseIdentity = (identity: string) => identity.replace(/#\d+$/, "");
+
+/** The camera or microphone a saved identity names, for placements saved without one. */
+const deviceOf = (identity: string) => {
+  const match = /^(?:camera|audio):(.*)$/.exec(baseIdentity(identity));
+  return match && match[1] !== "default" ? match[1] : undefined;
+};
+
 /**
  * Which sources each scene shows, where, and in what order (bottom layer first).
  * Sources are keyed by identity, so a scene keeps its placements while a source is not
  * connected and gets them back when the same camera or screen is reopened.
+ * Every identity belongs to one scene only: scenes never share a source.
  */
 export class SceneSources {
   #scenes = new Map<string, Placement[]>();
@@ -62,6 +72,19 @@ export class SceneSources {
     return [...this.#scenes]
       .filter(([, list]) => list.some((item) => item.identity === identity))
       .map(([scene]) => scene);
+  }
+
+  /**
+   * An identity no scene uses yet: `base` itself, else `base#n`. `taken` adds identities
+   * in use elsewhere, such as open sources not placed on any scene.
+   */
+  unique(base: string, taken: Iterable<string> = []) {
+    const used = new Set(taken);
+    for (const list of this.#scenes.values()) for (const item of list) used.add(item.identity);
+    if (!used.has(base)) return base;
+    let n = 2;
+    while (used.has(`${base}#${n}`)) n += 1;
+    return `${base}#${n}`;
   }
 
   add(scene: string, placement: Placement, at = this.of(scene).length) {
@@ -139,9 +162,27 @@ export class SceneSources {
       );
   }
 
+  /**
+   * Restores saved arrangements. Older saves let scenes share a source; each later scene
+   * that shares one gets its own copy under a new identity, so no source spans two scenes.
+   */
   restore(scenes: Record<string, readonly Placement[]>) {
     this.#scenes.clear();
-    for (const [scene, list] of Object.entries(scenes)) this.#scenes.set(scene, list.map(clone));
+    for (const [scene, list] of Object.entries(scenes)) {
+      const taken = new Set(list.map((item) => item.identity));
+      const own = list.map((item) => {
+        if (!this.used(item.identity)) return clone(item);
+        const deviceId = item.deviceId ?? deviceOf(item.identity);
+        const identity = this.unique(baseIdentity(item.identity), taken);
+        taken.add(identity);
+        return {
+          ...clone(item),
+          identity,
+          ...(deviceId ? { deviceId } : {}),
+        };
+      });
+      this.#scenes.set(scene, own);
+    }
   }
 
   serialize(): Record<string, Placement[]> {
