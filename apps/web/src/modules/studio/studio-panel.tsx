@@ -106,6 +106,7 @@ import { lookForScene, programLook, type LookDraft } from "./scene-look";
 import {
   PRE_SCENE,
   SceneSources,
+  baseIdentity,
   hasPicture,
   type Placement,
   type SavedArrangements,
@@ -227,10 +228,12 @@ export default function StudioPanel({
   const previewOutput = useRef<LiveStudioOutput | null>(null);
   const mixer = useRef<LiveAudioMixer | null>(null);
   const screenPicker = useScreenPicker();
-  /** Every open camera, screen and video; scenes share these. */
+  /** Every open camera, screen and video; each belongs to one scene. */
   const sources = useRef<VideoSource[]>([]);
   /** This render's video opener, for the long-lived load effect. */
-  const latestOpenVideo = useRef<((mediaId: string) => Promise<VideoSource>) | null>(null);
+  const latestOpenVideo = useRef<
+    ((mediaId: string, identity?: string) => Promise<VideoSource>) | null
+  >(null);
   /** This render's source restorer, for the long-lived load effect. */
   const latestRestore = useRef<(() => Promise<void>) | null>(null);
   /** Set while the panel is closing, so a source that opens late is stopped, not kept. */
@@ -512,13 +515,9 @@ export default function StudioPanel({
           ),
         );
         // Project videos need no permission prompt, so saved ones come back on their own.
-        const savedVideos = new Set(
-          Object.values(arrangement.serialize())
-            .flat()
-            .flatMap((placement) => (placement.kind === "video" ? [placement.mediaId] : [])),
-        );
-        for (const mediaId of savedVideos)
-          if (mediaId) void latestOpenVideo.current?.(mediaId).catch(() => {});
+        for (const placement of Object.values(arrangement.serialize()).flat())
+          if (placement.kind === "video" && placement.mediaId)
+            void latestOpenVideo.current?.(placement.mediaId, placement.identity).catch(() => {});
         // Cameras, microphones and screens come back too when no prompt is needed.
         void latestRestore.current?.();
         const initialSelected = loaded.activeScene?.id ?? loaded.list()[0]?.id ?? null;
@@ -672,6 +671,7 @@ export default function StudioPanel({
   const editKey = selected ?? PRE_SCENE;
   const editSources = shown(editKey);
   const scenePlacements = arrangement.of(editKey);
+  /** Connected sources on other scenes, which this scene can copy. */
   const otherSources = sources.current.filter(
     (source) => !arrangement.has(editKey, source.identity),
   );
@@ -699,10 +699,15 @@ export default function StudioPanel({
         project: { ...session.getSnapshot().project, liveAssets: look ?? DEFAULT_LIVE_ASSETS },
         expectedRevision: current.currentRevision,
       });
-      // A new scene starts with the sources of the scene it was made from.
+      // A new scene starts with its own copies of the sources of the scene it was made from;
+      // sources arranged before any scene existed move into the first scene.
       if (!existing) {
-        arrangement.copy(selectedRef.current ?? "", id);
-        if (!selectedRef.current) arrangement.drop("");
+        const from = selectedRef.current;
+        if (from) for (const placement of arrangement.of(from)) duplicateInto(id, placement);
+        else {
+          arrangement.copy(PRE_SCENE, id);
+          arrangement.drop(PRE_SCENE);
+        }
         commitArrangements();
       }
       // With nothing on air yet, the first scene goes straight to the program.
@@ -822,23 +827,83 @@ export default function StudioPanel({
     setSelectedSource((current) => (current === id || current === targetId ? null : current));
     refresh();
   };
-  const addExisting = (id: string) => {
-    const mic = audioInputs.current.find((input) => input.identity && input.identity === id);
-    if (mic?.identity) {
-      arrangement.add(editKey, {
-        identity: mic.identity,
-        label: mic.label,
-        kind: "audio",
-        deviceId: mic.identity.slice("audio:".length) || undefined,
-        layout: { x: 0, y: 0, w: 1 },
-      });
-      commitArrangements();
+  /** Identities of every open source and scene microphone. */
+  const openIdentities = () => [
+    ...sources.current.map((source) => source.identity),
+    ...audioInputs.current.flatMap((input) => (input.identity ? [input.identity] : [])),
+  ];
+  /** Opens a second, independent capture of an open camera or screen under a new identity. */
+  const cloneStreamSource = async (from: VideoSource, identity: string) => {
+    if (!from.stream) return;
+    const stream = from.stream.clone();
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.srcObject = stream;
+    try {
+      await video.play();
+    } catch (cause) {
+      for (const track of stream.getTracks()) track.stop();
+      throw cause;
+    }
+    if (closing.current || sources.current.some((item) => item.identity === identity)) {
+      for (const track of stream.getTracks()) track.stop();
       return;
     }
-    const source = sources.current.find((item) => item.id === id || item.identity === id);
-    if (!source) return;
-    placeOnScene(editKey, source);
-    setSelectedSource(source.id);
+    const id = crypto.randomUUID();
+    const { kind, label, deviceId, display } = from;
+    const source: VideoSource = { id, identity, kind, label, video, stream, deviceId, display };
+    sources.current = [...sources.current, source];
+    video.onresize = refresh;
+    stream.getVideoTracks()[0]?.addEventListener(
+      "ended",
+      () => {
+        if (sources.current.find((item) => item.id === id)?.stream === stream) disconnectSource(id);
+      },
+      { once: true },
+    );
+    if (stream.getAudioTracks().length && kind !== "video") {
+      const audio = await ensureMixer();
+      const audioID = `${id}:audio`;
+      const channel = audio.addStream(audioID, new MediaStream(stream.getAudioTracks()));
+      setSettings((current) => ({ ...current, [audioID]: DEFAULT_LIVE_AUDIO }));
+      audioInputs.current = [
+        ...audioInputs.current,
+        { id: audioID, label, kind, sourceId: id, stream, channel },
+      ];
+    }
+    refresh();
+  };
+  /**
+   * Gives `scene` its own copy of a source placed on another scene: same place, a new
+   * identity, and its own capture, so changing one never touches the other.
+   */
+  const duplicateInto = (scene: string, placement: Placement) => {
+    const identity = arrangement.unique(baseIdentity(placement.identity), openIdentities());
+    arrangement.add(scene, { ...placement, identity });
+    const live = sources.current.find((item) => item.identity === placement.identity);
+    const mic = audioInputs.current.find((input) => input.identity === placement.identity);
+    if (live?.kind === "video" && live.mediaId) {
+      const mediaId = live.mediaId;
+      void attempt(() => openVideo(mediaId, identity), "Could not open the video.");
+    } else if (live) {
+      void attempt(() => cloneStreamSource(live, identity), `Could not copy ${live.label}.`);
+    } else if (mic) {
+      void attempt(
+        () => openSceneAudio(placement.deviceId, identity, placement.label),
+        "Could not start the microphone.",
+      );
+    }
+    return identity;
+  };
+  /** Copies a source from another scene into the scene being arranged. */
+  const copyFromScene = (identity: string) => {
+    const placement = Object.values(arrangement.serialize())
+      .flat()
+      .find((item) => item.identity === identity);
+    if (!placement) return;
+    duplicateInto(editKey, placement);
+    commitArrangements();
     refresh();
   };
   /**
@@ -921,15 +986,12 @@ export default function StudioPanel({
         identity = targetIdentity;
         label = targetLabel || `Camera ${sourceNumbers.current.camera || 1}`;
       } else {
-        const baseIdentity = `camera:${deviceId || "default"}`;
-        const sceneCandidates = [
-          ...arrangement.of(scene),
-          ...Array.from(arrangement.scenesWith(baseIdentity)).flatMap((s) => arrangement.of(s)),
-        ];
-        const missingPlacement = sceneCandidates.find((p) => {
+        // A camera this scene saved but has not connected takes its place back; scenes never
+        // pick up each other's sources.
+        const cameraBase = `camera:${deviceId || "default"}`;
+        const missingPlacement = arrangement.of(scene).find((p) => {
           const placementId = p.identity;
-          const matchesDevice =
-            placementId === baseIdentity || placementId.startsWith(`${baseIdentity}#`);
+          const matchesDevice = baseIdentity(placementId) === cameraBase;
           const isLive = sources.current.some((s) => s.identity === placementId);
           return matchesDevice && !isLive;
         });
@@ -938,10 +1000,9 @@ export default function StudioPanel({
           identity = missingPlacement.identity;
           label = missingPlacement.label;
         } else {
-          const isBaseIdentityLive = sources.current.some((s) => s.identity === baseIdentity);
           const n = ++sourceNumbers.current.camera;
           label = `Camera ${n}`;
-          identity = isBaseIdentityLive ? `${baseIdentity}#${n}` : baseIdentity;
+          identity = arrangement.unique(cameraBase, openIdentities());
         }
       }
     } else {
@@ -949,13 +1010,8 @@ export default function StudioPanel({
         identity = targetIdentity;
         label = targetLabel || targetIdentity.replace("screen:", "Screen ");
       } else {
-        // Normal Add screen: check if there is an unconnected missing screen (prioritizing current scene)
-        const allScenes = Object.keys(arrangement.serialize());
-        const sceneCandidates = [
-          ...arrangement.of(scene),
-          ...allScenes.flatMap((s) => arrangement.of(s)),
-        ];
-        const missingScreen = sceneCandidates.find((p) => {
+        // A screen this scene saved but has not connected takes its place back.
+        const missingScreen = arrangement.of(scene).find((p) => {
           const placementId = p.identity;
           const isScreen = p.kind === "screen" || placementId.startsWith("screen:");
           const isLive = sources.current.some((s) => s.identity === placementId);
@@ -966,7 +1022,7 @@ export default function StudioPanel({
           label = missingScreen.label;
         } else {
           const n = ++sourceNumbers.current.screen;
-          identity = `screen:${n}`;
+          identity = arrangement.unique(`screen:${n}`, openIdentities());
           label = `Screen ${n}`;
         }
       }
@@ -1018,8 +1074,10 @@ export default function StudioPanel({
     attempt(() => connectSource(...args), `Could not start the ${args[0]}.`);
 
   /** Opens a project video as a looping source; scenes that saved it show it again. */
-  const openVideo = async (mediaId: string) => {
-    const identity = `video:${mediaId}`;
+  const openVideo = async (
+    mediaId: string,
+    identity = arrangement.unique(`video:${mediaId}`, openIdentities()),
+  ) => {
     const open = sources.current.find((item) => item.identity === identity);
     if (open) return open;
     const media = session.getSnapshot().project.media.find((item) => item.id === mediaId);
@@ -1084,7 +1142,9 @@ export default function StudioPanel({
   const addVideo = (mediaId: string) =>
     attempt(async () => {
       const scene = selectedRef.current ?? PRE_SCENE;
-      const source = await openVideo(mediaId);
+      // This scene's own copy of the video, if it has one already.
+      const saved = arrangement.of(scene).find((item) => item.mediaId === mediaId);
+      const source = await openVideo(mediaId, saved?.identity);
       if (!arrangement.has(scene, source.identity)) placeOnScene(scene, source);
       setSelectedSource(source.id);
       refresh();
@@ -1113,7 +1173,10 @@ export default function StudioPanel({
   const addSceneAudio = (deviceId: string) =>
     attempt(async () => {
       const scene = selectedRef.current ?? PRE_SCENE;
-      const identity = `audio:${deviceId || "default"}`;
+      const base = `audio:${deviceId || "default"}`;
+      const identity =
+        arrangement.of(scene).find((item) => baseIdentity(item.identity) === base)?.identity ??
+        arrangement.unique(base, openIdentities());
       const deviceLabel =
         audioDevices.find((device) => device.deviceId === deviceId)?.label || "Microphone";
       const input = await openSceneAudio(deviceId || undefined, identity, deviceLabel);
@@ -1144,7 +1207,9 @@ export default function StudioPanel({
     if (kind === "camera") {
       const deviceId =
         placement.deviceId ??
-        (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
+        (identity.startsWith("camera:")
+          ? baseIdentity(identity).slice("camera:".length)
+          : undefined);
       return addSource("camera", deviceId === "default" ? undefined : deviceId, identity, label);
     }
     // The same screen or window when the desktop app still offers it, else the picker.
@@ -1200,7 +1265,9 @@ export default function StudioPanel({
         if (kind === "camera" && camera) {
           const deviceId =
             placement.deviceId ??
-            (identity.startsWith("camera:") ? identity.slice("camera:".length) : undefined);
+            (identity.startsWith("camera:")
+              ? baseIdentity(identity).slice("camera:".length)
+              : undefined);
           await connectSource(
             "camera",
             deviceId === "default" ? undefined : deviceId,
@@ -1263,7 +1330,10 @@ export default function StudioPanel({
       const oldIdentity = source.identity;
       const newDeviceIdResolved =
         newDeviceId || newStream.getVideoTracks()[0]?.getSettings?.()?.deviceId;
-      const newIdentity = `camera:${newDeviceIdResolved || "default"}`;
+      const newIdentity = arrangement.unique(
+        `camera:${newDeviceIdResolved || "default"}`,
+        openIdentities(),
+      );
 
       source.stream = newStream;
       source.video = newVideo;
@@ -1285,7 +1355,7 @@ export default function StudioPanel({
       void refreshCameraDevices();
       refresh();
     }, "Could not switch camera device.");
-  /** Points a screen source at another screen or window, keeping its place in every scene. */
+  /** Points a screen source at another screen or window, keeping its place in its scene. */
   const switchScreen = (id: string) =>
     attempt(async () => {
       const source = sources.current.find((item) => item.id === id || item.identity === id);
@@ -2142,16 +2212,20 @@ export default function StudioPanel({
             <Select
               value=""
               onValueChange={(value) => {
-                if (value) addExisting(value as string);
+                if (value) copyFromScene(value as string);
               }}
             >
-              <SelectTrigger size="sm" aria-label="Add an open source" className="w-fit">
+              <SelectTrigger
+                size="sm"
+                aria-label="Copy a source from another scene"
+                className="w-fit"
+              >
                 <RiAddLine data-icon="inline-start" className="size-3.5" />
-                <span>Add from another scene</span>
+                <span>Copy from another scene</span>
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
                 {otherSources.map((source) => (
-                  <SelectItem key={source.id} value={source.id}>
+                  <SelectItem key={source.id} value={source.identity}>
                     <SourceIcon kind={source.kind} />
                     {source.label}
                   </SelectItem>

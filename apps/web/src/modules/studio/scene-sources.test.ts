@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { SceneSources, type Placement } from "./scene-sources";
+import { SceneSources, baseIdentity, type Placement } from "./scene-sources";
 
 const at = (x: number) => ({ x, y: 0, w: 0.5 });
 const camera = (identity: string, x = 0): Placement => ({
@@ -90,5 +90,31 @@ describe("SceneSources.annotate", () => {
     scenes.annotate("screen:1", { display: "screen:0:0" });
     expect(scenes.of("a")[0]?.display).toBe("screen:0:0");
     expect(scenes.of("b")[0]?.display).toBe("screen:0:0");
+  });
+});
+
+describe("scenes own their sources", () => {
+  it("hands out identities no scene uses yet", () => {
+    const scenes = new SceneSources();
+    expect(scenes.unique("screen:1")).toBe("screen:1");
+    scenes.add("one", screen("screen:1"));
+    expect(scenes.unique("screen:1")).toBe("screen:1#2");
+    expect(scenes.unique("screen:1", ["screen:1#2"])).toBe("screen:1#3");
+    expect(baseIdentity("camera:abc#2")).toBe("camera:abc");
+  });
+
+  it("splits a source that older saves shared between scenes", () => {
+    const restored = new SceneSources();
+    restored.restore({
+      one: [camera("camera:cam-a"), screen("screen:1")],
+      two: [camera("camera:cam-a", 0.5), screen("screen:1", 0.5)],
+    });
+    expect(ids(restored.of("one"))).toEqual(["camera:cam-a", "screen:1"]);
+    expect(ids(restored.of("two"))).toEqual(["camera:cam-a#2", "screen:1#2"]);
+    expect(restored.of("two")[0]?.deviceId).toBe("cam-a");
+    expect(restored.of("two")[1]?.layout).toEqual(at(0.5));
+    restored.remove("one", "screen:1");
+    expect(restored.used("screen:1")).toBe(false);
+    expect(restored.used("screen:1#2")).toBe(true);
   });
 });
