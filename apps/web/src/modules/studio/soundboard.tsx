@@ -44,6 +44,7 @@ import {
   type MacroStep,
   type Pad,
 } from "./soundboard-store";
+import { Toggle } from "@ui-sdk/react/toggle";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { isTabNavigationKey } from "../workspace/tab-keys";
 import "./soundboard.css";
@@ -800,17 +801,14 @@ export function Soundboard({
                     {livePads.map((pad) => {
                       const isPlaying = playingPads.has(pad.id);
                       return (
-                        <button
+                        <Toggle
                           key={pad.id}
-                          type="button"
-                          role="button"
-                          aria-pressed={isPlaying}
-                          aria-label={`${pad.name}${pad.shortcut ? ` (${pad.shortcut})` : ""}`}
-                          onClick={() => {
-                            if (isPlaying) {
-                              stopPad(pad.id);
-                            } else {
+                          pressed={isPlaying}
+                          onPressedChange={(pressed) => {
+                            if (pressed) {
                               void playPad(pad);
+                            } else {
+                              stopPad(pad.id);
                             }
                           }}
                           style={
@@ -819,9 +817,7 @@ export function Soundboard({
                               "--pad-glow": `${pad.color}80`,
                             } as CSSProperties
                           }
-                          className={`soundboard-pad group text-left ${
-                            isPlaying ? "is-playing" : ""
-                          }`}
+                          className="soundboard-pad group text-left"
                         >
                           <div className="flex items-center justify-between w-full">
                             <span className="soundboard-pad-led" />
@@ -836,15 +832,23 @@ export function Soundboard({
 
                           <div className="flex items-center justify-between w-full mt-auto pt-1">
                             {pad.shortcut ? (
-                              <span className="soundboard-shortcut-chip">{pad.shortcut}</span>
+                              <>
+                                {" "}
+                                <span className="soundboard-shortcut-chip">{pad.shortcut}</span>
+                              </>
                             ) : (
-                              <span className="text-[10px] text-muted-foreground/50">—</span>
+                              <span
+                                aria-hidden="true"
+                                className="text-[10px] text-muted-foreground/50"
+                              >
+                                —
+                              </span>
                             )}
                             {isPlaying && (
                               <RiStopFill className="size-3 text-primary animate-pulse" />
                             )}
                           </div>
-                        </button>
+                        </Toggle>
                       );
                     })}
                   </div>
@@ -1137,6 +1141,7 @@ export function Soundboard({
                             size="sm"
                             variant="ghost"
                             onClick={() => removeMacro(macro.id)}
+                            aria-label={`Remove ${macro.name} macro`}
                             className="h-6 px-1.5 text-destructive hover:text-destructive"
                           >
                             <RiDeleteBinLine className="size-3.5" />
@@ -1307,6 +1312,7 @@ function MacroStepAdder({
       <OptionSelect
         value={kind}
         onValueChange={(value) => setKind(value as MacroStep["kind"])}
+        aria-label="Step type"
         className="h-7 w-auto text-xs"
       >
         <SelectItem value="play">Play sound</SelectItem>
@@ -1323,6 +1329,7 @@ function MacroStepAdder({
         <OptionSelect
           value={padId}
           onValueChange={setPadId}
+          aria-label="Sound pad"
           className="h-7 w-auto text-xs max-w-[140px]"
         >
           {pads.length === 0 ? (

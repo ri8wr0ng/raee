@@ -405,6 +405,11 @@ export function ownsKey(target: EventTarget | null, action: Shortcut) {
   return (
     ["back", "forward", "backFive", "forwardFive", "previous", "next", "home", "end"].includes(
       action,
-    ) && Boolean(element.closest('[role="tablist"],[role="slider"],[role="tab"]'))
+    ) &&
+    Boolean(
+      element.closest(
+        '[role="tablist"],[role="slider"],[role="tab"],[role="radiogroup"],[role="radio"],[role="toolbar"]',
+      ),
+    )
   );
 }

@@ -4,6 +4,9 @@ import { Button } from "@sidecut/ui/components/button";
 import { Checkbox } from "@sidecut/ui/components/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/components/select";
 import { Slider } from "@sidecut/ui/components/slider";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
+import { Meter, MeterIndicator, MeterTrack } from "@ui-sdk/react/meter";
+import { Toggle } from "@ui-sdk/react/toggle";
 import {
   RiAddLine,
   RiCloseLine,
@@ -72,7 +75,6 @@ export function AudioMixerPanel({
   onUpdate,
   onRemove,
 }: AudioMixerPanelProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selectKey, setSelectKey] = useState(0);
 
   const seen = new Set<string>();
@@ -124,13 +126,11 @@ export function AudioMixerPanel({
             );
             const peakStatus =
               clampedLevel >= 0.95 ? "clip" : clampedLevel >= 0.75 ? "warn" : "normal";
-            const levelPercent = (clampedLevel * 100).toFixed(1);
-            const isExpanded = Boolean(expanded[channel.id]);
             const isMuted = channel.settings.muted;
             const isMonitored = channel.settings.monitor;
 
             return (
-              <div
+              <Collapsible
                 key={channel.id}
                 className="audio-mixer-strip"
                 data-gated={channel.gated || undefined}
@@ -147,49 +147,50 @@ export function AudioMixerPanel({
                   </div>
 
                   <div className="audio-mixer-strip-actions">
-                    <Button
-                      size="icon-xs"
-                      variant={isMuted ? "destructive" : "ghost"}
+                    <Toggle
                       aria-label={`Mute ${channel.label}`}
-                      aria-pressed={isMuted}
                       title={isMuted ? `Unmute ${channel.label}` : `Mute ${channel.label}`}
-                      onClick={() => onUpdate(channel.id, { muted: !isMuted })}
+                      pressed={isMuted}
+                      onPressedChange={(muted) => onUpdate(channel.id, { muted })}
+                      render={<Button size="icon-xs" variant={isMuted ? "destructive" : "ghost"} />}
                     >
                       {isMuted ? <RiVolumeMuteLine /> : <RiVolumeUpLine />}
-                    </Button>
+                    </Toggle>
 
-                    <Button
-                      size="icon-xs"
-                      variant={isMonitored ? "secondary" : "ghost"}
+                    <Toggle
                       aria-label={`Monitor ${channel.label}`}
-                      aria-pressed={isMonitored}
                       title={
                         isMonitored
                           ? `Stop monitoring ${channel.label}`
                           : `Monitor ${channel.label}`
                       }
-                      className={isMonitored ? "text-primary" : ""}
-                      onClick={() => onUpdate(channel.id, { monitor: !isMonitored })}
-                    >
-                      <RiHeadphoneLine />
-                    </Button>
-
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`More settings for ${channel.label}`}
-                      aria-expanded={isExpanded}
-                      title={isExpanded ? "Hide extra settings" : "Show extra settings"}
-                      className={isExpanded ? "text-primary" : ""}
-                      onClick={() =>
-                        setExpanded((prev) => ({
-                          ...prev,
-                          [channel.id]: !prev[channel.id],
-                        }))
+                      pressed={isMonitored}
+                      onPressedChange={(monitor) => onUpdate(channel.id, { monitor })}
+                      render={
+                        <Button
+                          size="icon-xs"
+                          variant={isMonitored ? "secondary" : "ghost"}
+                          className={isMonitored ? "text-primary" : ""}
+                        />
                       }
                     >
+                      <RiHeadphoneLine />
+                    </Toggle>
+
+                    <CollapsibleTrigger
+                      aria-label={`More settings for ${channel.label}`}
+                      render={(props, state) => (
+                        <Button
+                          {...props}
+                          size="icon-xs"
+                          variant="ghost"
+                          title={state.open ? "Hide extra settings" : "Show extra settings"}
+                          className={state.open ? "text-primary" : ""}
+                        />
+                      )}
+                    >
                       <RiEqualizerLine />
-                    </Button>
+                    </CollapsibleTrigger>
 
                     {(channel.kind === "microphone" || channel.kind === "sound") && (
                       <Button
@@ -205,20 +206,11 @@ export function AudioMixerPanel({
                   </div>
                 </div>
 
-                <div
-                  role="meter"
-                  aria-label={`${channel.label} level`}
-                  aria-valuenow={Math.round(clampedLevel * 100)}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  className="audio-mixer-meter"
-                >
-                  <div
-                    className="audio-mixer-meter-fill"
-                    data-peak={peakStatus}
-                    style={{ width: `${levelPercent}%` }}
-                  />
-                </div>
+                <Meter aria-label={`${channel.label} level`} value={clampedLevel * 100}>
+                  <MeterTrack className="audio-mixer-meter">
+                    <MeterIndicator className="audio-mixer-meter-fill" data-peak={peakStatus} />
+                  </MeterTrack>
+                </Meter>
 
                 <div
                   className="audio-mixer-volume-row"
@@ -251,39 +243,37 @@ export function AudioMixerPanel({
                   </button>
                 </div>
 
-                {isExpanded && (
-                  <div className="audio-mixer-overflow">
-                    <div className="audio-mixer-delay-row">
-                      <span className="audio-mixer-volume-label">Delay</span>
-                      <Slider
-                        aria-label={`${channel.label} delay`}
-                        min={0}
-                        max={500}
-                        step={10}
-                        value={channel.settings.syncOffsetMs}
-                        onValueChange={(val) => {
-                          const syncOffsetMs = typeof val === "number" ? val : (val[0] ?? 0);
-                          onUpdate(channel.id, { syncOffsetMs });
-                        }}
-                      />
-                      <output className="text-xs text-foreground tabular-nums text-right">
-                        {channel.settings.syncOffsetMs} ms
-                      </output>
-                    </div>
-
-                    <label className="audio-mixer-check">
-                      <Checkbox
-                        aria-label={`Remove rumble for ${channel.label}`}
-                        checked={channel.settings.cleanup === "rumble"}
-                        onCheckedChange={(checked) =>
-                          onUpdate(channel.id, { cleanup: checked ? "rumble" : "off" })
-                        }
-                      />
-                      <span className="text-xs text-muted-foreground">Remove rumble</span>
-                    </label>
+                <CollapsiblePanel className="audio-mixer-overflow">
+                  <div className="audio-mixer-delay-row">
+                    <span className="audio-mixer-volume-label">Delay</span>
+                    <Slider
+                      aria-label={`${channel.label} delay`}
+                      min={0}
+                      max={500}
+                      step={10}
+                      value={channel.settings.syncOffsetMs}
+                      onValueChange={(val) => {
+                        const syncOffsetMs = typeof val === "number" ? val : (val[0] ?? 0);
+                        onUpdate(channel.id, { syncOffsetMs });
+                      }}
+                    />
+                    <output className="text-xs text-foreground tabular-nums text-right">
+                      {channel.settings.syncOffsetMs} ms
+                    </output>
                   </div>
-                )}
-              </div>
+
+                  <label className="audio-mixer-check">
+                    <Checkbox
+                      aria-label={`Remove rumble for ${channel.label}`}
+                      checked={channel.settings.cleanup === "rumble"}
+                      onCheckedChange={(checked) =>
+                        onUpdate(channel.id, { cleanup: checked ? "rumble" : "off" })
+                      }
+                    />
+                    <span className="text-xs text-muted-foreground">Remove rumble</span>
+                  </label>
+                </CollapsiblePanel>
+              </Collapsible>
             );
           })}
         </div>

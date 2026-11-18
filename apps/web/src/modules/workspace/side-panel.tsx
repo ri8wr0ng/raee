@@ -4,7 +4,6 @@ import { MediaBin } from "./media-bin";
 import { CommentsPanel } from "./comments-panel";
 import { HistoryPanel } from "./history-panel";
 import { SIDE_TABS, type SideTab } from "./panel-sizes";
-import { claimTabKeys } from "./tab-keys";
 
 const TAB_LABEL: Record<SideTab, string> = {
   media: "Media",
@@ -30,7 +29,6 @@ export function SidePanel({
       className="editor-side-panel"
       value={tab}
       onValueChange={(next) => next && onTab(next)}
-      onKeyDown={claimTabKeys}
     >
       <TabsList className="editor-side-tabs" aria-label="Side panels">
         {SIDE_TABS.map((id) => (

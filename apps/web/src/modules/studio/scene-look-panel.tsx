@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/co
 import { Slider } from "@sidecut/ui/components/slider";
 import { Switch } from "@sidecut/ui/components/switch";
 import { Textarea } from "@sidecut/ui/components/textarea";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
+import { Toggle } from "@ui-sdk/react/toggle";
 import {
   RiAddLine,
   RiArrowDownSLine,
@@ -314,18 +316,15 @@ export function SceneLookPanel({
               const open = selectedOverlay === overlay.id;
               const Icon = KINDS.find((kind) => kind.value === overlay.kind)!.icon;
               return (
-                <li
+                <Collapsible
                   key={overlay.id}
-                  data-open={open || undefined}
+                  render={<li />}
+                  open={open}
+                  onOpenChange={(next) => onSelectOverlay(next ? overlay.id : null)}
                   data-hidden={!overlay.enabled || undefined}
                 >
                   <div className="look-overlay-row">
-                    <button
-                      type="button"
-                      className="look-overlay-main"
-                      aria-expanded={open}
-                      onClick={() => onSelectOverlay(open ? null : overlay.id)}
-                    >
+                    <CollapsibleTrigger className="look-overlay-main">
                       <span className="look-overlay-icon" style={{ background: overlay.color }}>
                         <Icon aria-hidden style={{ color: overlay.textColor }} />
                       </span>
@@ -333,17 +332,16 @@ export function SceneLookPanel({
                         {overlay.text.trim() || <em>No text</em>}
                       </span>
                       <RiArrowDownSLine className="look-overlay-chevron" aria-hidden />
-                    </button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
+                    </CollapsibleTrigger>
+                    <Toggle
                       aria-label={overlay.enabled ? `Hide ${overlay.text}` : `Show ${overlay.text}`}
-                      aria-pressed={!overlay.enabled}
                       title={overlay.enabled ? "Hide" : "Show"}
-                      onClick={() => setOverlay(overlay.id, { enabled: !overlay.enabled })}
+                      pressed={!overlay.enabled}
+                      onPressedChange={(hidden) => setOverlay(overlay.id, { enabled: !hidden })}
+                      render={<Button size="icon-xs" variant="ghost" />}
                     >
                       {overlay.enabled ? <RiEyeLine /> : <RiEyeOffLine />}
-                    </Button>
+                    </Toggle>
                     <Button
                       size="icon-xs"
                       variant="ghost"
@@ -357,7 +355,7 @@ export function SceneLookPanel({
                       <RiDeleteBinLine />
                     </Button>
                   </div>
-                  {open && (
+                  <CollapsiblePanel>
                     <div className="look-overlay-editor">
                       <Textarea
                         aria-label="Overlay text"
@@ -427,8 +425,8 @@ export function SceneLookPanel({
                             : "Put a scene on air to place this overlay on the preview."}
                       </p>
                     </div>
-                  )}
-                </li>
+                  </CollapsiblePanel>
+                </Collapsible>
               );
             })}
           </ul>

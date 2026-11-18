@@ -12,7 +12,6 @@ import { ProjectSettings } from "./project-settings";
 import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { Tip } from "@sidecut/ui/components/tooltip";
-import { claimTabKeys } from "./tab-keys";
 import { TextInspector } from "./text-inspector";
 import { CardInspector } from "./section-cards";
 import { cardOf } from "@sidecut/core/section-cards";
@@ -156,11 +155,7 @@ export function ClipInspector() {
       </header>
       {editable && (
         <>
-          <Tabs
-            value={current}
-            onValueChange={(next) => next && setTab(next)}
-            onKeyDown={claimTabKeys}
-          >
+          <Tabs value={current} onValueChange={(next) => next && setTab(next)}>
             <TabsList ref={tabList} className="editor-inspector-tabs" aria-label="Clip settings">
               {tabs.map(([id, label]) => (
                 <TabsTab key={id} id={`inspector-tab-${id}`} value={id}>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObjec
 import { decodeProjectFile } from "@sidecut/contracts/project";
 import type { ReviewVersion } from "@sidecut/contracts/review";
 import { Button } from "@sidecut/ui/components/button";
+import { Toggle } from "@ui-sdk/react/toggle";
 import { reviewFrameTime, reviewReverseTime, reviewShuttleRate } from "./review-player-logic";
 import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 
@@ -274,14 +275,13 @@ export function ReviewPlayer({ url, mediaType, version, mediaRef, onTimeUpdate, 
             ))}
           </OptionSelect>
         </label>
-        <Button
-          size="xs"
-          variant="outline"
-          aria-pressed={theater}
-          onClick={() => setTheater(!theater)}
+        <Toggle
+          pressed={theater}
+          onPressedChange={setTheater}
+          render={<Button size="xs" variant="outline" />}
         >
           {theater ? "Exit theater" : "Theater"}
-        </Button>
+        </Toggle>
       </div>
       <small>Space: play/pause · ←/→: frame · Home/End: seek · J/K/L: shuttle</small>
     </div>

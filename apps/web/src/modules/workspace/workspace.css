@@ -1382,12 +1382,16 @@ button.editor-track-name:focus-visible {
 }
 
 @media (pointer: coarse) {
-  .editor-shell [data-slot="button"].h-6,
-  .editor-shell [data-slot="button"].h-7 {
+  .editor-shell
+    :is([data-slot="button"], [data-slot="toggle"], [data-slot="collapsible-trigger"]).h-6,
+  .editor-shell
+    :is([data-slot="button"], [data-slot="toggle"], [data-slot="collapsible-trigger"]).h-7 {
     min-height: 36px;
   }
-  .editor-shell [data-slot="button"].size-6,
-  .editor-shell [data-slot="button"].size-7 {
+  .editor-shell
+    :is([data-slot="button"], [data-slot="toggle"], [data-slot="collapsible-trigger"]).size-6,
+  .editor-shell
+    :is([data-slot="button"], [data-slot="toggle"], [data-slot="collapsible-trigger"]).size-7 {
     min-width: 36px;
     min-height: 36px;
   }

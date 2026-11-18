@@ -32,7 +32,6 @@ import {
 } from "@sidecut/core/speech";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
-import { claimTabKeys } from "./tab-keys";
 import "./dialogs.css";
 import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
 import { Checkbox } from "@sidecut/ui/components/checkbox";
@@ -99,7 +98,7 @@ export function SpeechToolsDialog() {
             the same queries as the project service. Transcribe sources under Local analysis.
           </DialogDescription>
         </DialogHeader>
-        <Tabs value={tab} onValueChange={(next) => next && setTab(next)} onKeyDown={claimTabKeys}>
+        <Tabs value={tab} onValueChange={(next) => next && setTab(next)}>
           <TabsList className="editor-inspector-tabs editor-speech-tabs" aria-label="Speech tools">
             {TABS.map(([id, label]) => (
               <TabsTab key={id} id={`speech-tab-${id}`} value={id}>

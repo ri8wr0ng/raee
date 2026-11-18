@@ -85,7 +85,7 @@
   width: 13px;
   height: 13px;
 }
-.editor-media-segments button[aria-pressed="true"] {
+.editor-media-segments [data-slot="segmented-control-item"][data-checked] {
   background: var(--card);
   color: var(--foreground);
   box-shadow: 0 0 0 1px var(--border);

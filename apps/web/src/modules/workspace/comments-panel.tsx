@@ -15,6 +15,7 @@ import {
 import { useEditorSession, useEditorView } from "./editor-session";
 import { timecode } from "./timeline-model";
 import { Textarea } from "@sidecut/ui/components/textarea";
+import { SegmentedControl, SegmentedControlItem } from "@ui-sdk/react/segmented-control";
 
 type Filter = "all" | "comment" | "todo";
 const FILTERS: { id: Filter; label: string }[] = [
@@ -157,18 +158,20 @@ export function CommentsPanel({
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
-          <div className="editor-side-filter" role="group" aria-label="Show">
+          <SegmentedControl
+            className="editor-side-filter"
+            aria-label="Show"
+            value={filter}
+            onValueChange={(next) => {
+              if (next) setFilter(next as Filter);
+            }}
+          >
             {FILTERS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                aria-pressed={filter === item.id}
-                onClick={() => setFilter(item.id)}
-              >
+              <SegmentedControlItem key={item.id} value={item.id}>
                 {item.label}
-              </button>
+              </SegmentedControlItem>
             ))}
-          </div>
+          </SegmentedControl>
         </div>
       )}
       <div
