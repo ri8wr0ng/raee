@@ -1,20 +1,12 @@
 /** Which model provider the assistant uses, picked from whichever API key the user saved. */
 export type AssistantProvider = "anthropic" | "openai" | "openrouter";
 
-/** Preference order when several keys are saved. */
-export const providerOrder: readonly AssistantProvider[] = ["anthropic", "openai", "openrouter"];
+export const providers: readonly AssistantProvider[] = ["anthropic", "openai", "openrouter"];
 
 export const providerKeyEnv: Record<AssistantProvider, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
   openrouter: "OPENROUTER_API_KEY",
-};
-
-/** Default model per provider. SIDECUT_AGENT_MODEL overrides it for the selected provider. */
-export const defaultModels: Record<AssistantProvider, string> = {
-  anthropic: "claude-sonnet-5-5",
-  openai: "gpt-6-luna-fast",
-  openrouter: "anthropic/claude-sonnet-5.5",
 };
 
 type Env = Record<string, string | undefined>;
@@ -25,11 +17,16 @@ type Env = Record<string, string | undefined>;
  */
 export const contextWindowTokens = 200_000;
 
-export function selectProvider(env: Env): AssistantProvider | undefined {
-  const forced = env.SIDECUT_AGENT_PROVIDER as AssistantProvider | undefined;
-  if (forced && providerOrder.includes(forced) && env[providerKeyEnv[forced]]?.trim())
-    return forced;
-  return providerOrder.find((provider) => env[providerKeyEnv[provider]]?.trim());
+/**
+ * The provider and model the user configured in the Assistant panel. Nothing is picked for
+ * them: without an explicit provider, model and that provider's key, the assistant won't run.
+ */
+export function selectModel(env: Env): { provider: AssistantProvider; model: string } | undefined {
+  const provider = env.SIDECUT_AGENT_PROVIDER as AssistantProvider | undefined;
+  const model = env.SIDECUT_AGENT_MODEL?.trim();
+  if (!provider || !providers.includes(provider) || !model) return undefined;
+  if (!env[providerKeyEnv[provider]]?.trim()) return undefined;
+  return { provider, model };
 }
 
 export async function resolveModel(env: Env = process.env) {
@@ -37,12 +34,12 @@ export async function resolveModel(env: Env = process.env) {
 }
 
 async function providerModel(env: Env) {
-  const provider = selectProvider(env);
-  if (!provider)
+  const selected = selectModel(env);
+  if (!selected)
     throw new Error(
-      "No assistant API key is set. Add an Anthropic, OpenAI or OpenRouter key in the Assistant panel.",
+      "The assistant isn't set up. Choose a provider, model and API key in the Assistant panel.",
     );
-  const id = env.SIDECUT_AGENT_MODEL?.trim() || defaultModels[provider];
+  const { provider, model: id } = selected;
   if (provider === "anthropic") {
     const { anthropic } = await import("eve/models/anthropic");
     return anthropic(id);

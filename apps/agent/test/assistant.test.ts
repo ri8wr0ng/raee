@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { needsApproval } from "../agent/lib/approval.ts";
 import { hostTools, modelSchema } from "../agent/lib/host.ts";
-import { selectProvider } from "../agent/lib/model.ts";
+import { selectModel } from "../agent/lib/model.ts";
 
 const tool = (name: string) => {
   const found = hostTools.find((item) => item.name === name);
@@ -65,19 +65,26 @@ describe("assistant tools", () => {
 });
 
 describe("assistant model selection", () => {
-  it("uses whichever key is saved, preferring Anthropic, then OpenAI, then OpenRouter", () => {
-    expect(selectProvider({})).toBeUndefined();
-    expect(selectProvider({ OPENROUTER_API_KEY: "or" })).toBe("openrouter");
-    expect(selectProvider({ OPENROUTER_API_KEY: "or", OPENAI_API_KEY: "oa" })).toBe("openai");
+  const key = { ANTHROPIC_API_KEY: "an", OPENAI_API_KEY: "oa", OPENROUTER_API_KEY: "or" };
+
+  it("uses exactly the provider and model the user configured", () => {
     expect(
-      selectProvider({ OPENROUTER_API_KEY: "or", OPENAI_API_KEY: "oa", ANTHROPIC_API_KEY: "an" }),
-    ).toBe("anthropic");
-    expect(selectProvider({ ANTHROPIC_API_KEY: "  " })).toBeUndefined();
+      selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "openrouter", SIDECUT_AGENT_MODEL: "x/y" }),
+    ).toEqual({ provider: "openrouter", model: "x/y" });
+    expect(
+      selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "openai", SIDECUT_AGENT_MODEL: " gpt-x " }),
+    ).toEqual({ provider: "openai", model: "gpt-x" });
   });
 
-  it("honours the desktop's chosen provider only when its key exists", () => {
-    const env = { ANTHROPIC_API_KEY: "an", OPENAI_API_KEY: "oa" };
-    expect(selectProvider({ ...env, SIDECUT_AGENT_PROVIDER: "openai" })).toBe("openai");
-    expect(selectProvider({ ...env, SIDECUT_AGENT_PROVIDER: "openrouter" })).toBe("anthropic");
+  it("never picks a provider or model on the user's behalf", () => {
+    expect(selectModel(key)).toBeUndefined();
+    expect(selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "anthropic" })).toBeUndefined();
+    expect(selectModel({ ...key, SIDECUT_AGENT_MODEL: "claude" })).toBeUndefined();
+    expect(
+      selectModel({ SIDECUT_AGENT_PROVIDER: "anthropic", SIDECUT_AGENT_MODEL: "claude" }),
+    ).toBeUndefined();
+    expect(
+      selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "other", SIDECUT_AGENT_MODEL: "m" }),
+    ).toBeUndefined();
   });
 });

@@ -101,6 +101,7 @@ const child = spawn(process.execPath, [join(output, "server/index.mjs")], {
     PORT: String(agentPort),
     OPENROUTER_API_KEY: "test",
     OPENROUTER_BASE_URL: `http://127.0.0.1:${modelPort}/api/v1`,
+    SIDECUT_AGENT_PROVIDER: "openrouter",
     SIDECUT_AGENT_MODEL: "mock/model",
     SIDECUT_AGENT_TOKEN: token,
     SIDECUT_API_FILE: apiFile,

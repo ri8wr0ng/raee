@@ -54,7 +54,8 @@ export const bridgeChannels = {
   providerCancel: "sidecut:provider-cancel",
   providerCredential: "sidecut:provider-credential",
   assistantConnect: "sidecut:assistant-connect",
-  assistantKeys: "sidecut:assistant-keys",
+  assistantSettings: "sidecut:assistant-settings",
+  assistantConfigure: "sidecut:assistant-configure",
   kickChannelLookup: "sidecut:kick-channel-lookup",
   updateState: "sidecut:update-state",
   updateChanged: "sidecut:update-changed",
@@ -81,8 +82,10 @@ export type DesktopBridge = NativeBridge & {
   ) => Promise<void>;
   /** Start the built-in assistant if needed and return how the renderer reaches it. */
   readonly assistantConnect?: () => Promise<AssistantConnection>;
-  /** Which assistant providers (anthropic, openai, openrouter) have a saved key. */
-  readonly assistantKeys?: () => Promise<string[]>;
+  /** The assistant's configured provider and model, and which providers have a saved key. */
+  readonly assistantSettings?: () => Promise<AssistantSettings>;
+  /** Save the provider and model the user chose for the assistant. */
+  readonly assistantConfigure?: (settings: { provider: string; model: string }) => Promise<void>;
   readonly kickChannelLookup?: (
     slug: string,
   ) => Promise<{ chatroomId: number; channelSlug: string }>;
@@ -90,6 +93,12 @@ export type DesktopBridge = NativeBridge & {
 import type { NativeBridge } from "@sidecut/contracts/desktop";
 
 export type AssistantConnection =
-  | { status: "ready"; baseUrl: string; token: string; provider: string }
-  | { status: "needs-key" }
+  | { status: "ready"; baseUrl: string; token: string; provider: string; model: string }
+  | { status: "needs-setup" }
   | { status: "unavailable"; message: string };
+
+export type AssistantSettings = {
+  readonly provider: string | null;
+  readonly model: string | null;
+  readonly keys: string[];
+};

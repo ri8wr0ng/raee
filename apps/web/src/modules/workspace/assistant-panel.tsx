@@ -15,12 +15,17 @@ import {
   EmptyTitle,
 } from "@sidecut/ui/components/empty";
 import { useEditorSession } from "./editor-session";
-import { assistantBridge, type AssistantBridge, type Connection } from "./assistant-bridge";
+import {
+  assistantBridge,
+  type AssistantBridge,
+  type AssistantSettings,
+  type Connection,
+} from "./assistant-bridge";
 
 const PROVIDERS = [
-  { id: "anthropic", label: "Anthropic" },
-  { id: "openai", label: "OpenAI" },
-  { id: "openrouter", label: "OpenRouter" },
+  { id: "anthropic", label: "Anthropic", example: "claude-sonnet-5-5" },
+  { id: "openai", label: "OpenAI", example: "gpt-6-luna-fast" },
+  { id: "openrouter", label: "OpenRouter", example: "anthropic/claude-sonnet-5.5" },
 ] as const;
 const providerLabel = (id: string) => PROVIDERS.find((p) => p.id === id)?.label ?? id;
 const SESSION_KEY = "sidecut.assistant.session";
@@ -28,14 +33,21 @@ const SESSION_KEY = "sidecut.assistant.session";
 export function AssistantPanel({ hideButton }: { hideButton?: ReactNode }) {
   const bridge = assistantBridge();
   const [connection, setConnection] = useState<Connection | "connecting">("connecting");
-  const [keys, setKeys] = useState<string[]>([]);
-  const [showKeys, setShowKeys] = useState(false);
+  const [settings, setSettings] = useState<AssistantSettings>({
+    provider: null,
+    model: null,
+    keys: [],
+  });
+  const [editing, setEditing] = useState(false);
   const connect = useCallback(async () => {
     if (!bridge) return;
     setConnection("connecting");
     try {
-      const [next, saved] = await Promise.all([bridge.assistantConnect(), bridge.assistantKeys()]);
-      setKeys(saved);
+      const [next, saved] = await Promise.all([
+        bridge.assistantConnect(),
+        bridge.assistantSettings(),
+      ]);
+      setSettings(saved);
       setConnection(next);
     } catch (error) {
       setConnection({
@@ -53,10 +65,14 @@ export function AssistantPanel({ hideButton }: { hideButton?: ReactNode }) {
     <section aria-labelledby="assistant-title" className="editor-panel editor-side-section">
       <div className="editor-panel-heading">
         <h2 id="assistant-title">Assistant</h2>
-        {ready && <span>{providerLabel(ready.provider)}</span>}
+        {ready && !editing && (
+          <Tip label={`${providerLabel(ready.provider)} · ${ready.model}`}>
+            <span className="editor-assistant-model">{ready.model}</span>
+          </Tip>
+        )}
         {ready && (
-          <Button size="xs" variant="ghost" onClick={() => setShowKeys((value) => !value)}>
-            {showKeys ? "Done" : "API keys"}
+          <Button size="xs" variant="ghost" onClick={() => setEditing((value) => !value)}>
+            {editing ? "Cancel" : "Settings"}
           </Button>
         )}
         {hideButton}
@@ -69,25 +85,30 @@ export function AssistantPanel({ hideButton }: { hideButton?: ReactNode }) {
         <p role="status" className="editor-assistant-status">
           Starting the assistant…
         </p>
-      ) : connection.status === "unavailable" ? (
+      ) : connection.status === "unavailable" && !editing ? (
         <div className="editor-assistant-status" role="alert">
           <p>{connection.message}</p>
-          <Button size="sm" variant="outline" onClick={() => void connect()}>
-            Try again
-          </Button>
+          <div className="editor-assistant-actions">
+            <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+              Settings
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => void connect()}>
+              Try again
+            </Button>
+          </div>
         </div>
-      ) : connection.status === "needs-key" || showKeys ? (
-        <KeySettings
+      ) : connection.status === "needs-setup" || editing ? (
+        <AssistantSetup
           bridge={bridge}
-          saved={keys}
-          onChanged={async () => {
-            setShowKeys(false);
+          settings={settings}
+          onSaved={async () => {
+            setEditing(false);
             await connect();
           }}
         />
-      ) : (
+      ) : connection.status === "ready" ? (
         <AssistantChat key={`${connection.baseUrl}#${connection.token}`} connection={connection} />
-      )}
+      ) : null}
     </section>
   );
 }
@@ -108,26 +129,31 @@ function AssistantEmpty({ title, children }: { title: string; children: ReactNod
   );
 }
 
-/** Save or remove an Anthropic, OpenAI or OpenRouter key. The first saved one in that order is used. */
-function KeySettings({
+/** The user chooses the provider and model and gives that provider's key. Nothing is picked for them. */
+function AssistantSetup({
   bridge,
-  saved,
-  onChanged,
+  settings,
+  onSaved,
 }: {
   bridge: AssistantBridge;
-  saved: string[];
-  onChanged: () => Promise<void>;
+  settings: AssistantSettings;
+  onSaved: () => Promise<void>;
 }) {
-  const [provider, setProvider] = useState<string>(saved[0] ?? "anthropic");
+  const [provider, setProvider] = useState<string>(settings.provider ?? "");
+  const [model, setModel] = useState(settings.model ?? "");
   const [secret, setSecret] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const keySaved = settings.keys.includes(provider);
+  const example = PROVIDERS.find((p) => p.id === provider)?.example;
+  const canSave =
+    Boolean(provider) && Boolean(model.trim()) && (keySaved || Boolean(secret.trim()));
   const act = async (action: () => Promise<void>) => {
     setBusy(true);
     setError("");
     try {
       await action();
-      await onChanged();
+      await onSaved();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -139,31 +165,53 @@ function KeySettings({
       className="editor-panel-content editor-side-scroll editor-assistant-keys"
       onSubmit={(event) => {
         event.preventDefault();
-        const value = secret.trim();
-        if (!value) return;
+        if (!canSave) return;
+        const key = secret.trim();
         setSecret("");
-        void act(() => bridge.providerCredential(provider, "set", value));
+        void act(async () => {
+          if (key) await bridge.providerCredential(provider, "set", key);
+          await bridge.assistantConfigure({ provider, model: model.trim() });
+        });
       }}
     >
       <p>
-        Add an API key to use the assistant. It edits this project through the same tools as the CLI
-        and MCP server, and asks before applying changes.
+        Set up the assistant with your own model provider. It edits this project through the same
+        tools as the CLI and MCP server, and asks before applying changes.
       </p>
       <Field>
         <FieldLabel htmlFor="assistant-provider">Provider</FieldLabel>
         <OptionSelect
           id="assistant-provider"
           value={provider}
+          placeholder="Choose a provider"
           disabled={busy}
-          onValueChange={(value) => setProvider(value)}
+          onValueChange={(value) => {
+            // A model ID belongs to one provider, so switching clears it.
+            if (value !== provider)
+              setModel(value === settings.provider ? (settings.model ?? "") : "");
+            setProvider(value);
+            setSecret("");
+          }}
         >
           {PROVIDERS.map((p) => (
             <SelectItem key={p.id} value={p.id}>
               {p.label}
-              {saved.includes(p.id) ? " (saved)" : ""}
             </SelectItem>
           ))}
         </OptionSelect>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="assistant-model">Model</FieldLabel>
+        <Input
+          id="assistant-model"
+          autoComplete="off"
+          spellCheck={false}
+          value={model}
+          disabled={busy || !provider}
+          placeholder={example ? `e.g. ${example}` : "Choose a provider first"}
+          onChange={(event) => setModel(event.target.value)}
+        />
+        <FieldDescription>The model ID exactly as your provider lists it.</FieldDescription>
       </Field>
       <Field>
         <FieldLabel htmlFor="assistant-key">API key</FieldLabel>
@@ -172,19 +220,14 @@ function KeySettings({
           type="password"
           autoComplete="off"
           value={secret}
-          disabled={busy}
+          disabled={busy || !provider}
+          placeholder={keySaved ? "Saved. Enter a new key to replace it" : undefined}
           onChange={(event) => setSecret(event.target.value)}
         />
-        <FieldDescription>
-          Stored with your system's encryption. With several keys saved, Anthropic is used first,
-          then OpenAI, then OpenRouter.
-        </FieldDescription>
+        <FieldDescription>Stored with your system's encryption.</FieldDescription>
       </Field>
       <div className="editor-assistant-actions">
-        <Button size="sm" type="submit" disabled={busy || !secret.trim()}>
-          Save key
-        </Button>
-        {saved.includes(provider) && (
+        {keySaved && (
           <Button
             size="sm"
             variant="outline"
@@ -195,6 +238,9 @@ function KeySettings({
             Remove {providerLabel(provider)} key
           </Button>
         )}
+        <Button size="sm" type="submit" disabled={busy || !canSave}>
+          Save
+        </Button>
       </div>
       {error && <p role="alert">{error}</p>}
     </form>

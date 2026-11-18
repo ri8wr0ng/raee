@@ -22,32 +22,64 @@ const options = (outputDir: string, saved: Record<string, string>) => ({
   outputDir,
   dataDir: join(outputDir, "data"),
   apiFile: join(outputDir, "api.json"),
+  settingsFile: join(outputDir, "assistant-settings.json"),
   credentials: credentials(saved),
 });
 
 describe("assistant agent process", () => {
-  it("asks for a key before starting anything", async () => {
+  it("waits for the user to set it up, even when a key is saved", async () => {
     const spawnServer = vi.fn();
-    const agent = new AssistantAgent({ ...options(await builtOutput(), {}), spawnServer });
-    expect(await agent.connect()).toEqual({ status: "needs-key" });
+    const agent = new AssistantAgent({
+      ...options(await builtOutput(), { anthropic: "an", openai: "oa" }),
+      spawnServer,
+    });
+    expect(await agent.connect()).toEqual({ status: "needs-setup" });
     expect(spawnServer).not.toHaveBeenCalled();
+  });
+
+  it("needs the chosen provider's key, not just any key", async () => {
+    const spawnServer = vi.fn();
+    const agent = new AssistantAgent({
+      ...options(await builtOutput(), { anthropic: "an" }),
+      spawnServer,
+    });
+    await agent.configure({ provider: "openai", model: "gpt-x" });
+    expect(await agent.connect()).toEqual({ status: "needs-setup" });
+    expect(spawnServer).not.toHaveBeenCalled();
+  });
+
+  it("saves and reports the user's choice", async () => {
+    const agent = new AssistantAgent(
+      options(await builtOutput(), { openrouter: "or", anthropic: "an" }),
+    );
+    expect(await agent.settings()).toEqual({
+      provider: null,
+      model: null,
+      keys: ["anthropic", "openrouter"],
+    });
+    await agent.configure({ provider: "openrouter", model: " vendor/model-1 " });
+    expect(await agent.settings()).toMatchObject({
+      provider: "openrouter",
+      model: "vendor/model-1",
+    });
+  });
+
+  it("rejects an unknown provider or a malformed model ID", async () => {
+    const agent = new AssistantAgent(options(await builtOutput(), {}));
+    await expect(agent.configure({ provider: "other", model: "m" })).rejects.toThrow();
+    await expect(agent.configure({ provider: "openai", model: "" })).rejects.toThrow();
+    await expect(agent.configure({ provider: "openai", model: "a b" })).rejects.toThrow();
   });
 
   it("reports a missing build instead of failing silently", async () => {
     const folder = await mkdtemp(join(tmpdir(), "sidecut-assistant-agent-"));
     const agent = new AssistantAgent(options(folder, { openai: "sk-test" }));
+    await agent.configure({ provider: "openai", model: "gpt-x" });
     const connection = await agent.connect();
     expect(connection.status).toBe("unavailable");
   });
 
-  it("lists saved keys in preference order", async () => {
-    const agent = new AssistantAgent(
-      options(await builtOutput(), { openrouter: "or", anthropic: "an" }),
-    );
-    expect(await agent.keys()).toEqual(["anthropic", "openrouter"]);
-  });
-
-  it("starts on loopback with a fresh token and only the keys it needs", async () => {
+  it("starts on loopback with a fresh token and only the chosen key and model", async () => {
     let env: NodeJS.ProcessEnv = {};
     const health = createServer((_request, response) => response.end("{}"));
     const spawnServer = vi.fn((_entry: string, environment: NodeJS.ProcessEnv) => {
@@ -64,8 +96,9 @@ describe("assistant agent process", () => {
       spawnServer,
     });
     try {
+      await agent.configure({ provider: "openai", model: "gpt-x" });
       const connection = await agent.connect();
-      expect(connection).toMatchObject({ status: "ready", provider: "openai" });
+      expect(connection).toMatchObject({ status: "ready", provider: "openai", model: "gpt-x" });
       if (connection.status !== "ready") throw new Error("not ready");
       expect(connection.baseUrl).toBe(`http://127.0.0.1:${env.PORT}`);
       expect(connection.token).toMatch(/^[a-f0-9]{64}$/);
@@ -73,10 +106,11 @@ describe("assistant agent process", () => {
         HOST: "127.0.0.1",
         SIDECUT_AGENT_TOKEN: connection.token,
         SIDECUT_AGENT_PROVIDER: "openai",
+        SIDECUT_AGENT_MODEL: "gpt-x",
         OPENAI_API_KEY: "sk-test",
-        OPENROUTER_API_KEY: "or-test",
         ELECTRON_RUN_AS_NODE: "1",
       });
+      expect(env.OPENROUTER_API_KEY).toBeUndefined();
       expect(env.SIDECUT_UNRELATED_SECRET).toBeUndefined();
       expect(env.ANTHROPIC_API_KEY).toBeUndefined();
       // A second connect reuses the running agent.

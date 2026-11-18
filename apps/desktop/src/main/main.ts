@@ -337,6 +337,7 @@ void app
               : join(app.getAppPath(), "..", "agent", ".output"),
             dataDir: join(app.getPath("userData"), "assistant"),
             apiFile: discovery,
+            settingsFile: join(app.getPath("userData"), "assistant-settings.json"),
             credentials: providers.credentials,
             log: (line) => {
               if (!app.isPackaged) process.stdout.write(`[assistant] ${line}`);
@@ -350,9 +351,13 @@ void app
             if (!trustedMainFrame(event)) throw new Error("Untrusted assistant sender.");
             return assistant!.connect();
           });
-          ipcMain.handle(bridgeChannels.assistantKeys, (event) => {
+          ipcMain.handle(bridgeChannels.assistantSettings, (event) => {
             if (!trustedMainFrame(event)) throw new Error("Untrusted assistant sender.");
-            return assistant!.keys();
+            return assistant!.settings();
+          });
+          ipcMain.handle(bridgeChannels.assistantConfigure, (event, settings: unknown) => {
+            if (!trustedMainFrame(event)) throw new Error("Untrusted assistant sender.");
+            return assistant!.configure(settings);
           });
         }
         const close = async () => {

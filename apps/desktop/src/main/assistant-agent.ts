@@ -1,11 +1,11 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { access, mkdir } from "node:fs/promises";
+import { access, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
-import { join } from "node:path";
-import type { AssistantConnection } from "../shared/bridge.ts";
+import { dirname, join } from "node:path";
+import type { AssistantConnection, AssistantSettings } from "../shared/bridge.ts";
 
-/** Saved credentials the assistant can use, in the order it prefers them. */
+/** Model providers the user can configure the assistant with. */
 export const assistantProviders = ["anthropic", "openai", "openrouter"] as const;
 export type AssistantProvider = (typeof assistantProviders)[number];
 
@@ -24,6 +24,8 @@ export type AssistantAgentOptions = {
   dataDir: string;
   /** The desktop host's discovery file the agent's tools call through. */
   apiFile: string;
+  /** The user's chosen provider and model. Not secret: keys stay in `credentials`. */
+  settingsFile: string;
   credentials: Credentials;
   log?: (line: string) => void;
   /** Overridable for tests. */
@@ -55,13 +57,33 @@ export class AssistantAgent {
   private child: ChildProcess | undefined;
   constructor(private readonly options: AssistantAgentOptions) {}
 
-  /** Which assistant providers have a saved key, without starting anything. */
-  async keys() {
+  /** The configured provider and model, and which providers have a saved key. */
+  async settings(): Promise<AssistantSettings> {
     const saved: AssistantProvider[] = [];
     for (const provider of assistantProviders)
       if (await this.options.credentials.read(provider).catch(() => undefined))
         saved.push(provider);
-    return saved;
+    const chosen = await this.readChoice();
+    return { provider: chosen?.provider ?? null, model: chosen?.model ?? null, keys: saved };
+  }
+
+  /** Save the user's provider and model, then restart so the next connect uses them. */
+  async configure(value: unknown) {
+    const choice = parseChoice(value);
+    if (!choice) throw new Error("Choose a provider and enter a model ID.");
+    await mkdir(dirname(this.options.settingsFile), { recursive: true });
+    const temporary = `${this.options.settingsFile}.${randomBytes(6).toString("hex")}.tmp`;
+    await writeFile(temporary, JSON.stringify(choice), { mode: 0o600 });
+    await rename(temporary, this.options.settingsFile);
+    await this.restart();
+  }
+
+  private async readChoice() {
+    try {
+      return parseChoice(JSON.parse(await readFile(this.options.settingsFile, "utf8")));
+    } catch {
+      return undefined;
+    }
   }
 
   connect(): Promise<AssistantConnection> {
@@ -96,15 +118,12 @@ export class AssistantAgent {
   }
 
   private async start(): Promise<AssistantConnection> {
-    const env: NodeJS.ProcessEnv = {};
-    let provider: AssistantProvider | undefined;
-    for (const id of assistantProviders) {
-      const key = await this.options.credentials.read(id).catch(() => undefined);
-      if (!key) continue;
-      env[keyEnv[id]] = key;
-      provider ??= id;
-    }
-    if (!provider) return { status: "needs-key" };
+    // The user picks the provider and model; nothing is chosen for them.
+    const choice = await this.readChoice();
+    if (!choice) return { status: "needs-setup" };
+    const { provider, model } = choice;
+    const key = await this.options.credentials.read(provider).catch(() => undefined);
+    if (!key) return { status: "needs-setup" };
     const entry = join(this.options.outputDir, "server", "index.mjs");
     try {
       await access(entry);
@@ -120,7 +139,8 @@ export class AssistantAgent {
       baseUrl = `http://127.0.0.1:${port}`;
     const childEnv: NodeJS.ProcessEnv = {
       ...pickInherited(process.env),
-      ...env,
+      // Only the chosen provider's key reaches the agent.
+      [keyEnv[provider]]: key,
       ELECTRON_RUN_AS_NODE: "1",
       NODE_ENV: "production",
       HOST: "127.0.0.1",
@@ -129,6 +149,7 @@ export class AssistantAgent {
       NITRO_PORT: String(port),
       SIDECUT_AGENT_TOKEN: token,
       SIDECUT_AGENT_PROVIDER: provider,
+      SIDECUT_AGENT_MODEL: model,
       SIDECUT_API_FILE: this.options.apiFile,
       WORKFLOW_LOCAL_DATA_DIR: this.options.dataDir,
       WORKFLOW_LOCAL_BASE_URL: baseUrl,
@@ -160,7 +181,7 @@ export class AssistantAgent {
         return { status: "unavailable", message: "The assistant stopped while starting." };
       try {
         const response = await fetch(`${baseUrl}/eve/v1/health`);
-        if (response.ok) return { status: "ready", baseUrl, token, provider };
+        if (response.ok) return { status: "ready", baseUrl, token, provider, model };
       } catch {
         // Not listening yet.
       }
@@ -169,6 +190,17 @@ export class AssistantAgent {
     await this.close();
     return { status: "unavailable", message: "The assistant didn't start in time." };
   }
+}
+
+function parseChoice(value: unknown): { provider: AssistantProvider; model: string } | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const { provider, model } = value as Record<string, unknown>;
+  if (!(assistantProviders as readonly unknown[]).includes(provider)) return undefined;
+  if (typeof model !== "string") return undefined;
+  const id = model.trim();
+  // Provider model IDs: letters, digits and . _ - / : @ (e.g. anthropic/claude-sonnet-5.5).
+  if (!id || id.length > 200 || !/^[\w./:@-]+$/.test(id)) return undefined;
+  return { provider: provider as AssistantProvider, model: id };
 }
 
 /** Pass only what Node needs to run, never unrelated secrets from the app's environment. */
