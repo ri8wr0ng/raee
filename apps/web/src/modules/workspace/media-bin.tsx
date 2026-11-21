@@ -27,6 +27,8 @@ import {
 } from "@sidecut/ui/components/empty";
 import { Input } from "@sidecut/ui/components/input";
 import { Tip } from "@sidecut/ui/components/tooltip";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
+import { SegmentedControl, SegmentedControlItem } from "@ui-sdk/react/segmented-control";
 import { UploadToCloudButton } from "../cloud/upload-button-lazy";
 import { useEditorSession } from "./editor-session";
 import { placeSource, MEDIA_DRAG_TYPE } from "./placement";
@@ -233,23 +235,25 @@ export function MediaBin({
                   </Button>
                 )}
               </div>
-              <div className="editor-media-segments" role="group" aria-label="Filter by kind">
+              <SegmentedControl
+                className="editor-media-segments"
+                aria-label="Filter by kind"
+                value={kind}
+                onValueChange={(next) => {
+                  if (next) setKind(next as KindFilter);
+                }}
+              >
                 {KIND_FILTERS.map(({ id, label }) => {
                   const Icon = id === "all" ? null : KIND_ICON[id];
                   return (
                     <Tip key={id} label={label}>
-                      <button
-                        type="button"
-                        aria-pressed={kind === id}
-                        aria-label={label}
-                        onClick={() => setKind(id)}
-                      >
+                      <SegmentedControlItem value={id} aria-label={label}>
                         {Icon ? <Icon aria-hidden="true" /> : "All"}
-                      </button>
+                      </SegmentedControlItem>
                     </Tip>
                   );
                 })}
-              </div>
+              </SegmentedControl>
             </div>
           )}
           <TakeIdentification run={run} disabled={disabled} />
@@ -306,17 +310,26 @@ export function MediaBin({
                   ? "On this device"
                   : `${state}: ${availability.detail}`;
               return (
-                <li
+                <Collapsible
                   key={item.id}
-                  className="editor-media-item"
-                  data-testid="media-item"
-                  data-selected={selectedID === item.id || expanded}
-                  data-expanded={expanded}
-                  draggable={!disabled && state === "available"}
-                  onClick={() => setSelectedID(item.id)}
-                  onDragStart={(event) => {
-                    event.dataTransfer.setData(MEDIA_DRAG_TYPE, item.id);
-                    event.dataTransfer.effectAllowed = "copy";
+                  render={
+                    <li
+                      className="editor-media-item"
+                      data-testid="media-item"
+                      data-selected={selectedID === item.id || expanded}
+                      data-expanded={expanded}
+                      draggable={!disabled && state === "available"}
+                      onClick={() => setSelectedID(item.id)}
+                      onDragStart={(event) => {
+                        event.dataTransfer.setData(MEDIA_DRAG_TYPE, item.id);
+                        event.dataTransfer.effectAllowed = "copy";
+                      }}
+                    />
+                  }
+                  open={expanded}
+                  onOpenChange={(next) => {
+                    setSelectedID(item.id);
+                    setExpandedID(next ? item.id : null);
                   }}
                 >
                   <div className="editor-media-row">
@@ -373,23 +386,16 @@ export function MediaBin({
                         </Tip>
                       ))}
                       <Tip label={expanded ? "Hide settings" : "Role, take and analysis settings"}>
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          aria-expanded={expanded}
-                          aria-controls={`media-more-${item.id}`}
+                        <CollapsibleTrigger
+                          render={<Button variant="ghost" size="icon-xs" />}
                           aria-label={`More settings for ${name}`}
-                          onClick={() => {
-                            setSelectedID(item.id);
-                            setExpandedID(expanded ? null : item.id);
-                          }}
                         >
                           {expanded ? (
                             <RiArrowUpSLine aria-hidden="true" />
                           ) : (
                             <RiArrowDownSLine aria-hidden="true" />
                           )}
-                        </Button>
+                        </CollapsibleTrigger>
                       </Tip>
                       {state === "available" && (
                         <UploadToCloudButton
@@ -404,18 +410,14 @@ export function MediaBin({
                       )}
                     </span>
                   </div>
-                  <div
-                    id={`media-more-${item.id}`}
-                    className="editor-media-more"
-                    hidden={!expanded}
-                  >
+                  <CollapsiblePanel className="editor-media-more" keepMounted>
                     <MediaPlacementForm
                       key={`${item.id}:${item.role}:${item.takeID}:${item.takeOffset?.flicks}`}
                       item={item}
                     />
                     <MediaAnalysisControls item={item} />
-                  </div>
-                </li>
+                  </CollapsiblePanel>
+                </Collapsible>
               );
             })}
           </ul>

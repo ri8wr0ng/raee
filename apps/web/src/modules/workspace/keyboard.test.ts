@@ -89,13 +89,15 @@ it("routes platform modifiers and suppresses composing/prevented events", () => 
   expect(shortcut(key("<", { shiftKey: true }), "premiere")).toBe("nudgeLeft");
   expect(shortcut(key(">", { shiftKey: true }), "premiere")).toBe("nudgeRight");
 });
-it("leaves keys to focused tabs, sliders, summaries and buttons", () => {
+it("leaves keys to focused tabs, sliders, radios, toolbars, summaries and buttons", () => {
   const el = (...roles: string[]) =>
     ({ closest: (selector: string) => roles.find((r) => selector.includes(r)) ?? null }) as never;
   const tab = el("[role=tab]", '[role="tab"]'),
     summary = el("summary"),
     body = el();
   expect(ownsKey(tab, "forward")).toBe(true);
+  expect(ownsKey(el('[role="radio"]'), "back")).toBe(true);
+  expect(ownsKey(el('[role="toolbar"]'), "home")).toBe(true);
   expect(ownsKey(summary, "play")).toBe(true);
   expect(ownsKey(body, "play")).toBe(false);
   expect(ownsKey(body, "forward")).toBe(false);

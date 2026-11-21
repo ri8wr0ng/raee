@@ -8,16 +8,8 @@ import { useCallback, useRef, useState, useEffect, useMemo, useSyncExternalStore
 import { placeWords } from "@sidecut/core/transcript";
 import { Time } from "@sidecut/contracts/time";
 import {
-  RiLockLine,
-  RiLockUnlockLine,
-  RiVolumeMuteLine,
-  RiVolumeUpLine,
   RiArrowUpSLine,
   RiArrowDownSLine,
-  RiDeleteBinLine,
-  RiScissorsCutLine,
-  RiLinksLine,
-  RiLinkUnlinkM,
   RiZoomInLine,
   RiZoomOutLine,
   RiExpandWidthLine,
@@ -26,6 +18,8 @@ import {
   RiCloseCircleLine,
 } from "@remixicon/react";
 import { Button } from "@sidecut/ui/components/button";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
+import { TrackControls } from "./track-controls";
 import { Input } from "@sidecut/ui/components/input";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { projectDuration, atFrame, stepFrame, timecode } from "./timeline-model";
@@ -39,11 +33,6 @@ import "./toolbar.css";
 import { useDragAutoScroll } from "./drag-autoscroll";
 
 const HEADER = 248;
-const RIPPLE_HELP = {
-  cut: "Ripple edits split and shift clips on this track",
-  follow: "Ripple edits shift clips on this track without splitting them",
-  off: "Ripple edits leave this track in place",
-} as const;
 
 // The name reads as text; double-click (or Enter/F2 when focused) switches to an input.
 function TrackName({
@@ -300,28 +289,25 @@ export function Timeline({
     );
 
   return (
-    <section
-      id="timeline-panel"
-      aria-labelledby="timeline-title"
+    <Collapsible
+      open={!collapsed}
+      onOpenChange={onToggleCollapsed}
+      render={<section id="timeline-panel" aria-labelledby="timeline-title" />}
       className="editor-timeline"
       data-collapsed={collapsed}
     >
       <div className="editor-timeline-toolbar">
-        <Button
-          size="icon-xs"
-          variant="ghost"
+        <CollapsibleTrigger
           aria-label={collapsed ? "Expand timeline" : "Collapse timeline"}
           title={collapsed ? "Expand timeline" : "Collapse timeline"}
-          aria-expanded={!collapsed}
-          aria-controls="timeline-tracks"
-          onClick={onToggleCollapsed}
+          render={<Button size="icon-xs" variant="ghost" />}
         >
           {collapsed ? (
             <RiArrowUpSLine aria-hidden="true" />
           ) : (
             <RiArrowDownSLine aria-hidden="true" />
           )}
-        </Button>
+        </CollapsibleTrigger>
         <h2 id="timeline-title">Timeline</h2>
         <div className="editor-toolbar-group">
           <TitleDialog />
@@ -420,9 +406,10 @@ export function Timeline({
         </span>
       </div>
       <EditToolbar run={run} actions={actions} />
-      <div
+      <CollapsiblePanel
         id="timeline-tracks"
         ref={scroll}
+        keepMounted
         className="editor-timeline-scroll"
         role="region"
         aria-label="Timeline tracks"
@@ -528,116 +515,30 @@ export function Timeline({
                     disabled={disabled}
                     onRename={(name) => patch(track.id, { name })}
                   />
-                  <div className="editor-track-controls">
-                    <Button
-                      size="icon-xs"
-                      variant={track.locked ? "secondary" : "ghost"}
-                      disabled={disabled}
-                      aria-label={`Lock track ${track.name}`}
-                      title={track.locked ? "Unlock track" : "Lock track"}
-                      aria-pressed={track.locked}
-                      onClick={() => patch(track.id, { locked: !track.locked })}
-                    >
-                      {track.locked ? (
-                        <RiLockLine aria-hidden="true" />
-                      ) : (
-                        <RiLockUnlockLine aria-hidden="true" />
-                      )}
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant={track.muted ? "secondary" : "ghost"}
-                      disabled={disabled}
-                      aria-label={`Mute track ${track.name}`}
-                      title={track.muted ? "Unmute track" : "Mute track"}
-                      aria-pressed={track.muted}
-                      onClick={() => patch(track.id, { muted: !track.muted })}
-                    >
-                      {track.muted ? (
-                        <RiVolumeMuteLine aria-hidden="true" />
-                      ) : (
-                        <RiVolumeUpLine aria-hidden="true" />
-                      )}
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      disabled={disabled}
-                      aria-label={`Ripple mode ${track.name}: ${track.rippleMode}`}
-                      title={`${RIPPLE_HELP[track.rippleMode]}. Click to change.`}
-                      onClick={() =>
-                        patch(track.id, {
-                          rippleMode:
-                            track.rippleMode === "cut"
-                              ? "follow"
-                              : track.rippleMode === "follow"
-                                ? "off"
-                                : "cut",
-                        })
-                      }
-                    >
-                      {track.rippleMode === "cut" ? (
-                        <RiScissorsCutLine aria-hidden="true" />
-                      ) : track.rippleMode === "follow" ? (
-                        <RiLinksLine aria-hidden="true" />
-                      ) : (
-                        <RiLinkUnlinkM aria-hidden="true" />
-                      )}
-                    </Button>
-                    <span className="editor-track-extra">
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
-                        disabled={disabled || index + step < 0 || index + step >= list.length}
-                        aria-label={`Move track ${track.name} up`}
-                        title="Move track up"
-                        onClick={() =>
-                          run(() =>
-                            session.apply({
-                              label: "Move track",
-                              commands: [{ moveTrack: { trackID: track.id, index: index + step } }],
-                            }),
-                          )
-                        }
-                      >
-                        <RiArrowUpSLine aria-hidden="true" />
-                      </Button>
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
-                        disabled={disabled || index - step < 0 || index - step >= list.length}
-                        aria-label={`Move track ${track.name} down`}
-                        title="Move track down"
-                        onClick={() =>
-                          run(() =>
-                            session.apply({
-                              label: "Move track",
-                              commands: [{ moveTrack: { trackID: track.id, index: index - step } }],
-                            }),
-                          )
-                        }
-                      >
-                        <RiArrowDownSLine aria-hidden="true" />
-                      </Button>
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
-                        disabled={disabled || track.locked}
-                        aria-label={`Remove track ${track.name}`}
-                        title="Remove track and its clips; Undo restores them"
-                        onClick={() =>
-                          run(() =>
-                            session.apply({
-                              label: `Remove ${track.name}`,
-                              commands: [{ removeTrack: { trackID: track.id } }],
-                            }),
-                          )
-                        }
-                      >
-                        <RiDeleteBinLine aria-hidden="true" />
-                      </Button>
-                    </span>
-                  </div>
+                  <TrackControls
+                    track={track}
+                    index={index}
+                    step={step}
+                    count={list.length}
+                    disabled={disabled}
+                    patch={(changes) => patch(track.id, changes)}
+                    move={(to) =>
+                      run(() =>
+                        session.apply({
+                          label: "Move track",
+                          commands: [{ moveTrack: { trackID: track.id, index: to } }],
+                        }),
+                      )
+                    }
+                    remove={() =>
+                      run(() =>
+                        session.apply({
+                          label: `Remove ${track.name}`,
+                          commands: [{ removeTrack: { trackID: track.id } }],
+                        }),
+                      )
+                    }
+                  />
                 </div>
                 <div
                   className="editor-track-lane"
@@ -783,7 +684,7 @@ export function Timeline({
             );
           })}
         </div>
-      </div>
-    </section>
+      </CollapsiblePanel>
+    </Collapsible>
   );
 }

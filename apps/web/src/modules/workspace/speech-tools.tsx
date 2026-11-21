@@ -1,4 +1,5 @@
-import { useMemo, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { RiMicLine } from "@remixicon/react";
 import { Time } from "@sidecut/contracts/time";
 import { Button } from "@sidecut/ui/components/button";
@@ -73,30 +74,6 @@ export function SpeechToolsDialog() {
     [analysis, session],
   );
   const disabled = snapshot.readOnly || snapshot.busy;
-  // Roving focus: only the selected tab is in the tab order, arrows move between tabs.
-  const moveTab = (event: KeyboardEvent<HTMLDivElement>) => {
-    const index = TABS.findIndex(([id]) => id === tab),
-      last = TABS.length - 1;
-    const next =
-      event.key === "ArrowRight"
-        ? index === last
-          ? 0
-          : index + 1
-        : event.key === "ArrowLeft"
-          ? index === 0
-            ? last
-            : index - 1
-          : event.key === "Home"
-            ? 0
-            : event.key === "End"
-              ? last
-              : -1;
-    if (next < 0) return;
-    event.preventDefault();
-    const id = TABS[next]![0];
-    setTab(id);
-    event.currentTarget.querySelector<HTMLElement>(`#speech-tab-${id}`)?.focus();
-  };
   return (
     <Dialog
       open={open}
@@ -121,33 +98,23 @@ export function SpeechToolsDialog() {
             the same queries as the project service. Transcribe sources under Local analysis.
           </DialogDescription>
         </DialogHeader>
-        <div
-          className="editor-inspector-tabs editor-speech-tabs"
-          role="tablist"
-          aria-label="Speech tools"
-          onKeyDown={moveTab}
-        >
-          {TABS.map(([id, label]) => (
-            <button
-              key={id}
-              id={`speech-tab-${id}`}
-              type="button"
-              role="tab"
-              aria-selected={id === tab}
-              aria-controls="speech-tab-panel"
-              tabIndex={id === tab ? 0 : -1}
-              onClick={() => setTab(id)}
-            >
-              {label}
-            </button>
+        <Tabs value={tab} onValueChange={(next) => next && setTab(next)}>
+          <TabsList className="editor-inspector-tabs editor-speech-tabs" aria-label="Speech tools">
+            {TABS.map(([id, label]) => (
+              <TabsTab key={id} id={`speech-tab-${id}`} value={id}>
+                {label}
+              </TabsTab>
+            ))}
+          </TabsList>
+          {TABS.map(([id]) => (
+            <TabsPanel key={id} value={id}>
+              {preparing && <p role="status">Loading cached transcripts and waveforms…</p>}
+              {id === "search" && <SearchPanel transcripts={transcripts} />}
+              {id === "pauses" && <PausesPanel transcripts={transcripts} disabled={disabled} />}
+              {id === "captions" && <CaptionsPanel transcripts={transcripts} disabled={disabled} />}
+            </TabsPanel>
           ))}
-        </div>
-        <div id="speech-tab-panel" role="tabpanel" aria-labelledby={`speech-tab-${tab}`}>
-          {preparing && <p role="status">Loading cached transcripts and waveforms…</p>}
-          {tab === "search" && <SearchPanel transcripts={transcripts} />}
-          {tab === "pauses" && <PausesPanel transcripts={transcripts} disabled={disabled} />}
-          {tab === "captions" && <CaptionsPanel transcripts={transcripts} disabled={disabled} />}
-        </div>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

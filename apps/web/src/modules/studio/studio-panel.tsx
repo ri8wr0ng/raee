@@ -6,7 +6,6 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
 import type { LiveAssets } from "@sidecut/core/live-assets";
 import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
@@ -20,7 +19,8 @@ import { useLiveChatController } from "./live-chat-controller";
 import { LiveChatPanel } from "./live-chat-panel";
 import { Button, buttonVariants } from "@sidecut/ui/components/button";
 import { Input } from "@sidecut/ui/components/input";
-import { RadioGroup } from "@sidecut/ui/components/radio-group";
+import { Radio, RadioGroup } from "@ui-sdk/react/radio";
+import { Toggle } from "@ui-sdk/react/toggle";
 import {
   Select,
   SelectContent,
@@ -196,7 +196,7 @@ function Section({
     <section className="studio-section" aria-label={title}>
       <header>
         <div className="min-w-0">
-          <h3>{title}</h3>
+          <h2>{title}</h2>
           {description && <p>{description}</p>}
         </div>
         {action && <div className="flex shrink-0 flex-wrap justify-end gap-1.5">{action}</div>}
@@ -1686,10 +1686,10 @@ export default function StudioPanel({
         <Section title="Go">
           <RadioGroup
             aria-label="Output"
-            className="studio-modes"
+            className="grid w-full gap-2 studio-modes"
             value={mode}
             disabled={busy}
-            onValueChange={(value) => setMode(value as typeof mode)}
+            onValueChange={(value) => value && setMode(value as typeof mode)}
           >
             {(
               [
@@ -1699,7 +1699,7 @@ export default function StudioPanel({
               ] as const
             ).map(([value, label, Icon]) => (
               <label key={value} data-checked={mode === value || undefined}>
-                <RadioPrimitive.Root value={value} className="sr-only" />
+                <Radio value={value} className="sr-only" />
                 <span className="studio-mode-title">
                   <Icon aria-hidden />
                   {label}
@@ -2022,55 +2022,52 @@ export default function StudioPanel({
           {scenes.length > 0 && (
             <RadioGroup
               aria-label="Scenes"
-              className="studio-list"
-              render={<ul />}
+              className="w-full"
               value={selected}
-              onValueChange={(value) => setSelected(value as string)}
+              onValueChange={(value) => value && setSelected(value)}
             >
-              {scenes.map((scene) => {
-                const live = active?.id === scene.id;
-                return (
-                  <li
-                    key={scene.id}
-                    className="studio-row"
-                    data-selected={selected === scene.id || undefined}
-                  >
-                    <label className="studio-row-main">
-                      <RadioPrimitive.Root value={scene.id} className="sr-only" />
-                      <span className="truncate">{scene.name}</span>
-                      {live && <span className="studio-live-badge">On air</span>}
-                    </label>
-                    {!live && (
+              <ul className="grid w-full gap-2 studio-list">
+                {scenes.map((scene) => {
+                  const live = active?.id === scene.id;
+                  return (
+                    <li
+                      key={scene.id}
+                      className="studio-row"
+                      data-selected={selected === scene.id || undefined}
+                    >
+                      <label className="studio-row-main">
+                        <Radio value={scene.id} className="sr-only" />
+                        <span className="truncate">{scene.name}</span>
+                        {live && <span className="studio-live-badge">On air</span>}
+                      </label>
+                      {!live && (
+                        <Button size="xs" onClick={() => void switchTo(scene.id)}>
+                          Put <span className="sr-only">{scene.name} </span>on air
+                        </Button>
+                      )}
                       <Button
-                        size="xs"
-                        aria-label={`Put ${scene.name} on air`}
-                        onClick={() => void switchTo(scene.id)}
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Update ${scene.name} from editor`}
+                        title="Update from editor"
+                        onClick={() => void saveFromEditor({ id: scene.id, name: scene.name })}
                       >
-                        Put on air
+                        <RiRefreshLine />
                       </Button>
-                    )}
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`Update ${scene.name} from editor`}
-                      title="Update from editor"
-                      onClick={() => void saveFromEditor({ id: scene.id, name: scene.name })}
-                    >
-                      <RiRefreshLine />
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      aria-label={`Remove ${scene.name}`}
-                      title={live ? "Put another scene on air first" : "Remove scene"}
-                      disabled={live}
-                      onClick={() => void remove(scene.id)}
-                    >
-                      <RiDeleteBinLine />
-                    </Button>
-                  </li>
-                );
-              })}
+                      <Button
+                        size="icon-xs"
+                        variant="ghost"
+                        aria-label={`Remove ${scene.name}`}
+                        title={live ? "Put another scene on air first" : "Remove scene"}
+                        disabled={live}
+                        onClick={() => void remove(scene.id)}
+                      >
+                        <RiDeleteBinLine />
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
             </RadioGroup>
           )}
           <form
@@ -2285,15 +2282,14 @@ export default function StudioPanel({
                       className="studio-row"
                       data-selected={isSelected || undefined}
                     >
-                      <button
-                        type="button"
+                      <Toggle
                         className="studio-row-main"
-                        aria-pressed={isSelected}
-                        onClick={() => setSelectedSource(isSelected ? null : live.id)}
+                        pressed={isSelected}
+                        onPressedChange={(pressed) => setSelectedSource(pressed ? live.id : null)}
                       >
                         <SourceIcon kind={live.kind} />
                         <span className="truncate">{live.label}</span>
-                      </button>
+                      </Toggle>
                       {live.kind === "camera" && cameraDevices.length > 0 && (
                         <Select
                           value={live.deviceId || ""}

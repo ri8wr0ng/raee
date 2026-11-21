@@ -10,6 +10,7 @@ import { EffectInspector } from "./effect-inspector";
 import { KeyframeControls } from "./keyframe-controls";
 import { ProjectSettings } from "./project-settings";
 import { useEffect, useRef, useState } from "react";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { Tip } from "@sidecut/ui/components/tooltip";
 import { TextInspector } from "./text-inspector";
 import { CardInspector } from "./section-cards";
@@ -49,12 +50,12 @@ export function ClipInspector() {
   const { snapshot } = useEditorSession();
   const [tab, setTab] = useState<InspectorTab | null>(null);
   const tabList = useRef<HTMLDivElement>(null);
+  const selected = useEditorView((state) => state.selected);
   useEffect(() => {
     tabList.current
       ?.querySelector<HTMLElement>('[aria-selected="true"]')
       ?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [tab]);
-  const selected = useEditorView((state) => state.selected);
+  }, [tab, selected]);
   const clips = [...snapshot.project.videoTracks, ...snapshot.project.audioTracks]
     .flatMap((track) => track.clips)
     .filter((clip) => selected.includes(clip.id));
@@ -154,70 +155,40 @@ export function ClipInspector() {
       </header>
       {editable && (
         <>
-          <div
-            ref={tabList}
-            className="editor-inspector-tabs"
-            role="tablist"
-            aria-label="Clip settings"
-            onKeyDown={(event) => {
-              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-              event.preventDefault();
-              const index = tabs.findIndex(([id]) => id === current);
-              const next =
-                event.key === "Home"
-                  ? tabs[0]![0]
-                  : event.key === "End"
-                    ? tabs[tabs.length - 1]![0]
-                    : tabs[
-                        (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length
-                      ]![0];
-              setTab(next);
-              event.currentTarget.querySelector<HTMLElement>(`#inspector-tab-${next}`)?.focus();
-            }}
-          >
-            {tabs.map(([id, label]) => (
-              <button
-                key={id}
-                id={`inspector-tab-${id}`}
-                type="button"
-                role="tab"
-                aria-selected={id === current}
-                aria-controls="inspector-tab-panel"
-                tabIndex={id === current ? 0 : -1}
-                onClick={() => setTab(id)}
-              >
-                {label}
-              </button>
+          <Tabs value={current} onValueChange={(next) => next && setTab(next)}>
+            <TabsList ref={tabList} className="editor-inspector-tabs" aria-label="Clip settings">
+              {tabs.map(([id, label]) => (
+                <TabsTab key={id} id={`inspector-tab-${id}`} value={id}>
+                  {label}
+                </TabsTab>
+              ))}
+            </TabsList>
+            {tabs.map(([id]) => (
+              <TabsPanel key={id} value={id} className="editor-inspector-panel">
+                {id === "text" && <TextInspector key={first.id} clip={first} />}
+                {id === "card" && <CardInspector key={first.id} clip={first} />}
+                {id === "picture" && <PictureInspector clips={clips} />}
+                {id === "audio" && <AudioControls key={first.id} clip={first} />}
+                {id === "effects" && (
+                  <>
+                    <EffectInspector clips={clips} />
+                    <KeyframeControls clips={clips} />
+                  </>
+                )}
+                {id === "timing" && (
+                  <>
+                    <ClipTrimForm key={`${first.id}:${snapshot.revision}`} clip={first} />
+                    <ClipEditForm key={`edit:${first.id}:${snapshot.revision}`} clip={first} />
+                    <ClipPropertiesForm
+                      key={`properties:${first.id}:${snapshot.revision}`}
+                      clip={first}
+                    />
+                  </>
+                )}
+                {id === "transitions" && <TransitionInspector clip={first} />}
+              </TabsPanel>
             ))}
-          </div>
-          <div
-            id="inspector-tab-panel"
-            className="editor-inspector-panel"
-            role="tabpanel"
-            aria-labelledby={`inspector-tab-${current}`}
-          >
-            {current === "text" && <TextInspector key={first.id} clip={first} />}
-            {current === "card" && <CardInspector key={first.id} clip={first} />}
-            {current === "picture" && <PictureInspector clips={clips} />}
-            {current === "audio" && <AudioControls key={first.id} clip={first} />}
-            {current === "effects" && (
-              <>
-                <EffectInspector clips={clips} />
-                <KeyframeControls clips={clips} />
-              </>
-            )}
-            {current === "timing" && (
-              <>
-                <ClipTrimForm key={`${first.id}:${snapshot.revision}`} clip={first} />
-                <ClipEditForm key={`edit:${first.id}:${snapshot.revision}`} clip={first} />
-                <ClipPropertiesForm
-                  key={`properties:${first.id}:${snapshot.revision}`}
-                  clip={first}
-                />
-              </>
-            )}
-            {current === "transitions" && <TransitionInspector clip={first} />}
-          </div>
+          </Tabs>
         </>
       )}
     </div>

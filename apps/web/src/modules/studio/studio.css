@@ -40,7 +40,7 @@
   gap: 8px 12px;
   flex-wrap: wrap;
 }
-.studio-section h3 {
+.studio-section h2 {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -295,7 +295,7 @@
 .studio-modes small {
   font-size: 10px;
   font-weight: 400;
-  opacity: 0.7;
+  color: var(--muted-foreground);
 }
 .studio-go-row {
   display: flex;
@@ -380,7 +380,7 @@
   flex: none;
   padding: 1px 6px;
   border-radius: 4px;
-  background: #ef4444;
+  background: #dc2626;
   color: #fff;
   font-size: 10px;
   font-weight: 700;

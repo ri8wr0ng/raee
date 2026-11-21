@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Toggle } from "@ui-sdk/react/toggle";
+import { Toolbar } from "@ui-sdk/react/toolbar";
 import { sceneHotkeyScene } from "./scene-deck-keys";
 import "./scene-deck.css";
 
@@ -69,21 +71,19 @@ export function SceneDeck({
 
   return (
     <div className="scene-deck-wrap">
-      <div className="scene-deck" role="group" aria-label="Scene deck">
+      <Toolbar className="scene-deck" aria-label="Scene deck">
         {scenes.map((scene, index) => {
           const onAir = scene.id === activeId;
           const hotkey = index < SHORTCUT_LIMIT ? index + 1 : null;
           const action = onAir ? `${scene.name} is on air` : `Put ${scene.name} on air`;
           return (
-            <button
+            <Toggle
               key={scene.id}
-              type="button"
               className="scene-deck-button"
-              data-on-air={onAir || undefined}
-              aria-pressed={onAir}
-              aria-label={hotkey === null ? action : `${action} (${hotkey})`}
+              pressed={onAir}
+              onPressedChange={() => goLive(scene)}
+              aria-keyshortcuts={hotkey === null ? undefined : String(hotkey)}
               title={hotkey === null ? action : `${action} — press ${hotkey}`}
-              onClick={() => goLive(scene)}
             >
               {hotkey !== null && (
                 <span className="scene-deck-key" aria-hidden>
@@ -104,10 +104,10 @@ export function SceneDeck({
                   onAnimationEnd={() => setPulse(null)}
                 />
               )}
-            </button>
+            </Toggle>
           );
         })}
-      </div>
+      </Toolbar>
       <p className="sr-only" role="status" aria-live="polite">
         {announce && <span key={announce.nonce}>{announce.text}</span>}
       </p>

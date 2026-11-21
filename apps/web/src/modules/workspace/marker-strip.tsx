@@ -3,6 +3,7 @@ import { Time } from "@sidecut/contracts/time";
 import { markerKind, markerKinds, type Marker } from "@sidecut/contracts/project";
 import { CommentEdits, oneLine } from "@sidecut/core/markers";
 import { Button } from "@sidecut/ui/components/button";
+import { Toolbar, ToolbarButton } from "@ui-sdk/react/toolbar";
 import { Input } from "@sidecut/ui/components/input";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@sidecut/ui/components/field";
 import {
@@ -78,45 +79,50 @@ export function MarkerStrips({
         >
           <div className="editor-marker-header">
             <span>{lane.label}</span>
-            <ToolTip
-              label={lane.id === "markers" ? "Add marker at playhead" : "Add comment at playhead"}
-            >
-              <Button
-                size="icon-xs"
-                variant="ghost"
-                disabled={disabled}
-                onClick={lane.add}
-                aria-label={
-                  lane.id === "markers" ? "Add marker at playhead" : "Add comment at playhead"
-                }
+            <Toolbar className="editor-marker-actions" aria-label={`${lane.label} actions`}>
+              <ToolTip
+                label={lane.id === "markers" ? "Add marker at playhead" : "Add comment at playhead"}
               >
-                <RiAddLine aria-hidden="true" />
-              </Button>
-            </ToolTip>
-            {lane.id === "markers" && (
-              <>
-                <ToolTip label="Previous marker">
-                  <Button
-                    size="icon-xs"
-                    variant="ghost"
-                    aria-label="Previous marker"
-                    onClick={() => navigate(-1)}
-                  >
-                    <RiArrowLeftSLine aria-hidden="true" />
-                  </Button>
-                </ToolTip>
-                <ToolTip label="Next marker">
-                  <Button
-                    size="icon-xs"
-                    variant="ghost"
-                    aria-label="Next marker"
-                    onClick={() => navigate(1)}
-                  >
-                    <RiArrowRightSLine aria-hidden="true" />
-                  </Button>
-                </ToolTip>
-              </>
-            )}
+                <ToolbarButton
+                  render={
+                    <Button
+                      size="icon-xs"
+                      variant="ghost"
+                      className="aria-disabled:pointer-events-none aria-disabled:[&_svg]:opacity-50"
+                    />
+                  }
+                  disabled={disabled}
+                  onClick={lane.add}
+                  aria-label={
+                    lane.id === "markers" ? "Add marker at playhead" : "Add comment at playhead"
+                  }
+                >
+                  <RiAddLine aria-hidden="true" />
+                </ToolbarButton>
+              </ToolTip>
+              {lane.id === "markers" && (
+                <>
+                  <ToolTip label="Previous marker">
+                    <ToolbarButton
+                      render={<Button size="icon-xs" variant="ghost" />}
+                      aria-label="Previous marker"
+                      onClick={() => navigate(-1)}
+                    >
+                      <RiArrowLeftSLine aria-hidden="true" />
+                    </ToolbarButton>
+                  </ToolTip>
+                  <ToolTip label="Next marker">
+                    <ToolbarButton
+                      render={<Button size="icon-xs" variant="ghost" />}
+                      aria-label="Next marker"
+                      onClick={() => navigate(1)}
+                    >
+                      <RiArrowRightSLine aria-hidden="true" />
+                    </ToolbarButton>
+                  </ToolTip>
+                </>
+              )}
+            </Toolbar>
           </div>
           <div className="editor-marker-lane" role="group" aria-label={lane.label}>
             {lane.items.map((marker) => {
