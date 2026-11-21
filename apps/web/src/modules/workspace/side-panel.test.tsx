@@ -3,7 +3,7 @@ import "../../test/dom-setup";
 import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import type { SideTab } from "./panel-sizes";
 import { SidePanel } from "./side-panel";
 
@@ -11,6 +11,10 @@ import { SidePanel } from "./side-panel";
 vi.mock("./media-bin", () => ({ MediaBin: () => <p>media content</p> }));
 vi.mock("./comments-panel", () => ({ CommentsPanel: () => <p>comments content</p> }));
 vi.mock("./history-panel", () => ({ HistoryPanel: () => <p>history content</p> }));
+
+vi.mock("./assistant-panel", () => ({ AssistantPanel: () => <p>assistant content</p> }));
+
+afterEach(() => vi.unstubAllGlobals());
 
 function Harness({ onTab }: { onTab: (tab: SideTab) => void }) {
   const [tab, setTab] = useState<SideTab>("media");
@@ -48,6 +52,7 @@ describe("side panel tabs", () => {
     expect(tab("Comments").getAttribute("aria-selected")).toBe("false");
     expect(screen.getByRole("tabpanel").textContent).toBe("media content");
     expect(screen.queryByText("comments content")).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Assistant" })).toBeNull();
   });
 
   it("has one tab stop, on the selected tab", async () => {
@@ -97,6 +102,24 @@ describe("side panel tabs", () => {
     await user.click(tab("History"));
     expect(onTab).toHaveBeenLastCalledWith("history");
     expect(screen.getByRole("tabpanel").textContent).toBe("history content");
+  });
+
+  it("selects the desktop Assistant tab with the keyboard", async () => {
+    vi.stubGlobal("sidecutDesktop", {
+      assistantConnect: vi.fn(),
+      assistantSettings: vi.fn(),
+      assistantConfigure: vi.fn(),
+      providerCredential: vi.fn(),
+    });
+    const { user, onTab } = setup();
+    expect(screen.queryByText("assistant content")).toBeNull();
+    await user.tab();
+    await user.tab();
+    await user.keyboard("{End}");
+    expect(document.activeElement).toBe(tab("Assistant"));
+    expect(onTab).toHaveBeenLastCalledWith("assistant");
+    expect(await screen.findByText("assistant content")).toBeTruthy();
+    expect(screen.getByRole("tabpanel", { name: "Assistant" })).toBeTruthy();
   });
 
   it("names each panel after its tab", async () => {
