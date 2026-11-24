@@ -77,7 +77,7 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.32.1
         version: 1.32.1(supports-color@7.2.0)(zod@4.6.7)
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:packages/config
       '@types/node':
@@ -132,7 +132,7 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -153,14 +153,14 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.1159.0
         version: 3.1159.0
-      '@sidecut/env':
+      '@raee/env':
         specifier: workspace:*
         version: link:../../packages/env
       convex:
         specifier: ^1.48.0
         version: 1.48.0(react@19.3.0)
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -182,19 +182,19 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
     devDependencies:
-      '@sidecut/assets':
+      '@raee/assets':
         specifier: workspace:*
         version: link:../../packages/assets
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@sidecut/contracts':
+      '@raee/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@sidecut/core':
+      '@raee/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@sidecut/env':
+      '@raee/env':
         specifier: workspace:*
         version: link:../../packages/env
       '@types/node':
@@ -224,12 +224,12 @@ importers:
       '@fontsource-variable/geist-mono':
         specifier: ^5.3.0
         version: 5.3.0
+      '@raee/env':
+        specifier: workspace:*
+        version: link:../../packages/env
       '@remixicon/react':
         specifier: 'catalog:'
         version: 4.9.0(react@19.3.0)
-      '@sidecut/env':
-        specifier: workspace:*
-        version: link:../../packages/env
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.3.3(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.12.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))
@@ -255,7 +255,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.3
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@tanstack/router-cli':
@@ -291,27 +291,27 @@ importers:
       '@base-ui/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@raee/cloud':
+        specifier: workspace:*
+        version: link:../cloud
+      '@raee/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@raee/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@raee/env':
+        specifier: workspace:*
+        version: link:../../packages/env
+      '@raee/platform-browser':
+        specifier: workspace:*
+        version: link:../../packages/platform-browser
+      '@raee/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@remixicon/react':
         specifier: 'catalog:'
         version: 4.9.0(react@19.3.0)
-      '@sidecut/cloud':
-        specifier: workspace:*
-        version: link:../cloud
-      '@sidecut/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@sidecut/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@sidecut/env':
-        specifier: workspace:*
-        version: link:../../packages/env
-      '@sidecut/platform-browser':
-        specifier: workspace:*
-        version: link:../../packages/platform-browser
-      '@sidecut/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.3.3(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.12.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))
@@ -367,7 +367,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@tanstack/router-cli':
@@ -409,11 +409,11 @@ importers:
 
   packages/assets:
     dependencies:
-      '@sidecut/contracts':
+      '@raee/contracts':
         specifier: workspace:*
         version: link:../contracts
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       typescript:
@@ -425,17 +425,17 @@ importers:
 
   packages/client:
     dependencies:
-      '@sidecut/contracts':
+      '@raee/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@sidecut/core':
+      '@raee/core':
         specifier: workspace:*
         version: link:../core
       effect:
         specifier: 'catalog:'
         version: 4.0.5
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -469,7 +469,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.5
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       typescript:
@@ -481,7 +481,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@sidecut/contracts':
+      '@raee/contracts':
         specifier: workspace:*
         version: link:../contracts
       effect:
@@ -491,7 +491,7 @@ importers:
         specifier: 0.8.3
         version: 0.8.3
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       typescript:
@@ -510,7 +510,7 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       typescript:
@@ -543,13 +543,13 @@ importers:
       '@mediapipe/tasks-vision':
         specifier: 0.10.32
         version: 0.10.32
-      '@sidecut/assets':
+      '@raee/assets':
         specifier: workspace:*
         version: link:../assets
-      '@sidecut/contracts':
+      '@raee/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@sidecut/core':
+      '@raee/core':
         specifier: workspace:*
         version: link:../core
       '@sqlite.org/sqlite-wasm':
@@ -568,7 +568,7 @@ importers:
         specifier: 1.31.0-dev.20260914-8d85527a0
         version: 1.31.0-dev.20260914-8d85527a0
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       typescript:
@@ -614,7 +614,7 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
-      '@sidecut/config':
+      '@raee/config':
         specifier: workspace:*
         version: link:../config
       '@types/react':

@@ -2,9 +2,9 @@ import { describe, it, expect } from "vite-plus/test";
 import { BrowserProjectSession } from "./browser-session";
 import { libraryOperation } from "./service-library";
 import { rendererErrorDetails } from "./renderer-operations";
-import { EditError } from "@sidecut/core/coordinator";
-import { QueryError } from "@sidecut/core/project-queries";
-import { serviceRequest } from "@sidecut/core/service-requests";
+import { EditError } from "@raee/core/coordinator";
+import { QueryError } from "@raee/core/project-queries";
+import { serviceRequest } from "@raee/core/service-requests";
 
 describe("service job waits", () => {
   it("observes jobs to completion, reports failure and timeout, and cancels only the waiter", async () => {

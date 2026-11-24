@@ -1,5 +1,5 @@
 import { expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { renderWAV } from "./wav-export";
 
 it("writes a complete stereo PCM WAV for a fractional export range", async () => {

@@ -8,10 +8,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-mcp-adapters-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-mcp-adapters-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 let client;
 async function wait(predicate) {
@@ -164,16 +164,16 @@ async function verify() {
       new StdioClientTransport({
         command: process.execPath,
         args: [
-          join(root, "scripts/sidecut-mcp.mjs"),
+          join(root, "scripts/raee-mcp.mjs"),
           "--endpoint-file",
           join(profile, "current.tandem.api.json"),
         ],
         env: {
           ...process.env,
           ELECTRON_RUN_AS_NODE: "1",
-          SIDECUT_PROJECT: "",
+          RAEE_PROJECT: "",
           TANDEM_PROJECT: "",
-          SIDECUT_AUTHOR: "",
+          RAEE_AUTHOR: "",
           TANDEM_AUTHOR: "",
         },
         stderr: "pipe",

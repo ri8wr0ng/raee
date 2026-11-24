@@ -1,15 +1,15 @@
-import type { MediaItem } from "@sidecut/contracts/project";
-import type { Matte } from "@sidecut/platform-browser/cutout";
-import type { SourceSamples } from "@sidecut/platform-browser/source-analysis";
-import type { PictureProxy } from "@sidecut/platform-browser/proxy";
-import type { Transcript } from "@sidecut/core/transcript";
-import type { SoundMatch } from "@sidecut/core/sound-sync";
+import type { MediaItem } from "@raee/contracts/project";
+import type { Matte } from "@raee/platform-browser/cutout";
+import type { SourceSamples } from "@raee/platform-browser/source-analysis";
+import type { PictureProxy } from "@raee/platform-browser/proxy";
+import type { Transcript } from "@raee/core/transcript";
+import type { SoundMatch } from "@raee/core/sound-sync";
 import type { BrowserProjectSession } from "./browser-session";
-import { pairTakes, decodeTakeSidecar } from "@sidecut/core/take-pairing";
-import { derivedCache } from "@sidecut/platform-browser/derived-cache";
-import { alignTranscript } from "@sidecut/core/speech";
-import { readPreference } from "@sidecut/platform-browser/preferences";
-import type { MattingBackend } from "@sidecut/platform-browser/matting-models";
+import { pairTakes, decodeTakeSidecar } from "@raee/core/take-pairing";
+import { derivedCache } from "@raee/platform-browser/derived-cache";
+import { alignTranscript } from "@raee/core/speech";
+import { readPreference } from "@raee/platform-browser/preferences";
+import type { MattingBackend } from "@raee/platform-browser/matting-models";
 
 export interface MediaAnalysisState {
   samples?: SourceSamples | undefined;
@@ -141,7 +141,7 @@ export class MediaAnalysis {
       id,
       "Timeline samples",
       async (signal, progress, { item, file }) => {
-        const { sourceSamples } = await import("@sidecut/platform-browser/source-analysis");
+        const { sourceSamples } = await import("@raee/platform-browser/source-analysis");
         return sourceSamples(file, item, signal, progress);
       },
       (samples) => ({ samples }),
@@ -154,7 +154,7 @@ export class MediaAnalysis {
       async (signal, progress, { item, file }) => {
         if (item.kind !== "video" && item.kind !== "image")
           throw new Error("Cutout needs video or an image.");
-        const { analyseCutout } = await import("@sidecut/platform-browser/cutout");
+        const { analyseCutout } = await import("@raee/platform-browser/cutout");
         return analyseCutout(
           file,
           item.kind,
@@ -172,7 +172,7 @@ export class MediaAnalysis {
       id,
       "Generate proxy",
       async (signal, progress, { item, file }) => {
-        const { generateProxy } = await import("@sidecut/platform-browser/proxy");
+        const { generateProxy } = await import("@raee/platform-browser/proxy");
         return generateProxy(file, item, signal, progress);
       },
       (proxy) => ({ proxy }),
@@ -185,8 +185,8 @@ export class MediaAnalysis {
     const promise = (async () => {
       const { file } = await this.source(id);
       const [{ cachedProxy }, { cachedTranscript }] = await Promise.all([
-        import("@sidecut/platform-browser/proxy"),
-        import("@sidecut/platform-browser/transcription"),
+        import("@raee/platform-browser/proxy"),
+        import("@raee/platform-browser/transcription"),
       ]);
       const [proxy, transcript] = await Promise.all([
         cachedProxy(file),
@@ -216,9 +216,9 @@ export class MediaAnalysis {
       id,
       "Local transcription",
       async (signal, progress, { item, file }) => {
-        const { readMono } = await import("@sidecut/platform-browser/source-analysis");
+        const { readMono } = await import("@raee/platform-browser/source-analysis");
         const { transcribeLocal, cachedTranscript } =
-          await import("@sidecut/platform-browser/transcription");
+          await import("@raee/platform-browser/transcription");
         const existing = await cachedTranscript(file, language);
         signal.throwIfAborted();
         if (existing) return existing;
@@ -267,15 +267,15 @@ export class MediaAnalysis {
       async (signal, progress, { item, file }) => {
         const reference = await this.source(referenceID);
         if (referenceID === id) throw new Error("Choose a different reference source.");
-        const { audioIdentity } = await import("@sidecut/platform-browser/audio-analysis");
+        const { audioIdentity } = await import("@raee/platform-browser/audio-analysis");
         const key = `sync:2:${await audioIdentity(reference.file)}:${await audioIdentity(file)}`;
         const cached = await derivedCache<SoundMatch>(key);
         if (cached) {
           signal.throwIfAborted();
           return cached;
         }
-        const { readMono } = await import("@sidecut/platform-browser/source-analysis");
-        const { syncSound } = await import("@sidecut/platform-browser/sound-sync");
+        const { readMono } = await import("@raee/platform-browser/source-analysis");
+        const { syncSound } = await import("@raee/platform-browser/sound-sync");
         const a = await readMono(reference.file, reference.item, 8000, signal, (v) =>
           progress(v * 0.3),
         );

@@ -119,4 +119,4 @@ const bridge: DesktopBridge = {
   updateInstall: () => ipcRenderer.invoke(bridgeChannels.updateInstall),
 };
 
-contextBridge.exposeInMainWorld("sidecutDesktop", bridge);
+contextBridge.exposeInMainWorld("raeeDesktop", bridge);

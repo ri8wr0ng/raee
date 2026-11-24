@@ -1,4 +1,4 @@
-import { projectDuration } from "@sidecut/core/render-plan";
+import { projectDuration } from "@raee/core/render-plan";
 import type { BrowserProjectSession } from "@/modules/workspace/browser-session";
 import type { TakeMark } from "./take-store";
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldGroup, FieldLabel, FieldError } from "@sidecut/ui/components/field";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldGroup, FieldLabel, FieldError } from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
@@ -9,12 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import { RiContrast2Line } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 export function AdjustmentDialog() {
   const { session, snapshot, editor } = useEditorSession();
   const [open, setOpen] = useState(false),

@@ -65,7 +65,7 @@ it("prepares native positionals, text/JSON defaults and revision-only output", (
 });
 // Multiple CLI subprocesses need headroom on shared CI runners.
 it("dispatches make before querying, prints revision-only output, and keeps failed make from querying", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-queries-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-queries-"));
   cleanups.push(() => rm(root, { recursive: true, force: true }));
   const seen: { operation: string; body: Record<string, unknown> }[] = [];
   let failed = false;
@@ -112,13 +112,13 @@ it("dispatches make before querying, prints revision-only output, and keeps fail
     new Promise<{ code: number | null; out: string; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
           },
           windowsHide: true,

@@ -1,7 +1,7 @@
 import { readFile, realpath, stat, unlink } from "node:fs/promises";
 import { basename, dirname, resolve, relative, isAbsolute, extname } from "node:path";
 import { randomUUID } from "node:crypto";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import {
   queryRequest,
   queryClips,
@@ -9,8 +9,8 @@ import {
   QueryError,
   clipMediaID,
   queryDefinitions,
-} from "@sidecut/core/project-queries";
-import { validateProject } from "@sidecut/core/validation";
+} from "@raee/core/project-queries";
+import { validateProject } from "@raee/core/validation";
 import { freshProject, type HostProjectService } from "./project-service.ts";
 import { scanFolder, mediaRole } from "./folder-scanner.ts";
 import type { NativeMedia } from "./native-media.ts";
@@ -19,29 +19,29 @@ import {
   serviceFields,
   requestJsonSchema,
   serviceRequired,
-} from "@sidecut/core/service-requests";
+} from "@raee/core/service-requests";
 import {
   clipChanges,
   editOutcome,
   revisionFile,
   restorePlan,
   diffEdits,
-} from "@sidecut/core/service-edits";
-import { ProjectCoordinator, EditError, type JournalEntry } from "@sidecut/core/coordinator";
-import { helperPlan } from "@sidecut/core/service-speech";
+} from "@raee/core/service-edits";
+import { ProjectCoordinator, EditError, type JournalEntry } from "@raee/core/coordinator";
+import { helperPlan } from "@raee/core/service-speech";
 import { serviceOutput } from "./service-output.ts";
-import { encodeProjectFile } from "@sidecut/contracts/project";
-import { safeArchivePath } from "@sidecut/core/archive";
-import { checkRanges } from "@sidecut/core/quality-check";
-import { reviewQuery } from "@sidecut/core/service-review";
-import { effectsCatalog } from "@sidecut/core/effects";
-import { importEDL, object } from "@sidecut/core/interchange";
+import { encodeProjectFile } from "@raee/contracts/project";
+import { safeArchivePath } from "@raee/core/archive";
+import { checkRanges } from "@raee/core/quality-check";
+import { reviewQuery } from "@raee/core/service-review";
+import { effectsCatalog } from "@raee/core/effects";
+import { importEDL, object } from "@raee/core/interchange";
 import { readOBSSource } from "./obs-import.ts";
 import { readFilmoraSource } from "./filmora-import.ts";
-import { analysisKinds, decodeQueryState } from "@sidecut/core/query-state";
-import { serviceExportPlan } from "@sidecut/core/service-export";
-import { speechTracks } from "@sidecut/core/speech";
-import { resolveServiceMedia, isCameraTake } from "@sidecut/core/service-sync";
+import { analysisKinds, decodeQueryState } from "@raee/core/query-state";
+import { serviceExportPlan } from "@raee/core/service-export";
+import { speechTracks } from "@raee/core/speech";
+import { resolveServiceMedia, isCameraTake } from "@raee/core/service-sync";
 import { folderArchive } from "./service-archive.ts";
 import { writeProjectCommandOutput } from "./project-command-output.ts";
 import { relinkPlan, fileFingerprint } from "./service-relink.ts";

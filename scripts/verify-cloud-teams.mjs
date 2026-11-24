@@ -5,7 +5,7 @@ import { resolve, join, relative, isAbsolute, extname } from "node:path";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../apps/web/.cloudflare");
-const configured = process.env.SIDECUT_CLOUD_CONFIGURED === "1";
+const configured = process.env.RAEE_CLOUD_CONFIGURED === "1";
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",

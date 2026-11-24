@@ -1,6 +1,6 @@
 import { expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { decodeAsset } from "@raee/contracts/assets";
 import { ProjectCoordinator } from "./coordinator";
 import { assetUsePlan, assetUses, projectCredits, recordAssetUse, creditsText } from "./asset-use";
 const asset = decodeAsset({

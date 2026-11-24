@@ -12,12 +12,12 @@ import { join, resolve, isAbsolute } from "node:path";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = process.env.SIDECUT_RECORDING_TEST_PROFILE;
+  profile = process.env.RAEE_RECORDING_TEST_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
 app.commandLine.appendSwitch("use-fake-device-for-media-stream");
-delete process.env.SIDECUT_RENDERER_URL;
+delete process.env.RAEE_RENDERER_URL;
 const result = {
   testedAt: new Date().toISOString(),
   platform: process.platform,
@@ -62,10 +62,10 @@ async function verify() {
     window.webContents.setBackgroundThrottling(false);
     const evaluate = (script) => window.webContents.executeJavaScript(script, true);
     await until(() =>
-      evaluate("Boolean(window.sidecutDesktop && document.querySelector('.editor-workspace'))"),
+      evaluate("Boolean(window.raeeDesktop && document.querySelector('.editor-workspace'))"),
     );
     const media = await evaluate(`(async () => {
-      const host = window.sidecutDesktop;
+      const host = window.raeeDesktop;
       const denied = async (constraints) => { try { const stream = await navigator.mediaDevices.getUserMedia(constraints); stream.getTracks().forEach(track => track.stop()); return false; } catch { return true; } };
       const outside = await denied({audio:true});
       const id = crypto.randomUUID();
@@ -98,10 +98,10 @@ async function verify() {
         answer = done;
       });
     await evaluate(
-      `window.captureID = crypto.randomUUID(); window.pendingCapture = window.sidecutDesktop.capturePrepare(window.captureID, {source:"camera",microphone:false}).then(() => false, () => true); true`,
+      `window.captureID = crypto.randomUUID(); window.pendingCapture = window.raeeDesktop.capturePrepare(window.captureID, {source:"camera",microphone:false}).then(() => false, () => true); true`,
     );
     await until(async () => Boolean(answer));
-    await evaluate("window.sidecutDesktop.captureRelease(window.captureID)");
+    await evaluate("window.raeeDesktop.captureRelease(window.captureID)");
     answer({ response: 1, checkboxChecked: false });
     assert.equal(await evaluate("window.pendingCapture"), true);
     result.checks.cancelledApprovalRejected = true;
@@ -132,7 +132,7 @@ async function verify() {
       );
     assert.deepEqual(await display(), {});
     await evaluate(
-      `window.captureID = crypto.randomUUID(); window.sidecutDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
+      `window.captureID = crypto.randomUUID(); window.raeeDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
     );
     assert.deepEqual(await display({ securityOrigin: "https://untrusted.example" }), {});
     assert.deepEqual(await display({ frame: null }), {});
@@ -140,9 +140,9 @@ async function verify() {
     assert.deepEqual(await display(), {});
     result.checks.untrustedDisplayRejected = true;
     result.checks.cancelledPickerRejected = true;
-    await evaluate("window.sidecutDesktop.captureRelease(window.captureID)");
+    await evaluate("window.raeeDesktop.captureRelease(window.captureID)");
     await evaluate(
-      `window.captureID = crypto.randomUUID(); window.sidecutDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
+      `window.captureID = crypto.randomUUID(); window.raeeDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
     );
     dialog.showMessageBox = () =>
       new Promise((done) => {
@@ -151,36 +151,36 @@ async function verify() {
     answer = undefined;
     const pendingDisplay = display();
     await until(async () => Boolean(answer));
-    await evaluate("window.sidecutDesktop.captureRelease(window.captureID)");
+    await evaluate("window.raeeDesktop.captureRelease(window.captureID)");
     answer({ response: 1, checkboxChecked: false });
     assert.deepEqual(await pendingDisplay, {});
     result.checks.stalePickerRejected = true;
     dialog.showMessageBox = async () => ({ response: 1, checkboxChecked: false });
     await evaluate(
-      `window.captureID = crypto.randomUUID(); window.sidecutDesktop.capturePrepare(window.captureID, {source:"screen",microphone:true})`,
+      `window.captureID = crypto.randomUUID(); window.raeeDesktop.capturePrepare(window.captureID, {source:"screen",microphone:true})`,
     );
     dialog.showMessageBox = async () => {
       available = false;
       return { response: 1, checkboxChecked: false };
     };
     assert.deepEqual(await display(), {});
-    await evaluate("window.sidecutDesktop.captureRelease(window.captureID)");
+    await evaluate("window.raeeDesktop.captureRelease(window.captureID)");
     available = true;
     dialog.showMessageBox = async () => ({ response: 1, checkboxChecked: false });
     await evaluate(
-      `window.captureID = crypto.randomUUID(); window.sidecutDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
+      `window.captureID = crypto.randomUUID(); window.raeeDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
     );
     assert.equal((await display()).video.id, source.id);
     assert.deepEqual(await display(), {});
-    await evaluate("window.sidecutDesktop.captureRelease(window.captureID)");
+    await evaluate("window.raeeDesktop.captureRelease(window.captureID)");
     result.checks.removedSourceRejected = true;
     result.checks.selectedSourceOnlyOnce = true;
     await evaluate(
-      `window.sidecutDesktop.capturePrepare(crypto.randomUUID(), {source:"microphone",microphone:false})`,
+      `window.raeeDesktop.capturePrepare(crypto.randomUUID(), {source:"microphone",microphone:false})`,
     );
     await window.webContents.reload();
     await until(() =>
-      evaluate("Boolean(window.sidecutDesktop && document.querySelector('.editor-workspace'))"),
+      evaluate("Boolean(window.raeeDesktop && document.querySelector('.editor-workspace'))"),
     );
     assert.equal(
       await evaluate(
@@ -200,16 +200,16 @@ async function verify() {
     });
     await foreign.loadURL("data:text/html,untrusted");
     await evaluate(
-      `window.captureID = crypto.randomUUID(); window.sidecutDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
+      `window.captureID = crypto.randomUUID(); window.raeeDesktop.capturePrepare(window.captureID, {source:"screen",microphone:false})`,
     );
     assert.deepEqual(
       await display({ frame: foreign.webContents.mainFrame, securityOrigin: "data://" }),
       {},
     );
-    await evaluate("window.sidecutDesktop.captureRelease(window.captureID)");
+    await evaluate("window.raeeDesktop.captureRelease(window.captureID)");
     assert.equal(
       await foreign.webContents.executeJavaScript(
-        `window.sidecutDesktop.capturePrepare("00000000-0000-4000-8000-000000000000",{source:"camera",microphone:false}).then(() => false, () => true)`,
+        `window.raeeDesktop.capturePrepare("00000000-0000-4000-8000-000000000000",{source:"camera",microphone:false}).then(() => false, () => true)`,
       ),
       true,
     );
@@ -219,7 +219,7 @@ async function verify() {
       systemPreferences.getMediaAccessStatus = () => "denied";
       assert.equal(
         await evaluate(
-          `window.sidecutDesktop.capturePrepare(crypto.randomUUID(),{source:"camera",microphone:false}).then(() => false, () => true)`,
+          `window.raeeDesktop.capturePrepare(crypto.randomUUID(),{source:"camera",microphone:false}).then(() => false, () => true)`,
         ),
         true,
       );
@@ -258,7 +258,7 @@ async function verify() {
     result.checks.appMicrophoneRecording = recording;
     assert.ok(recording.bytes > 0, JSON.stringify(recording));
     const stored = await evaluate(
-      `window.sidecutDesktop.storageRequest({type:"read",collection:"recordings"})`,
+      `window.raeeDesktop.storageRequest({type:"read",collection:"recordings"})`,
     );
     assert.equal(stored.length, 1);
     assert.equal(JSON.parse(stored[0].value).bytes, recording.bytes);
@@ -274,14 +274,14 @@ async function verify() {
       ),
     );
     const recovered = await evaluate(
-      `window.sidecutDesktop.storageRequest({type:"read",collection:"recordings"})`,
+      `window.raeeDesktop.storageRequest({type:"read",collection:"recordings"})`,
     );
     assert.deepEqual(recovered, stored);
     result.checks.recordingMetadataUnchanged = true;
     const recoveredBytes = await evaluate(`(async () => {
-      const rows = await window.sidecutDesktop.storageRequest({type:"read",collection:"recordings"});
+      const rows = await window.raeeDesktop.storageRequest({type:"read",collection:"recordings"});
       const entry = JSON.parse(rows[0].value);
-      const parts = await Promise.all(entry.chunks.map(chunk => window.sidecutDesktop.storageGetFile(chunk.id)));
+      const parts = await Promise.all(entry.chunks.map(chunk => window.raeeDesktop.storageGetFile(chunk.id)));
       return (await new Blob(parts).arrayBuffer()).byteLength;
     })()`);
     assert.equal(recoveredBytes, recording.bytes);

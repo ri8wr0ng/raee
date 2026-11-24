@@ -1,8 +1,8 @@
 import { useRef, useState, useSyncExternalStore } from "react";
-import type { Clip } from "@sidecut/contracts/project";
-import { Button } from "@sidecut/ui/components/button";
-import { FieldError } from "@sidecut/ui/components/field";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import type { Clip } from "@raee/contracts/project";
+import { Button } from "@raee/ui/components/button";
+import { FieldError } from "@raee/ui/components/field";
+import { Tip } from "@raee/ui/components/tooltip";
 import { RiResetLeftLine, RiUploadLine } from "@remixicon/react";
 import {
   ANIMATION_NAMES,
@@ -16,18 +16,18 @@ import {
   textContent,
   type RGBA,
   type TextStyle,
-} from "@sidecut/core/text";
+} from "@raee/core/text";
 import {
   fontAvailable,
   importFont,
   importedFonts,
   subscribeFonts,
-} from "@sidecut/platform-browser/text";
+} from "@raee/platform-browser/text";
 import { CommitInput } from "./commit-input";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
 import { useEditorSession } from "./editor-session";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Textarea } from "@raee/ui/components/textarea";
 
 let fontVersion = 0;
 const fontsChanged = (listener: () => void) =>

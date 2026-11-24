@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vite-plus/test";
 import { ProviderHTTP, providerInfo } from "./provider.ts";
 import { mockEnvironment } from "./test-support.ts";
-import { decodeProviderQuery, decodeGeneration } from "@sidecut/contracts/providers";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { decodeProviderQuery, decodeGeneration } from "@raee/contracts/providers";
+import { decodeAsset } from "@raee/contracts/assets";
 import { localProvider } from "./local.ts";
 import { authenticatedRequest } from "./transport.ts";
 import { AssetProviders } from "./index.ts";

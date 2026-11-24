@@ -7,9 +7,9 @@ import {
   type CSSProperties,
   type DragEvent,
 } from "react";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Slider } from "@sidecut/ui/components/slider";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Slider } from "@raee/ui/components/slider";
 import {
   RiAddLine,
   RiArrowDownLine,
@@ -48,8 +48,8 @@ import { Toggle } from "@ui-sdk/react/toggle";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { isTabNavigationKey } from "../workspace/tab-keys";
 import "./soundboard.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export type SoundboardActions = {
   scenes: readonly { id: string; name: string }[];

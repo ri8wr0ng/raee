@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import type { Asset } from "@sidecut/contracts/assets";
-import type { ProviderInfo } from "@sidecut/contracts/providers";
-import { BrowserAssetProviders, providerBridge } from "@sidecut/platform-browser/asset-providers";
-import type { AssetLibrary, LibraryEntry } from "@sidecut/platform-browser/asset-library";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldLabel, FieldDescription, FieldError } from "@sidecut/ui/components/field";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import type { Asset } from "@raee/contracts/assets";
+import type { ProviderInfo } from "@raee/contracts/providers";
+import { BrowserAssetProviders, providerBridge } from "@raee/platform-browser/asset-providers";
+import type { AssetLibrary, LibraryEntry } from "@raee/platform-browser/asset-library";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@raee/ui/components/field";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
+import { Textarea } from "@raee/ui/components/textarea";
 export function ProviderBrowser({
   library,
   onStored,

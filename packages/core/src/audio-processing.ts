@@ -1,5 +1,5 @@
 // Based on TandemRender audio processing. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, ClipEffect } from "@sidecut/contracts/project";
+import type { Clip, ClipEffect } from "@raee/contracts/project";
 import { effectsOf } from "./effect-editing";
 import { resolvedParams, effectDefinition } from "./effects";
 import { keyframeValue } from "./keyframes";

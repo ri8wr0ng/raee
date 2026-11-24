@@ -1,10 +1,10 @@
 import { mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { createHash } from "node:crypto";
-import { decodeProjectFile, encodeProjectFile, type ProjectFile } from "@sidecut/contracts/project";
-import { readZip, safeArchivePath } from "@sidecut/core/archive";
-import { QueryError } from "@sidecut/core/project-queries";
-import { object } from "@sidecut/core/interchange";
+import { decodeProjectFile, encodeProjectFile, type ProjectFile } from "@raee/contracts/project";
+import { readZip, safeArchivePath } from "@raee/core/archive";
+import { QueryError } from "@raee/core/project-queries";
+import { object } from "@raee/core/interchange";
 
 const hash = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const exists = (path: string) =>

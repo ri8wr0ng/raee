@@ -1,10 +1,10 @@
 // Ported from Editing.swift, StickerAnchor.swift and SyncedPlacement.swift at 735a9b8.
 // Upstream notice: tests/fixtures/tandem/TANDEM-LICENSE.
 import { Schema } from "effect";
-import { ClipSchema, TrackSchema } from "@sidecut/contracts/project";
-import type { Clip, Project, Track, MediaItem } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { Time, flicksPerFrame } from "@sidecut/contracts/time";
+import { ClipSchema, TrackSchema } from "@raee/contracts/project";
+import type { Clip, Project, Track, MediaItem } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { Time, flicksPerFrame } from "@raee/contracts/time";
 import type { EditContext } from "./timeline-editing";
 import {
   tracks,

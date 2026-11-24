@@ -1,6 +1,6 @@
 // Geometry and ordering from TandemRender/Effects.swift and FrameComposer.swift.
 // Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { ClipEffect } from "@sidecut/contracts/project";
+import type { ClipEffect } from "@raee/contracts/project";
 import { resolvedParams } from "./effects";
 export const pixelScale = (width: number, height: number) =>
   Math.max(1, Math.min(width, height)) / 1080;

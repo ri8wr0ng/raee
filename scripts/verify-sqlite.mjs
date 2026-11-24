@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 
-const base = process.env.SIDECUT_VERIFY_URL ?? "http://127.0.0.1:4270";
+const base = process.env.RAEE_VERIFY_URL ?? "http://127.0.0.1:4270";
 const root = resolve(import.meta.dirname, "..").replaceAll("\\", "/");
 const pageUrl = `${base}/@fs/${root}/tests/browser/sqlite.html`;
 const moduleUrl = `/@fs/${root}/tests/browser/sqlite.js`;

@@ -1,12 +1,7 @@
 import { open, realpath, stat } from "node:fs/promises";
 import { relative, resolve, isAbsolute, extname } from "node:path";
-import {
-  importOBS,
-  obsCollection,
-  obsImageRequests,
-  type OBSImage,
-} from "@sidecut/core/obs-import";
-import { safeArchivePath } from "@sidecut/core/archive";
+import { importOBS, obsCollection, obsImageRequests, type OBSImage } from "@raee/core/obs-import";
+import { safeArchivePath } from "@raee/core/archive";
 
 function within(root: string, path: string) {
   const rel = relative(root, path);

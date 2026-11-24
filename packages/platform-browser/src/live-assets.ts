@@ -1,6 +1,6 @@
-import type { LiveAssets } from "@sidecut/core/live-assets";
+import type { LiveAssets } from "@raee/core/live-assets";
 
-/** Procedural SideCut assets, evaluated from frame time without timers or external media. */
+/** Procedural raE.E assets, evaluated from frame time without timers or external media. */
 export function paintLiveBackground(
   ctx: CanvasRenderingContext2D,
   assets: LiveAssets,

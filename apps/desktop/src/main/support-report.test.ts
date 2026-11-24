@@ -4,21 +4,21 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { SideCutClient } from "../../../../packages/client/src/index";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { RaeeClient } from "../../../../packages/client/src/index";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { HostProjectService, freshProject } from "./project-service.ts";
 import { NativeProjectStore } from "./project-store.ts";
 import { ProjectAPI } from "./project-api.ts";
 import { LocalHTTPService } from "./http-service.ts";
 import { supportReport } from "./support-report.ts";
-import type { NativeRecording } from "@sidecut/contracts/native-recording";
+import type { NativeRecording } from "@raee/contracts/native-recording";
 
 const cleanup: (() => Promise<unknown>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-support-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-support-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "private-project.tandem")));
   await host.start();
@@ -53,11 +53,11 @@ it("exports only approved technical fields through HTTP, SDK and the real CLI", 
   const server = new LocalHTTPService(api);
   const endpoint = await server.start();
   cleanup.push(() => server.close());
-  const client = new SideCutClient(endpoint);
+  const client = new RaeeClient(endpoint);
   const result = await client.diagnostics({ output: "support.json" });
   expect(result).toMatchObject({
     report: {
-      format: "sidecut-support",
+      format: "raee-support",
       version: 1,
       project: { mediaCount: 1, saveState: "saved" },
       services: { rendererReady: false, nativeMediaConfigured: false },
@@ -81,10 +81,10 @@ it("exports only approved technical fields through HTTP, SDK and the real CLI", 
   await writeFile(discovery, JSON.stringify(endpoint));
   const { stdout } = await promisify(execFile)(
     process.execPath,
-    [resolve("scripts/sidecut-cli.mjs"), "diagnostics", "--endpoint-file", discovery, "--json"],
+    [resolve("scripts/raee-cli.mjs"), "diagnostics", "--endpoint-file", discovery, "--json"],
     { windowsHide: true },
   );
-  expect(JSON.parse(stdout)).toMatchObject({ report: { format: "sidecut-support", version: 1 } });
+  expect(JSON.parse(stdout)).toMatchObject({ report: { format: "raee-support", version: 1 } });
   expect(host.snapshot().json).toBe(before);
 }, 30000);
 

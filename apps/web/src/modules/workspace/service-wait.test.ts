@@ -1,5 +1,5 @@
 import { it, expect, vi } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { BrowserProjectSession } from "./browser-session";
 import { waitService } from "./service-wait";
 

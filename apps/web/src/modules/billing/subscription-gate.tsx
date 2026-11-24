@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { buttonVariants } from "@sidecut/ui/components/button";
+import { buttonVariants } from "@raee/ui/components/button";
 import { billingActive, useSubscription } from "./billing";
 
 export function SubscriptionGate({

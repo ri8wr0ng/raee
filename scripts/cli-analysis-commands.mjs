@@ -56,8 +56,7 @@ export function prepareAnalysisCommand(parsed) {
     const ids = positional.slice(1),
       all = flags.has("all"),
       label = flags.get("label"),
-      author =
-        flags.get("author") ?? process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli",
+      author = flags.get("author") ?? process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli",
       expected = flags.get("expected-revision");
     if (all === Boolean(ids.length)) throw new Error("Give comment IDs or --all, not both.");
     if (flags.has("input") || flags.has("request"))
@@ -145,7 +144,7 @@ export function prepareAnalysisCommand(parsed) {
     prepare(input) {
       input = { ...input };
       if (["sync", "restore", "transcribe"].includes(operation) && input.author == null)
-        input.author = process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
+        input.author = process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
       if (operation === "restore" && input.apply == null) input.apply = false;
       if (operation === "transcribe" && input.wait == null) input.wait = false;
       if (operation === "wait" && input.what == null) input.what = "jobs";
@@ -194,7 +193,7 @@ export function analysisText(operation, r) {
     }
     lines.push(
       "",
-      'Do what each asks and label the edit with what you did. Remove the comment in the same apply batch, {"removeMarker": {"markerID": "<id>"}}, or afterwards with sidecut comments resolve <id>. Comments move with ripple edits, so read them again after one.',
+      'Do what each asks and label the edit with what you did. Remove the comment in the same apply batch, {"removeMarker": {"markerID": "<id>"}}, or afterwards with raee comments resolve <id>. Comments move with ripple edits, so read them again after one.',
     );
     return lines.join("\n");
   }
@@ -241,7 +240,7 @@ export function analysisText(operation, r) {
     }
     lines.push(
       r.defaultDelay === 0
-        ? "New camera takes keep their picture as recorded (sidecut sync <seconds> --default sets a delay for them)."
+        ? "New camera takes keep their picture as recorded (raee sync <seconds> --default sets a delay for them)."
         : `New camera takes get ${ms(r.defaultDelay)} (raE.E's settings).`,
     );
     return lines.join("\n");
@@ -266,7 +265,7 @@ export function analysisText(operation, r) {
       lines.push(
         `  ${r.what === "jobs" ? `${item.kind} ` : ""}${item.path}${item.mode ? ` (${item.mode})` : ""}: ${state(item)}`,
       );
-    if (r.timedOut) lines.push("Run the same `sidecut wait` again to keep waiting.");
+    if (r.timedOut) lines.push("Run the same `raee wait` again to keep waiting.");
     return lines.join("\n");
   }
   if (operation === "transcribe") {
@@ -284,11 +283,11 @@ export function analysisText(operation, r) {
       );
       if (pending.length)
         lines.push(
-          `\`sidecut wait transcript --media ${pending.map((f) => f.mediaID).join(" --media ")}\` waits for them.`,
+          `\`raee wait transcript --media ${pending.map((f) => f.mediaID).join(" --media ")}\` waits for them.`,
         );
     }
     const ready = r.files.find((f) => f.state === "ready");
-    if (ready?.mediaID) lines.push(`\`sidecut transcript ${ready.mediaID}\` reads it.`);
+    if (ready?.mediaID) lines.push(`\`raee transcript ${ready.mediaID}\` reads it.`);
     return lines.join("\n");
   }
   if (operation === "clips") {
@@ -318,7 +317,7 @@ export function analysisText(operation, r) {
     if (r.problem) lines.push(`It wouldn't apply as it stands: ${r.problem}`);
     if (r.applied)
       lines.push(
-        `Applied as revision ${r.applied.revision} ("${r.applied.label}"), one undo step. Undo with \`sidecut undo\`.`,
+        `Applied as revision ${r.applied.revision} ("${r.applied.label}"), one undo step. Undo with \`raee undo\`.`,
       );
     else if (changing.length)
       lines.push(
@@ -393,7 +392,7 @@ export function analysisText(operation, r) {
   } else lines.push(...changeLines(r.changes, "  "));
   if (r.changes.length)
     lines.push(
-      "Full detail (each clip before and after) with --json. Put clips back with sidecut restore --from <revision or file> --clips <ids>.",
+      "Full detail (each clip before and after) with --json. Put clips back with raee restore --from <revision or file> --clips <ids>.",
     );
   return lines.join("\n");
 }

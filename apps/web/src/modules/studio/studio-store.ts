@@ -1,4 +1,4 @@
-import { LiveStudio } from "@sidecut/core/live-studio";
+import { LiveStudio } from "@raee/core/live-studio";
 import type { Placement, SavedArrangements, SourceKind } from "./scene-sources";
 
 const DIRECTORY = "live-studio";

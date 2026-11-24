@@ -1,5 +1,5 @@
 // Model/frame checks from TandemCore/QualityCheck.swift at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project } from "@sidecut/contracts/project";
+import type { Project } from "@raee/contracts/project";
 import { queryClips, clipMediaID, QueryError } from "./project-queries";
 import { projectDuration } from "./render-plan";
 import { unionRanges, type Range } from "./speech";

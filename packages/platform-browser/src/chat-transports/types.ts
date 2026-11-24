@@ -1,4 +1,4 @@
-import type { ChatMessage } from "@sidecut/core/live-chat";
+import type { ChatMessage } from "@raee/core/live-chat";
 
 export type TransportStatus =
   | "disconnected"

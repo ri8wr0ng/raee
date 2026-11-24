@@ -126,7 +126,7 @@ The overview describes collections, incremental live queries, and optimistic
 mutations. Its SQLite persistence guide now explicitly supports local collections,
 browser workers with OPFS, and a main-process SQLite owner for Electron. It also
 documents coordinated multi-tab writes, durability failures, indeterminate
-commits, and schema mismatch policies. These need integration with SideCut's
+commits, and schema mismatch policies. These need integration with raE.E's
 existing recovery and ownership rules; persistence alone does not provide
 cross-device synchronization.
 

@@ -44,7 +44,7 @@ function setup(bytes: Uint8Array) {
     storagePutFile: vi.fn(async () => "legacy"),
     storageGetFile: vi.fn(async () => bytes),
   };
-  vi.stubGlobal("window", { sidecutDesktop: bridge });
+  vi.stubGlobal("window", { raeeDesktop: bridge });
   vi.stubGlobal("navigator", {
     storage: { getDirectory: async () => ({ getDirectoryHandle: async () => directory }) },
   });

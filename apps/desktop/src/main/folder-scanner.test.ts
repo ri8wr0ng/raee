@@ -10,7 +10,7 @@ afterEach(async () => {
 });
 describe("native folder catalogue", () => {
   it("uses reference exclusions, settles changed files, and emits no duplicate imports", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-scan-test-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-scan-test-"));
     roots.push(root);
     for (const folder of ["music", "exports", ".tandem", "node_modules", ".hidden"]) {
       await mkdir(join(root, folder));

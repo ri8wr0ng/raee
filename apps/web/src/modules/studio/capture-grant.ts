@@ -1,4 +1,4 @@
-import type { NativeBridge } from "@sidecut/contracts/desktop";
+import type { NativeBridge } from "@raee/contracts/desktop";
 import { nativeBridge } from "../workspace/host-coordinator";
 
 type Host = Pick<NativeBridge, "capturePrepare" | "captureRelease">;

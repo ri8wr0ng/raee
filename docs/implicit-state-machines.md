@@ -1,4 +1,4 @@
-# Implicit state machines in SideCut
+# Implicit state machines in raE.E
 
 Static source inventory, 2026-11-14. This report maps **76 workflow families** across the web editor, browser platform, desktop host, cloud backend, asset providers, CLI host launcher, and landing page. A family can contain parallel or nested machines; this is not a count of independent finite-state machines.
 

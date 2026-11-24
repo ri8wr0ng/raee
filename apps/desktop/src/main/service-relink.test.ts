@@ -2,7 +2,7 @@ import { afterEach, expect, it } from "vite-plus/test";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { relinkPlan, fileFingerprint } from "./service-relink.ts";
 import { ProjectAPI } from "./project-api.ts";
 import { HostProjectService } from "./project-service.ts";
@@ -50,7 +50,7 @@ it("stops staging when another edit changes the project", async () => {
   }
 });
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-relink-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-relink-"));
   roots.push(root);
   await mkdir(join(root, "one"));
   await mkdir(join(root, "two"));

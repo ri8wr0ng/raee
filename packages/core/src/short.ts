@@ -1,6 +1,6 @@
 // Ported from TandemAPI/Short.swift. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { ProjectFile } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import type { ProjectFile } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import { ProjectCoordinator } from "./coordinator";
 import { PORTRAIT, isNineBySixteen, mediaIDOf, portraitSlot, type PortraitSlot } from "./formats";
 

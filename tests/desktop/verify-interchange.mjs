@@ -1,5 +1,5 @@
 // Requires the desktop build and the web dev server at 127.0.0.1:4270.
-// vp exec --filter @sidecut/desktop electron ../../tests/desktop/verify-interchange.mjs
+// vp exec --filter @raee/desktop electron ../../tests/desktop/verify-interchange.mjs
 import { app, BrowserWindow } from "electron";
 import { readFile, writeFile, rm } from "node:fs/promises";
 import { mkdtempSync } from "node:fs";
@@ -9,10 +9,10 @@ import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const profile = mkdtempSync(join(tmpdir(), "sidecut-interchange-"));
+const profile = mkdtempSync(join(tmpdir(), "raee-interchange-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 const findings = {};
 const evaluate = (window, source) => window.webContents.executeJavaScript(source);
 const wait = async (predicate) => {
@@ -70,7 +70,7 @@ async function verify() {
     const file={revision:0,project:{id:'prj_runtime_'+crypto.randomUUID(),name:'Portable runtime',media:[{id:'med_runtime',kind:'audio',path:'C:/unavailable/original.wav'}],audioTracks:[{id:'trk_runtime',name:'Voice',kind:'audio',clips:[{id:'clip_runtime',content:{media:{mediaID:'med_runtime'}},start:0,duration:.2,sourceStart:.1}]}]}};
     await fixtureSession.openProject(new File([JSON.stringify(file)],'runtime.tandem'));
     await fixtureSession.relinkMedia('med_runtime',new File([new Uint8Array(${JSON.stringify([...audio])})],'speech.wav',{type:'audio/wav'}));
-    return {bridge:typeof window.sidecutDesktop,revision:fixtureSession.getSnapshot().revision,resource:(await fixtureSession.resource('med_runtime')).state};
+    return {bridge:typeof window.raeeDesktop,revision:fixtureSession.getSnapshot().revision,resource:(await fixtureSession.resource('med_runtime')).state};
   })()`,
     );
     assert.equal(findings.browser.bridge, "undefined");

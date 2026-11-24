@@ -89,7 +89,7 @@ journal/media check using the MP4 SHA-256. See the latest
 This checks packaged codec/storage behavior; physical device capture remains a
 separate platform gate.
 
-For local troubleshooting, `diagnostics --output sidecut-support.json --json`
+For local troubleshooting, `diagnostics --output raee-support.json --json`
 creates a versioned report in the project's exports folder. It contains selected
 technical counts/status and excludes project content, paths, credentials and logs.
 See [support diagnostics and release limits](verification/lawn-videorc-release-diagnostics.md)

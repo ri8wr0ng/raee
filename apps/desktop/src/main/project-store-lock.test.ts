@@ -8,7 +8,7 @@ import { NativeProjectStore } from "./project-store.ts";
 import { DatabaseSync } from "node:sqlite";
 
 it("reclaims a lock only after its owner has exited and still excludes concurrent hosts", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-dead-owner-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-dead-owner-"));
   const path = join(root, "current.tandem"),
     first = new NativeProjectStore(path),
     second = new NativeProjectStore(path);
@@ -31,7 +31,7 @@ it("reclaims a lock only after its owner has exited and still excludes concurren
 });
 
 it("preserves malformed and live-owner locks", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-live-owner-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-live-owner-"));
   const path = join(root, "current.tandem"),
     store = new NativeProjectStore(path);
   try {
@@ -51,7 +51,7 @@ it("preserves malformed and live-owner locks", async () => {
 });
 
 it("does not reclaim a dead owner's file while another contender holds the recovery guard", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-recovery-guard-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-recovery-guard-"));
   const path = join(root, "current.tandem"),
     store = new NativeProjectStore(path);
   const guard = new DatabaseSync(`${path}.lock.sqlite`);

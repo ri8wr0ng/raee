@@ -1,7 +1,7 @@
 // Ported from TandemCore/ThroughEdits.swift at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, Project, Track } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { flicksPerFrame, Time } from "@sidecut/contracts/time";
+import type { Clip, Project, Track } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { flicksPerFrame, Time } from "@raee/contracts/time";
 import type { EditContext } from "./timeline-editing";
 import { end, tracks, requireClip, replace, tidy } from "./timeline-editing";
 

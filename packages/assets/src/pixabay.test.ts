@@ -3,7 +3,7 @@ import images from "../../../tests/fixtures/tandem/providers/pixabay_images.json
 import videos from "../../../tests/fixtures/tandem/providers/pixabay_videos.json";
 import { mockEnvironment } from "./test-support.ts";
 import { pixabayProvider } from "./pixabay.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 describe("108.03 Pixabay", () => {
   it("matches pinned IDs, renditions, attribution and request flags", async () => {
     const { env, requests } = mockEnvironment(images),

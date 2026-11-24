@@ -2,7 +2,7 @@ import { describe, it, expect } from "vite-plus/test";
 import data from "../../../tests/fixtures/tandem/providers/noto_api.json";
 import { mockEnvironment } from "./test-support.ts";
 import { notoProvider, notoAsset, NOTO_CREDIT } from "./noto.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 describe("108.08 Noto", () => {
   it("preserves reference codepoints and mandatory credit", async () => {
     const { env } = mockEnvironment(data, "browser");

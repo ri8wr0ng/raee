@@ -74,10 +74,10 @@ await writeFile(
 const notices = join(stage, "resources/licenses");
 const cli = join(stage, "resources/cli");
 await mkdir(cli, { recursive: true });
-await cp(join(root, "scripts/sidecut-cli.mjs"), join(cli, "sidecut-cli.mjs"));
+await cp(join(root, "scripts/raee-cli.mjs"), join(cli, "raee-cli.mjs"));
 await cp(join(root, "scripts/headless-host.mjs"), join(cli, "headless-host.mjs"));
 await cp(join(root, "scripts/host-client.mjs"), join(cli, "host-client.mjs"));
-await cp(join(root, "scripts/sidecut-run.mjs"), join(cli, "sidecut-run.mjs"));
+await cp(join(root, "scripts/raee-run.mjs"), join(cli, "raee-run.mjs"));
 await cp(join(root, "packages/client/dist"), join(cli, "sdk"), { recursive: true });
 await cp(join(root, "scripts/cli-project-commands.mjs"), join(cli, "cli-project-commands.mjs"));
 await cp(join(root, "scripts/edit-batch.schema.json"), join(cli, "edit-batch.schema.json"));
@@ -97,16 +97,16 @@ const zodRoot = dirname(workspaceRequire.resolve("zod/package.json"));
 await cp(zodRoot, join(cli, "node_modules/zod"), { recursive: true });
 if (process.platform === "win32")
   await writeFile(
-    join(cli, "sidecut.cmd"),
-    '@echo off\r\nsetlocal\r\nset "ELECTRON_RUN_AS_NODE=1"\r\n"%~dp0..\\..\\raE.E.exe" "%~dp0sidecut-cli.mjs" %*\r\n',
+    join(cli, "raee.cmd"),
+    '@echo off\r\nsetlocal\r\nset "ELECTRON_RUN_AS_NODE=1"\r\n"%~dp0..\\..\\raE.E.exe" "%~dp0raee-cli.mjs" %*\r\n',
   );
 else {
   const binary = process.platform === "darwin" ? "../../MacOS/raE.E" : "../../raee";
   await writeFile(
-    join(cli, "sidecut"),
-    `#!/bin/sh\nSIDECUT_CLI_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexport ELECTRON_RUN_AS_NODE=1\nexec "$SIDECUT_CLI_DIR/${binary}" "$SIDECUT_CLI_DIR/sidecut-cli.mjs" "$@"\n`,
+    join(cli, "raee"),
+    `#!/bin/sh\nRAEE_CLI_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexport ELECTRON_RUN_AS_NODE=1\nexec "$RAEE_CLI_DIR/${binary}" "$RAEE_CLI_DIR/raee-cli.mjs" "$@"\n`,
   );
-  await chmod(join(cli, "sidecut"), 0o755);
+  await chmod(join(cli, "raee"), 0o755);
 }
 await mkdir(notices, { recursive: true });
 await cp(join(commanderRoot, "LICENSE"), join(notices, "commander-LICENSE"));

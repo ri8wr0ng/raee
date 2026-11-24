@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { useEditorSession } from "./editor-session";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 export function JobStatus() {
   const { session } = useEditorSession();
   const jobs = useSyncExternalStore(

@@ -41,7 +41,7 @@ export function queryHelp(topic) {
     frames:
       "frames [TIME ...] [--every TIME --from TIME --to TIME] [--width PIXELS] [-o FILE.png] [--format ID] [--json]",
     screenshot:
-      "screenshot [-o FILE.png] [--json]\nDefault output: sidecut-window.png in the managed exports folder.",
+      "screenshot [-o FILE.png] [--json]\nDefault output: raee-window.png in the managed exports folder.",
     clip: "clip START END [--preset NAME] [--tracks NAME,NAME] [--audio-only] [-o FILE] [--json]",
     export: "export [--preset NAME] [--from TIME --to TIME] [--format ID] [-o FILE] [--json]",
     loudness:
@@ -71,7 +71,7 @@ export function queryHelp(topic) {
       "cards [--kicker WORDS] [--duration TIME] [--insert] [--no-sounds] [--marker ID ...] [--track ID] [--apply] [--expect REVISION] [--json]",
   }[topic];
   return usage
-    ? `Usage: sidecut ${usage}\nReadable output is the default; --json preserves the service result.${helpers.has(topic) && topic !== "pauses" ? "\nPreview by default. --apply commits; --label and --author annotate the edit." : ""}\n--project PATH selects a project; --endpoint-file PATH selects its authenticated running host.`
+    ? `Usage: raee ${usage}\nReadable output is the default; --json preserves the service result.${helpers.has(topic) && topic !== "pauses" ? "\nPreview by default. --apply commits; --label and --author annotate the edit." : ""}\n--project PATH selects a project; --endpoint-file PATH selects its authenticated running host.`
     : undefined;
 }
 export function prepareQueryCommand(parsed) {
@@ -235,7 +235,7 @@ export function prepareQueryCommand(parsed) {
       if (helpers.has(operation) && operation !== "pauses") {
         if (input.apply == null) input.apply = false;
         if (input.author == null)
-          input.author = process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
+          input.author = process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
       }
       if (operation === "timeline" && input.format == null)
         input.format = flags.has("json") ? "json" : "text";
@@ -330,7 +330,7 @@ export function queryText(operation, result) {
     if (result.headless) lines.push("  open in: nothing else, read from the file for this command");
     else if (result.openIn)
       lines.push(
-        `  open in: ${result.openIn.owner === "app" ? "the raE.E app" : `sidecut ${result.openIn.owner}`} (pid ${result.openIn.pid})${result.openIn.port ? `, serving the API on port ${result.openIn.port}` : ""}`,
+        `  open in: ${result.openIn.owner === "app" ? "the raE.E app" : `raee ${result.openIn.owner}`} (pid ${result.openIn.pid})${result.openIn.port ? `, serving the API on port ${result.openIn.port}` : ""}`,
       );
     for (const key of ["undo", "redo"]) if (result[key]) lines.push(`  ${key}: ${result[key]}`);
     if (result.recoveredEdits)
@@ -356,7 +356,7 @@ export function queryText(operation, result) {
   }
   if (operation === "media") {
     if (!result.items.length)
-      return "No media in the project yet. Put files in the project folder and run `sidecut media --refresh`.";
+      return "No media in the project yet. Put files in the project folder and run `raee media --refresh`.";
     const lines = [],
       width = Math.max(...result.items.map((i) => i.id.length));
     if (result.added?.length)
@@ -409,7 +409,7 @@ export function queryText(operation, result) {
     if (!result.words.length) lines.push(result.missing.length ? "(no words yet)" : "(no words)");
     if (result.missing.length)
       lines.push(
-        `No transcript yet for: ${result.missing.join(", ")}. \`sidecut media\` shows progress.`,
+        `No transcript yet for: ${result.missing.join(", ")}. \`raee media\` shows progress.`,
       );
     return lines.join("\n");
   }
@@ -497,7 +497,7 @@ function reviewText(operation, r) {
   if (r.redo) lines.push(`Redo: ${r.redo}`);
   if (r.edits?.length) {
     lines.push(
-      "Edits, newest first (kept across restarts; sidecut diff --since <revision> shows what each did to the clips):",
+      "Edits, newest first (kept across restarts; raee diff --since <revision> shows what each did to the clips):",
     );
     for (let i = 0; i < r.edits.length; i++) {
       const edit = r.edits[i];
@@ -618,13 +618,13 @@ function helperText(operation, r) {
     for (const warning of r.warnings ?? []) lines.push(`Warning: ${warning}`);
     if (r.copy)
       lines.push(
-        `Made the short its own 1080x1920 project: ${r.copy}. This project is unchanged. Open the short with \`sidecut app "${r.copy}"\` and cut it down there; \`sidecut export --preset short\` renders it.`,
+        `Made the short its own 1080x1920 project: ${r.copy}. This project is unchanged. Open the short with \`raee app "${r.copy}"\` and cut it down there; \`raee export --preset short\` renders it.`,
       );
     else if (!applied && counts.length && r.commands.some((c) => c.adoptFormat))
       lines.push("Nothing written yet. Run again with --apply to make the copy.");
     else if (applied)
       lines.push(
-        `Applied as revision ${applied.revision}. Render it with \`sidecut export --preset short\` or look with \`sidecut frame <time> --format portrait\`.`,
+        `Applied as revision ${applied.revision}. Render it with \`raee export --preset short\` or look with \`raee frame <time> --format portrait\`.`,
       );
     else if (counts.length)
       lines.push("Nothing changed yet. Run again with --apply (or apply: true) to lay it out.");
@@ -676,7 +676,7 @@ function helperText(operation, r) {
   for (const warning of r.warnings ?? []) lines.push(`Warning: ${warning}`);
   if (applied)
     lines.push(
-      `Applied as revision ${applied.revision} ("${applied.label}"). Undo with \`sidecut undo\`.`,
+      `Applied as revision ${applied.revision} ("${applied.label}"). Undo with \`raee undo\`.`,
     );
   else if (action)
     lines.push(`Nothing changed yet. Run again with --apply (or apply: true) to ${action}.`);

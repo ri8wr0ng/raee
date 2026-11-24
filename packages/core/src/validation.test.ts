@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import type { Project } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
+import type { Project } from "@raee/contracts/project";
 import mini from "../../../tests/fixtures/tandem/mini.json";
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 import { validateProject } from "./validation";
 
 const fixture = () => decodeProjectFile(mini).project;

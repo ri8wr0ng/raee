@@ -1,4 +1,4 @@
-import { alignSound } from "@sidecut/core/sound-sync";
+import { alignSound } from "@raee/core/sound-sync";
 self.onmessage = (event: MessageEvent<{ reference: Float32Array; file: Float32Array }>) => {
   try {
     self.postMessage({ match: alignSound(event.data.reference, event.data.file) });

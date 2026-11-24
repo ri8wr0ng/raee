@@ -2,21 +2,21 @@ import * as React from "react";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@sidecut/ui/lib/utils";
+import { cn } from "@raee/ui/lib/utils";
 
-import { useIsMobile } from "@sidecut/ui/hooks/use-mobile";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Separator } from "@sidecut/ui/components/separator";
+import { useIsMobile } from "@raee/ui/hooks/use-mobile";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Separator } from "@raee/ui/components/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@sidecut/ui/components/sheet";
-import { Skeleton } from "@sidecut/ui/components/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@sidecut/ui/components/tooltip";
+} from "@raee/ui/components/sheet";
+import { Skeleton } from "@raee/ui/components/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@raee/ui/components/tooltip";
 import { RiSideBarLine } from "@remixicon/react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";

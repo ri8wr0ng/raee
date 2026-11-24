@@ -1,8 +1,8 @@
 // Behavior ported from TandemCore/Editing.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
 import { Schema } from "effect";
-import { EffectSchema } from "@sidecut/contracts/project";
-import type { Project, Clip, ClipEffect } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import { EffectSchema } from "@raee/contracts/project";
+import type { Project, Clip, ClipEffect } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import type { EditContext } from "./timeline-editing";
 import { requireClip, unlocked, replace } from "./timeline-editing";
 import { mergePatch } from "./json-merge-patch";

@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { MediaItem } from "@sidecut/contracts/project";
+import type { MediaItem } from "@raee/contracts/project";
 import { RiFileUploadLine, RiVoiceprintLine } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Button } from "@raee/ui/components/button";
+import { Tip } from "@raee/ui/components/tooltip";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
-import { readPreference, writePreference } from "@sidecut/platform-browser/preferences";
-import { TRANSCRIPTION_LANGUAGES } from "@sidecut/platform-browser/transcription-config";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { readPreference, writePreference } from "@raee/platform-browser/preferences";
+import { TRANSCRIPTION_LANGUAGES } from "@raee/platform-browser/transcription-config";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function MediaAnalysisControls({ item }: { item: MediaItem }) {
   const { session, snapshot } = useEditorSession();

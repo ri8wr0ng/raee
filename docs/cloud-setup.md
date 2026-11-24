@@ -10,7 +10,7 @@ Ran `pnpx workos@latest integrate --mode agent --no-tui --no-branch --no-git-che
 
 The checked-in `authKit.dev` configuration registers `http://localhost:3000/` and writes the public `VITE_WORKOS_CLIENT_ID` into the root `.env.local`. Vite runs from `apps/web`, whose local public settings now include that client ID, `VITE_CONVEX_URL`, and `VITE_WORKOS_DEV_MODE=true`. Keep API keys under server-only names. The installer also creates a claim token; account claiming remains a separate step through `pnpx workos@latest claim` from `apps/web`, because claiming permanently associates the environment with an account.
 
-1. Run `vp run dev:cloud` from the repository root and select the SideCut Convex project. This configures `CONVEX_DEPLOYMENT` and generates API bindings for `apps/cloud/src/convex`. Keep local environment files untracked.
+1. Run `vp run dev:cloud` from the repository root and select the raE.E Convex project. This configures `CONVEX_DEPLOYMENT` and generates API bindings for `apps/cloud/src/convex`. Keep local environment files untracked.
 2. Set `WORKOS_CLIENT_ID` in the Convex deployment's environment settings. It is a public identifier. The backend verifies WorkOS JWTs using the client-specific JWKS, following the [Convex AuthKit configuration](https://docs.convex.dev/auth/authkit/add-to-app).
 3. Configure the WorkOS environment's [JWT template](https://workos.com/docs/authkit/jwt-templates) to include typed, signed email claims:
 
@@ -62,7 +62,7 @@ Cloudflare video playback/transcoding will be assessed in LV014; this provider s
 
 `apps/cloud/src/convex/teams.test.ts` runs the real function handlers against Convex's in-memory test implementation. It covers unauthenticated calls, two-tenant isolation, verified-email binding, invitation expiry/revocation/replay, last-owner protection, administrator escalation, member removal, and inviter demotion.
 
-`vp run verify:cloud-teams` tests the unconfigured production build in Chromium, including dialog opening/reopening, Escape, focus return, mobile bounds, and page errors. Run it after `vp run build:cloudflare` without cloud variables. For a configured localhost build, set `SIDECUT_CLOUD_CONFIGURED=1`; this uses port 3000 and also verifies navigation to hosted WorkOS sign-in. Both modes passed. Configuration tests enforce HTTPS for remote backends and disable development token storage in production.
+`vp run verify:cloud-teams` tests the unconfigured production build in Chromium, including dialog opening/reopening, Escape, focus return, mobile bounds, and page errors. Run it after `vp run build:cloudflare` without cloud variables. For a configured localhost build, set `RAEE_CLOUD_CONFIGURED=1`; this uses port 3000 and also verifies navigation to hosted WorkOS sign-in. Both modes passed. Configuration tests enforce HTTPS for remote backends and disable development token storage in production.
 
 The WorkOS CLI's `verify-login` check passed real user creation, password authentication, and token checks, and removed its throwaway user. This checks the identity provider rather than completing browser OAuth. A scan of 141 public build files found none of the provisioned API key, cookie password, or claim token. Full repository checks passed with 638 tests. Local command output is retained in `logs/workos-*.log`.
 

@@ -16,9 +16,9 @@ afterEach(async () => {
   for (const action of cleanup.reverse().splice(0)) await action();
 });
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-obs-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-obs-"));
   cleanup.push(async () => {
-    if (!root.startsWith(join(tmpdir(), "sidecut-obs-"))) throw new Error("Invalid cleanup path");
+    if (!root.startsWith(join(tmpdir(), "raee-obs-"))) throw new Error("Invalid cleanup path");
     await rm(root, { recursive: true, force: true });
   });
   const assets = join(root, "assets");
@@ -48,7 +48,7 @@ describe("sandboxed OBS resources and host import", () => {
     const { stdout } = await promisify(execFile)(
       process.execPath,
       [
-        resolve("scripts/sidecut-cli.mjs"),
+        resolve("scripts/raee-cli.mjs"),
         "import",
         "obs",
         "collection.json",
@@ -90,9 +90,9 @@ describe("sandboxed OBS resources and host import", () => {
   }, 15000);
   it("does not follow unapproved, traversing, URL or junction image references", async () => {
     const { root, assets, path, profile, bytes } = await fixture();
-    const outside = await mkdtemp(join(tmpdir(), "sidecut-obs-external-"));
+    const outside = await mkdtemp(join(tmpdir(), "raee-obs-external-"));
     cleanup.push(async () => {
-      if (!outside.startsWith(join(tmpdir(), "sidecut-obs-external-")))
+      if (!outside.startsWith(join(tmpdir(), "raee-obs-external-")))
         throw new Error("Invalid cleanup path");
       await rm(outside, { recursive: true, force: true });
     });

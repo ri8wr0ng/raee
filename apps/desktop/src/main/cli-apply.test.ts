@@ -48,7 +48,7 @@ it("normalizes native sources, preserves aliases and rejects ambiguous apply req
 });
 
 it("applies file, inline and stdin batches atomically with dry runs, overrides and shared undo", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-apply-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-apply-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -63,15 +63,15 @@ it("applies file, inline and stdin batches atomically with dry runs, overrides a
     new Promise<{ code: number | null; out: string; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
-            SIDECUT_AUTHOR: "",
+            RAEE_AUTHOR: "",
             TANDEM_AUTHOR: "",
           },
           windowsHide: true,

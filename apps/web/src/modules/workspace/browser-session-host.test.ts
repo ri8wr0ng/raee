@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { FolderMedia, HostSnapshot, NativeBridge } from "@sidecut/contracts/desktop";
-import type { StorageRequest } from "@sidecut/contracts/storage";
-import { BrowserProjectStore } from "@sidecut/platform-browser/storage";
-import { DurableStorage } from "@sidecut/platform-browser/sqlite-client";
-import { renderWebM } from "@sidecut/platform-browser/export";
-import { probeLocalFile } from "@sidecut/platform-browser/media";
-import type * as MediaModule from "@sidecut/platform-browser/media";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { FolderMedia, HostSnapshot, NativeBridge } from "@raee/contracts/desktop";
+import type { StorageRequest } from "@raee/contracts/storage";
+import { BrowserProjectStore } from "@raee/platform-browser/storage";
+import { DurableStorage } from "@raee/platform-browser/sqlite-client";
+import { renderWebM } from "@raee/platform-browser/export";
+import { probeLocalFile } from "@raee/platform-browser/media";
+import type * as MediaModule from "@raee/platform-browser/media";
 import { BrowserProjectSession } from "./browser-session";
 
-vi.mock("@sidecut/platform-browser/export", () => ({ renderWebM: vi.fn() }));
-vi.mock("@sidecut/platform-browser/media", async (importOriginal) => ({
+vi.mock("@raee/platform-browser/export", () => ({ renderWebM: vi.fn() }));
+vi.mock("@raee/platform-browser/media", async (importOriginal) => ({
   ...(await importOriginal<typeof MediaModule>()),
   probeLocalFile: vi.fn(),
 }));
@@ -77,7 +77,7 @@ describe("native host session ownership", () => {
       projectFlush: async () => {},
       nativeMedia,
     } as unknown as NativeBridge;
-    vi.stubGlobal("window", { sidecutDesktop: bridge });
+    vi.stubGlobal("window", { raeeDesktop: bridge });
     vi.spyOn(BrowserProjectStore, "open").mockResolvedValue({
       resource: async () => null,
       putResource: async () => {},

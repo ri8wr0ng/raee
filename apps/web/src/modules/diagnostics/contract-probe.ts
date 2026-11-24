@@ -1,5 +1,5 @@
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 import empty from "../../../../../tests/fixtures/tandem/empty.json";
 import mini from "../../../../../tests/fixtures/tandem/mini.json";
 

@@ -1,6 +1,6 @@
 import { Schema } from "effect";
-import { EditBatchSchema } from "@sidecut/contracts/commands";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import { EditBatchSchema } from "@raee/contracts/commands";
+import type { EditCommand } from "@raee/contracts/commands";
 import {
   ClipSchema,
   MediaItemSchema,
@@ -8,9 +8,9 @@ import {
   TrackSchema,
   encodeProjectFile,
   decodeProjectFile,
-} from "@sidecut/contracts/project";
-import type { Project, ProjectFile } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+} from "@raee/contracts/project";
+import type { Project, ProjectFile } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 import { validateProject } from "./validation";
 import type { ValidationIssue } from "./validation";
 import { editTimeline, settleTimeline, EditContext, batchSeed } from "./timeline-editing";

@@ -52,8 +52,8 @@ it("loads validated keymap overrides and dispatches transport and range commands
   expect(view.getState().playing).toBe(false);
 });
 import { copyClips, pasteClips } from "./clipboard";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { ProjectCoordinator } from "@raee/core/coordinator";
 const key = (value: string, extra: Partial<KeyboardEvent> = {}) => ({
   key: value,
   ctrlKey: false,

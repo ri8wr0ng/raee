@@ -6,7 +6,7 @@ import { tmpdir, homedir } from "node:os";
 import { join, resolve } from "node:path";
 async function verify() {
   const root = resolve(import.meta.dirname, "../..");
-  const temp = mkdtempSync(join(tmpdir(), "sidecut-model-media-"));
+  const temp = mkdtempSync(join(tmpdir(), "raee-model-media-"));
   mkdirSync(join(temp, "profile"));
   const project = join(temp, "test.tandem");
   writeFileSync(project, JSON.stringify({ revision: 0, project: { id: "model-media" } }));
@@ -18,7 +18,7 @@ async function verify() {
     "headless-parent": String(process.pid),
   }))
     app.commandLine.appendSwitch(key, value);
-  process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+  process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
   const results = { platform: process.platform };
   let exitCode = 0;
   try {
@@ -42,7 +42,7 @@ async function verify() {
     const path = "/@fs/" + root.replaceAll("\\", "/");
     const model = (
       await readFile(
-        process.env.SIDECUT_RVM_MODEL ??
+        process.env.RAEE_RVM_MODEL ??
           join(homedir(), ".cache/sidecut-models/rvm_mobilenetv3_fp32.onnx"),
       )
     ).toString("base64");

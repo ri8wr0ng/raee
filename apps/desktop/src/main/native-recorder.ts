@@ -19,9 +19,9 @@ import type {
   NativeRecording,
   NativeRecordingRequest,
   NativeStreamStatus,
-} from "@sidecut/contracts/native-recording";
+} from "@raee/contracts/native-recording";
 import { nativeDevices, nativeInputs, type NativeInput } from "./native-recording-inputs.ts";
-import { decodeNativeRecording } from "@sidecut/contracts/native-recording";
+import { decodeNativeRecording } from "@raee/contracts/native-recording";
 import { streamingOutputs, streamDestination, streamDestinations } from "./native-streaming.ts";
 import {
   OperationRejected,

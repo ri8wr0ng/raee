@@ -1,5 +1,5 @@
 import { useConvexAuth, useQuery } from "convex/react";
-import { api } from "@sidecut/cloud/api";
+import { api } from "@raee/cloud/api";
 import type { FunctionReturnType } from "convex/server";
 import { useCloud } from "./cloud-context";
 

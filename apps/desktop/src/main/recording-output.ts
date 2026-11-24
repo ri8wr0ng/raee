@@ -1,8 +1,8 @@
 import { open, link, unlink, realpath } from "node:fs/promises";
 import { join, isAbsolute } from "node:path";
 import { randomUUID } from "node:crypto";
-import type { RecordingStore } from "@sidecut/core/recordings";
-import { recordingFilename } from "@sidecut/contracts/recordings";
+import type { RecordingStore } from "@raee/core/recordings";
+import { recordingFilename } from "@raee/contracts/recordings";
 
 /** Only the main process supplies this directory, after a user folder selection. */
 export async function exportSavedRecording(

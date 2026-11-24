@@ -1,6 +1,6 @@
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
-import { validateProject } from "@sidecut/core/validation";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { ProjectCoordinator } from "@raee/core/coordinator";
+import { validateProject } from "@raee/core/validation";
+import { decodeProjectFile } from "@raee/contracts/project";
 import mini from "../../../../../tests/fixtures/tandem/mini.json";
 
 export function runSessionProbe() {

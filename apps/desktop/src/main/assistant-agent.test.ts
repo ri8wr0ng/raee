@@ -12,7 +12,7 @@ const credentials = (saved: Record<string, string>) => ({
 });
 
 async function builtOutput() {
-  const folder = await mkdtemp(join(tmpdir(), "sidecut-assistant-agent-"));
+  const folder = await mkdtemp(join(tmpdir(), "raee-assistant-agent-"));
   await mkdir(join(folder, "server"));
   await writeFile(join(folder, "server", "index.mjs"), "");
   return folder;
@@ -72,7 +72,7 @@ describe("assistant agent process", () => {
   });
 
   it("reports a missing build instead of failing silently", async () => {
-    const folder = await mkdtemp(join(tmpdir(), "sidecut-assistant-agent-"));
+    const folder = await mkdtemp(join(tmpdir(), "raee-assistant-agent-"));
     const agent = new AssistantAgent(options(folder, { openai: "sk-test" }));
     await agent.configure({ provider: "openai", model: "gpt-x" });
     const connection = await agent.connect();
@@ -90,7 +90,7 @@ describe("assistant agent process", () => {
       Object.assign(child, { exitCode: null, signalCode: null, kill: () => true });
       return child;
     });
-    process.env.SIDECUT_UNRELATED_SECRET = "do-not-pass";
+    process.env.RAEE_UNRELATED_SECRET = "do-not-pass";
     const agent = new AssistantAgent({
       ...options(await builtOutput(), { openai: "sk-test", openrouter: "or-test" }),
       spawnServer,
@@ -104,20 +104,20 @@ describe("assistant agent process", () => {
       expect(connection.token).toMatch(/^[a-f0-9]{64}$/);
       expect(env).toMatchObject({
         HOST: "127.0.0.1",
-        SIDECUT_AGENT_TOKEN: connection.token,
-        SIDECUT_AGENT_PROVIDER: "openai",
-        SIDECUT_AGENT_MODEL: "gpt-x",
+        RAEE_AGENT_TOKEN: connection.token,
+        RAEE_AGENT_PROVIDER: "openai",
+        RAEE_AGENT_MODEL: "gpt-x",
         OPENAI_API_KEY: "sk-test",
         ELECTRON_RUN_AS_NODE: "1",
       });
       expect(env.OPENROUTER_API_KEY).toBeUndefined();
-      expect(env.SIDECUT_UNRELATED_SECRET).toBeUndefined();
+      expect(env.RAEE_UNRELATED_SECRET).toBeUndefined();
       expect(env.ANTHROPIC_API_KEY).toBeUndefined();
       // A second connect reuses the running agent.
       expect(await agent.connect()).toBe(connection);
       expect(spawnServer).toHaveBeenCalledTimes(1);
     } finally {
-      delete process.env.SIDECUT_UNRELATED_SECRET;
+      delete process.env.RAEE_UNRELATED_SECRET;
       await agent.close();
       health.close();
     }

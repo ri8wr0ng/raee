@@ -120,7 +120,7 @@ export function prepareLibraryCommand(parsed) {
     prepare(input) {
       input = { ...input };
       if (mutation && input.author == null)
-        input.author = process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
+        input.author = process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
       for (const key of ["at", "from", "to", "duration"])
         if (input[key] != null) input[key] = parseCommandTime(input[key]);
       if (operation === "assets-search") {
@@ -299,7 +299,7 @@ export function libraryText(operation, r) {
           lines.push(
             r.fontsReached === "app"
               ? "The raE.E app has it now too."
-              : "sidecut serve has it now too.",
+              : "raee serve has it now too.",
           );
         lines.push(...(r.fontWarnings ?? []).map((w) => `Warning: ${w}`));
       } else

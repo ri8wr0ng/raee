@@ -43,7 +43,7 @@ export class NativeMedia {
     )
       throw new Error("Invalid native encoding settings.");
     signal.throwIfAborted();
-    const folder = await mkdtemp(join(tmpdir(), "sidecut-media-")),
+    const folder = await mkdtemp(join(tmpdir(), "raee-media-")),
       input = join(folder, "input"),
       output = join(
         folder,

@@ -7,11 +7,11 @@ import { readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join, resolve, isAbsolute } from "node:path";
 const root = resolve(import.meta.dirname, "../..");
-const profile = process.env.SIDECUT_LONG_DELIVERY_PROFILE;
+const profile = process.env.RAEE_LONG_DELIVERY_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
+delete process.env.RAEE_RENDERER_URL;
 const require = createRequire(join(root, "apps/desktop/package.json"));
 const ffmpeg = require("ffmpeg-static"),
   ffprobe = require("ffprobe-static").path;
@@ -147,7 +147,7 @@ async function verify() {
     const ev = (s) => win.webContents.executeJavaScript(s, true);
     await until(
       () =>
-        ev("Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)").catch(
+        ev("Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)").catch(
           () => false,
         ),
       "editor",
@@ -164,7 +164,7 @@ async function verify() {
     const imported = await until(
       async () => {
         const p = await ev(
-          "JSON.parse(window.sidecutDesktop.projectRequest(JSON.stringify({type:'snapshot'})).snapshot.json).project",
+          "JSON.parse(window.raeeDesktop.projectRequest(JSON.stringify({type:'snapshot'})).snapshot.json).project",
         );
         return p.media.find((m) => m.nativeRecording?.id === id) && p;
       },
@@ -310,7 +310,7 @@ async function verify() {
     const recipe = await until(
       () =>
         ev(
-          `window.sidecutDesktop.storageRequest({type:'read',collection:'deliveries'}).then(rows=>rows.map(row=>JSON.parse(row.value))[0]?.recipe)`,
+          `window.raeeDesktop.storageRequest({type:'read',collection:'deliveries'}).then(rows=>rows.map(row=>JSON.parse(row.value))[0]?.recipe)`,
         ),
       "frozen range recipe",
     );

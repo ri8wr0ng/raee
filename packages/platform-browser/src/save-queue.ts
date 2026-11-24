@@ -1,4 +1,4 @@
-import type { ProjectFile } from "@sidecut/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
 
 /**
  * Identity of one queued save. `sequence` increases per enqueue; `latest` is the newest

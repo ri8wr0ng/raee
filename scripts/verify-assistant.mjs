@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Runs the built assistant (apps/agent/.output) against a scripted model and a stand-in desktop
 // host, then checks that host tools run through the shared adapters and that applied edits wait
-// for approval. Build first: vp run --filter @sidecut/agent build
+// for approval. Build first: vp run --filter @raee/agent build
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = join(root, "apps/agent/.output");
-const work = await mkdtemp(join(tmpdir(), "sidecut-assistant-"));
+const work = await mkdtemp(join(tmpdir(), "raee-assistant-"));
 
 const listen = (server) =>
   new Promise((done) => server.listen(0, "127.0.0.1", () => done(server.address().port)));
@@ -101,10 +101,10 @@ const child = spawn(process.execPath, [join(output, "server/index.mjs")], {
     PORT: String(agentPort),
     OPENROUTER_API_KEY: "test",
     OPENROUTER_BASE_URL: `http://127.0.0.1:${modelPort}/api/v1`,
-    SIDECUT_AGENT_PROVIDER: "openrouter",
-    SIDECUT_AGENT_MODEL: "mock/model",
-    SIDECUT_AGENT_TOKEN: token,
-    SIDECUT_API_FILE: apiFile,
+    RAEE_AGENT_PROVIDER: "openrouter",
+    RAEE_AGENT_MODEL: "mock/model",
+    RAEE_AGENT_TOKEN: token,
+    RAEE_API_FILE: apiFile,
     WORKFLOW_LOCAL_DATA_DIR: join(work, "data"),
     WORKFLOW_LOCAL_BASE_URL: baseUrl,
     EVE_SCHEDULES_DISABLED: "1",

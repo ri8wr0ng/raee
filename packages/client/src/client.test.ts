@@ -6,16 +6,16 @@ import { HostProjectService } from "../../../apps/desktop/src/main/project-servi
 import { NativeProjectStore } from "../../../apps/desktop/src/main/project-store.ts";
 import { ProjectAPI } from "../../../apps/desktop/src/main/project-api.ts";
 import { LocalHTTPService } from "../../../apps/desktop/src/main/http-service.ts";
-import { SideCutClient, ServiceError } from "./index";
+import { RaeeClient, ServiceError } from "./index";
 it("retries an ambiguously completed bulk edit once and preserves conflict details", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-client-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-client-"));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
   const server = new LocalHTTPService(new ProjectAPI(host)),
     endpoint = await server.start();
   try {
     let loseReply = true;
-    const client = new SideCutClient(endpoint, async (...args) => {
+    const client = new RaeeClient(endpoint, async (...args) => {
       const response = await fetch(...args);
       if (loseReply) {
         loseReply = false;

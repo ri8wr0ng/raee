@@ -1,9 +1,9 @@
 import { Fragment, useState, useSyncExternalStore } from "react";
 import { RiAddLine, RiDeleteBinLine, RiDownloadLine, RiScanLine } from "@remixicon/react";
-import type { Clip } from "@sidecut/contracts/project";
-import { cutoutSettings, type Cutout, type RepairMask } from "@sidecut/core/cutout";
-import { Button } from "@sidecut/ui/components/button";
-import { FieldError } from "@sidecut/ui/components/field";
+import type { Clip } from "@raee/contracts/project";
+import { cutoutSettings, type Cutout, type RepairMask } from "@raee/core/cutout";
+import { Button } from "@raee/ui/components/button";
+import { FieldError } from "@raee/ui/components/field";
 import {
   ActionRow,
   HiddenLabel,
@@ -14,10 +14,10 @@ import {
 } from "./inspector-layout";
 import { CommitInput } from "./commit-input";
 import { useEditorSession } from "./editor-session";
-import { pictureTime } from "@sidecut/core/render-plan";
-import { readPreference, writePreference } from "@sidecut/platform-browser/preferences";
-import type { MattingBackend } from "@sidecut/platform-browser/matting-models";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { pictureTime } from "@raee/core/render-plan";
+import { readPreference, writePreference } from "@raee/platform-browser/preferences";
+import type { MattingBackend } from "@raee/platform-browser/matting-models";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 const MASK_PAIRS = [
   [
@@ -84,7 +84,7 @@ export function CutoutControls({ clip }: { clip: Clip }) {
         item = snapshot.project.media.find((m) => m.id === mediaID);
       if (!item || resource?.state !== "available" || item.kind === "audio")
         throw new Error("Import this picture source before downloading a cutout frame.");
-      const { renderCutoutPNG } = await import("@sidecut/platform-browser/cutout");
+      const { renderCutoutPNG } = await import("@raee/platform-browser/cutout");
       const time = pictureTime(snapshot.project, clip, editor.getState().playhead.seconds);
       const blob = await renderCutoutPNG(resource.file, item.kind, time, settings),
         url = URL.createObjectURL(blob),

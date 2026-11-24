@@ -1,8 +1,8 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vite-plus/test";
 import { LiveStudioOutput } from "./live-studio";
-import { LiveStudio } from "@sidecut/core/live-studio";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { DEFAULT_LIVE_ASSETS, type LiveAssets } from "@sidecut/core/live-assets";
+import { LiveStudio } from "@raee/core/live-studio";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { DEFAULT_LIVE_ASSETS, type LiveAssets } from "@raee/core/live-assets";
 
 const mockContext = () => {
   const calls: string[] = [];

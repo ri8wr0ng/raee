@@ -9,7 +9,7 @@ const child = spawn(
     "run",
     "apps/desktop/src/main/native-streaming.test.ts",
   ],
-  { windowsHide: true, stdio: "inherit", env: { ...process.env, SIDECUT_STREAM_EVIDENCE: "1" } },
+  { windowsHide: true, stdio: "inherit", env: { ...process.env, RAEE_STREAM_EVIDENCE: "1" } },
 );
 const timer = setTimeout(() => child.kill(), 120000);
 child.on("error", () => {

@@ -9,10 +9,10 @@ import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../..");
-const profile = mkdtempSync(join(tmpdir(), "sidecut-render-quality-"));
+const profile = mkdtempSync(join(tmpdir(), "raee-render-quality-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 const require = createRequire(join(root, "apps/desktop/package.json"));
 const ffmpeg = require("ffmpeg-static");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import fixture from "../../../tests/fixtures/tandem/project-queries.json";
 import { queryClips, queryTimeline, queryRequest } from "./project-queries";
 

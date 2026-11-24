@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import { decodeAsset } from "@raee/contracts/assets";
 import { projectCredits, recordAssetUse, creditsText, assetSuggestions } from "./asset-use";
 import { ProjectCoordinator } from "./coordinator";
 describe("project asset provenance", () => {

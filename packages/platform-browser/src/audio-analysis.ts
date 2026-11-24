@@ -1,7 +1,7 @@
 import { yieldTask } from "./yield-task";
 import { derivedCache } from "./derived-cache";
-import { analysisVersion, LoudnessMeter } from "@sidecut/core/loudness";
-import type { MeasuredSound } from "@sidecut/core/loudness";
+import { analysisVersion, LoudnessMeter } from "@raee/core/loudness";
+import type { MeasuredSound } from "@raee/core/loudness";
 import type { LocalMediaReader } from "./preview";
 
 const memory = new Map<string, MeasuredSound>();

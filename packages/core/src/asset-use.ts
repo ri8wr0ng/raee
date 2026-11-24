@@ -1,6 +1,6 @@
 // TandemAssets/Library/ProjectUse.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import { decodeAsset, type Asset } from "@sidecut/contracts/assets";
-import type { Project, ProjectFile } from "@sidecut/contracts/project";
+import { decodeAsset, type Asset } from "@raee/contracts/assets";
+import type { Project, ProjectFile } from "@raee/contracts/project";
 import { QueryError } from "./project-queries";
 
 export const ASSET_USES = "sidecut.assetUses";

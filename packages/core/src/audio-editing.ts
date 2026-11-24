@@ -1,6 +1,6 @@
 // Ported from TandemCore/AudioLevels.swift and Editing.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project, Clip, Track, ClipEffect } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import type { Project, Clip, Track, ClipEffect } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import type { EditContext } from "./timeline-editing";
 import { normalizeGain } from "./audio-processing";
 import { effectsOf } from "./effect-editing";

@@ -12,7 +12,7 @@ export type Subscription = {
   loading: boolean;
 };
 
-// Declared locally: the shared @sidecut/cloud api object does not list billing yet.
+// Declared locally: the shared @raee/cloud api object does not list billing yet.
 const billingMode = makeFunctionReference<
   "query",
   Record<string, never>,

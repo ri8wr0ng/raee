@@ -1,5 +1,5 @@
-import { decodeDelivery, type Delivery } from "@sidecut/contracts/delivery";
-import type { StorageRequest, StorageRow } from "@sidecut/contracts/storage";
+import { decodeDelivery, type Delivery } from "@raee/contracts/delivery";
+import type { StorageRequest, StorageRow } from "@raee/contracts/storage";
 
 export class DeliveryStore {
   constructor(

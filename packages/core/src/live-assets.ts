@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import type { Project } from "@sidecut/contracts/project";
+import type { Project } from "@raee/contracts/project";
 
 export const LIVE_BACKGROUNDS = [
   "solid",

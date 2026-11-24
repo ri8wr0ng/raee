@@ -1,21 +1,21 @@
 {
-  "name": "@sidecut/landing",
+  "name": "@raee/landing",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "portless sidecut-landing vp dev --strictPort",
+    "dev": "portless raee-landing vp dev --strictPort",
     "generate-routes": "vp exec tsr generate",
     "build": "vp build",
     "brand-assets": "vp exec node scripts/brand-assets.mjs",
-    "preview": "portless sidecut-landing vp preview --strictPort",
+    "preview": "portless raee-landing vp preview --strictPort",
     "typecheck": "vp run generate-routes && vp exec tsc --noEmit && vp exec tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
+    "@raee/env": "workspace:*",
     "@remixicon/react": "catalog:",
-    "@sidecut/env": "workspace:*",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-start": "catalog:",
@@ -26,7 +26,7 @@
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
-    "@sidecut/config": "workspace:*",
+    "@raee/config": "workspace:*",
     "@tanstack/router-cli": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

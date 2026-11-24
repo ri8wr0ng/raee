@@ -1,6 +1,6 @@
 import { derivedCache } from "./derived-cache";
-import { authorizeProviderURL, readProviderResponse } from "@sidecut/assets/transport";
-import type { ProviderEnvironment, ProviderResponse } from "@sidecut/assets";
+import { authorizeProviderURL, readProviderResponse } from "@raee/assets/transport";
+import type { ProviderEnvironment, ProviderResponse } from "@raee/assets";
 export function browserProviderEnvironment(): ProviderEnvironment {
   return {
     mode: "browser",

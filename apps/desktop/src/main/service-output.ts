@@ -1,7 +1,7 @@
 import { mkdir, open, realpath, unlink } from "node:fs/promises";
 import { dirname, resolve, relative, isAbsolute } from "node:path";
-import { safeArchivePath } from "@sidecut/core/archive";
-import { QueryError } from "@sidecut/core/project-queries";
+import { safeArchivePath } from "@raee/core/archive";
+import { QueryError } from "@raee/core/project-queries";
 export async function serviceOutput(
   projectPath: string,
   name: string,

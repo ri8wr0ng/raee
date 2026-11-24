@@ -10,7 +10,7 @@
       "TandemAPI/AssetTypes.swift",
       "TandemAPI/SegmentCalls.swift"
     ],
-    "scope": "SideCut baseline requests derived from pinned reference types; not recorded upstream responses. Archive/relink use SideCut resource transports."
+    "scope": "raE.E baseline requests derived from pinned reference types; not recorded upstream responses. Archive/relink use raE.E resource transports."
   },
   "operations": [
     { "operation": "validate", "request": {} },

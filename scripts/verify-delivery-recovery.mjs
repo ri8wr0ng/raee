@@ -6,17 +6,17 @@ import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "..");
 const temp = await realpath(tmpdir());
-const profile = await mkdtemp(join(temp, "sidecut-delivery-recovery-"));
+const profile = await mkdtemp(join(temp, "raee-delivery-recovery-"));
 const rel = relative(temp, profile);
-assert.ok(rel.startsWith("sidecut-delivery-recovery-") && !rel.includes("..") && !isAbsolute(rel));
+assert.ok(rel.startsWith("raee-delivery-recovery-") && !rel.includes("..") && !isAbsolute(rel));
 const binary = createRequire(join(root, "apps/desktop/package.json"))("electron");
-const env = { ...process.env, SIDECUT_RECOVERY_PROFILE: profile };
+const env = { ...process.env, RAEE_RECOVERY_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
-delete env.SIDECUT_RENDERER_URL;
+delete env.RAEE_RENDERER_URL;
 async function run(phase) {
   return new Promise((resolveRun, reject) => {
     const child = spawn(binary, [join(root, "tests/desktop/verify-delivery-recovery.mjs")], {
-      env: { ...env, SIDECUT_RECOVERY_PHASE: String(phase) },
+      env: { ...env, RAEE_RECOVERY_PHASE: String(phase) },
       windowsHide: true,
       stdio: ["ignore", "pipe", "pipe"],
       detached: process.platform !== "win32",

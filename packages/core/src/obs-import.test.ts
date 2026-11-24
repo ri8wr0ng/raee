@@ -3,7 +3,7 @@ import collection from "../../../tests/fixtures/obs/collection.json";
 import { importOBS, obsCollection, obsProfile } from "./obs-import";
 import { LiveStudio } from "./live-studio";
 import { layerGeometry, sourceCrop, framePlan } from "./render-plan";
-import { encodeProjectFile, decodeProjectFile } from "@sidecut/contracts/project";
+import { encodeProjectFile, decodeProjectFile } from "@raee/contracts/project";
 
 const profile =
   "[Video]\nBaseCX=320\nBaseCY=180\nFPSType=2\nFPSNum=30000\nFPSDen=1001\n[Stream1]\nKey=PRIVATE_PROFILE_SECRET";

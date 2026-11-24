@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { LiveStudio, LiveStudioRenditions } from "./live-studio";
 import { layerGeometry, sourceCrop } from "./render-plan";
 

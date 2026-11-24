@@ -14,8 +14,8 @@
     },
     {
       "operation": "screenshot",
-      "result": { "path": "sidecut-window.png", "bytes": 512, "warnings": ["Notice"] },
-      "text": "Wrote sidecut-window.png (512 bytes).\nWarning: Notice"
+      "result": { "path": "raee-window.png", "bytes": 512, "warnings": ["Notice"] },
+      "text": "Wrote raee-window.png (512 bytes).\nWarning: Notice"
     },
     {
       "operation": "clip",
@@ -128,5 +128,5 @@
       "text": "The mix from 00:00.000 to 00:01.000, every 1 s, as the timeline plays it (export's master gain moves it all by the same amount).\nIntegrated silent, true peak silent.\nShort-term: \n1 window peaks over -3.0 dBFS, in 1 stretch:\n  00:00.200-00:00.600  peak -2.0 dBFS (1 window)\nA window is the 400 ms centred on a row; its peak is its highest sample.\nGain lanes against the render, 00:00.000 to 00:01.000:\n  Voice  follows its lane (1 s compared, within 0.2 dB)"
     }
   ],
-  "notice": "Synthetic pinned expectations adapted to SideCut names. TANDEM-LICENSE applies; native reference execution remains unverified."
+  "notice": "Synthetic pinned expectations adapted to raE.E names. TANDEM-LICENSE applies; native reference execution remains unverified."
 }

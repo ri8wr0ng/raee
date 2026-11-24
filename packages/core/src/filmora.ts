@@ -9,9 +9,9 @@ import {
   type FilmoraProperties,
   type FilmoraMappedEffect,
 } from "./filmora-properties";
-import type { Clip } from "@sidecut/contracts/project";
+import type { Clip } from "@raee/contracts/project";
 import { mediaRole } from "./media-role";
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 import { filmoraTransitions, type FilmoraEdge } from "./filmora-transitions";
 
 import { filmoraString, filmoraTicks, linkedVideo } from "./filmora-values";

@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import { useCloud } from "@/modules/cloud/cloud-provider";
 import { AppPage } from "@/modules/shell/app-shell";
 import { useEditorSession } from "@/modules/workspace/editor-session";

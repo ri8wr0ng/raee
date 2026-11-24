@@ -16,7 +16,7 @@ afterEach(async () => {
   for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true });
 });
 async function directory() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-foundation-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-foundation-"));
   roots.push(root);
   return root;
 }
@@ -122,7 +122,7 @@ it("serves help and version without project discovery or authentication", async 
   for (const args of [["help", "segments"], ["segments", "-h"], ["-v"]]) {
     const result = await new Promise<{ code: number | null; out: string; err: string }>(
       (complete, reject) => {
-        const child = spawn(process.execPath, [resolve("scripts/sidecut-cli.mjs"), ...args], {
+        const child = spawn(process.execPath, [resolve("scripts/raee-cli.mjs"), ...args], {
           cwd: root,
           windowsHide: true,
         });
@@ -136,6 +136,6 @@ it("serves help and version without project discovery or authentication", async 
     );
     expect(result.code).toBe(0);
     expect(result.err).toBe("");
-    expect(result.out).toMatch(/sidecut (segments|0.0.1)/);
+    expect(result.out).toMatch(/raee (segments|0.0.1)/);
   }
 });

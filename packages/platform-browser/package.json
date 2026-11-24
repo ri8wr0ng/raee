@@ -1,5 +1,5 @@
 {
-  "name": "@sidecut/platform-browser",
+  "name": "@raee/platform-browser",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -59,9 +59,9 @@
     "@huggingface/transformers": "4.3.1",
     "@jitsi/rnnoise-wasm": "0.2.1",
     "@mediapipe/tasks-vision": "0.10.32",
-    "@sidecut/assets": "workspace:*",
-    "@sidecut/contracts": "workspace:*",
-    "@sidecut/core": "workspace:*",
+    "@raee/assets": "workspace:*",
+    "@raee/contracts": "workspace:*",
+    "@raee/core": "workspace:*",
     "@sqlite.org/sqlite-wasm": "3.54.1-build1",
     "effect": "catalog:",
     "lottie-web": "5.13.0",
@@ -69,7 +69,7 @@
     "onnxruntime-web": "1.31.0-dev.20260914-8d85527a0"
   },
   "devDependencies": {
-    "@sidecut/config": "workspace:*",
+    "@raee/config": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   }

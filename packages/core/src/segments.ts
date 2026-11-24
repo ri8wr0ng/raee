@@ -1,9 +1,9 @@
 // TandemAPI/Segments.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
 import { decodeTemplate, type Template } from "./templates";
-import { Time } from "@sidecut/contracts/time";
-import type { Project, Clip, MediaItem } from "@sidecut/contracts/project";
+import { Time } from "@raee/contracts/time";
+import type { Project, Clip, MediaItem } from "@raee/contracts/project";
 import { assetUses, type AssetUse } from "./asset-use";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { decodeAsset } from "@raee/contracts/assets";
 import { QueryError } from "./project-queries";
 import { textContent, resolveText } from "./text";
 export interface SavedSegment {

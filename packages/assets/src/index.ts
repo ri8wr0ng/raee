@@ -1,7 +1,7 @@
 export * from "./provider.ts";
 export { notoAsset } from "./noto.ts";
-import { decodeAsset, type Asset } from "@sidecut/contracts/assets";
-import { decodeProviderQuery, decodeGeneration } from "@sidecut/contracts/providers";
+import { decodeAsset, type Asset } from "@raee/contracts/assets";
+import { decodeProviderQuery, decodeGeneration } from "@raee/contracts/providers";
 import {
   ProviderHTTP,
   ProviderError,

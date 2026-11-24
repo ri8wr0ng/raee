@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 // Emscripten's public ABI uses underscore names. Jitsi wrapper: Apache-2.0; RNNoise: BSD.
 import createModule from "@jitsi/rnnoise-wasm/dist/rnnoise-sync.js";
-import { cleanVoice } from "@sidecut/core/audio-processing";
+import { cleanVoice } from "@raee/core/audio-processing";
 const scope = globalThis as unknown as {
   onmessage: (event: MessageEvent<Float32Array[]>) => void;
   postMessage: (message: unknown, transfer?: Transferable[]) => void;

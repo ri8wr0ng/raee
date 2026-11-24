@@ -8,10 +8,10 @@ import { pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-sdk-runtime-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-sdk-runtime-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 async function wait(predicate) {
   const until = Date.now() + 30000;
@@ -94,14 +94,14 @@ async function verify() {
           [
             "--input-type=module",
             "--eval",
-            `import assert from 'node:assert/strict';import {openProjectClient,SideCutClient,cmd,fixCaptionWords,ServiceError} from ${JSON.stringify(pathToFileURL(join(root, "packages/client/dist/node.mjs")).href)};const t=await openProjectClient(${JSON.stringify(projectPath)},{endpointFile:${JSON.stringify(endpointFile)},author:'sdk-runtime'});${body}`,
+            `import assert from 'node:assert/strict';import {openProjectClient,RaeeClient,cmd,fixCaptionWords,ServiceError} from ${JSON.stringify(pathToFileURL(join(root, "packages/client/dist/node.mjs")).href)};const t=await openProjectClient(${JSON.stringify(projectPath)},{endpointFile:${JSON.stringify(endpointFile)},author:'sdk-runtime'});${body}`,
           ],
           {
             cwd: profile,
             env: {
               ...process.env,
               ELECTRON_RUN_AS_NODE: "1",
-              SIDECUT_PROJECT: "",
+              RAEE_PROJECT: "",
               TANDEM_PROJECT: "",
             },
             windowsHide: true,

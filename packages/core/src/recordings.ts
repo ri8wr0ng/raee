@@ -3,8 +3,8 @@ import {
   recordingChunkLimit,
   recordingStorageLimit,
   type RecordingEntry,
-} from "@sidecut/contracts/recordings";
-import type { StorageRequest, StorageRow } from "@sidecut/contracts/storage";
+} from "@raee/contracts/recordings";
+import type { StorageRequest, StorageRow } from "@raee/contracts/storage";
 
 export interface RecordingStorage {
   request: (request: StorageRequest) => readonly StorageRow[] | Promise<readonly StorageRow[]>;

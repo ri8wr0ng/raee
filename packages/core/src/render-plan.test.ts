@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { exportPlan, framePlan } from "./render-plan";
 
 const clip = { id: "clip", start: 0, duration: 2, content: { media: { mediaID: "media" } } };

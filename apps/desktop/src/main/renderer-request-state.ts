@@ -1,6 +1,6 @@
-import { EditError } from "@sidecut/core/coordinator";
-import { QueryError } from "@sidecut/core/project-queries";
-import { rendererMutations } from "@sidecut/core/service-requests";
+import { EditError } from "@raee/core/coordinator";
+import { QueryError } from "@raee/core/project-queries";
+import { rendererMutations } from "@raee/core/service-requests";
 
 /**
  * Lifecycle of one request sent to the editor renderer.

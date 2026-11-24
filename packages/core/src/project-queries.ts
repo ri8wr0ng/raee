@@ -1,8 +1,8 @@
 // TandemAPI ServiceTypes.swift, Diff.swift and TimelineDump.swift at 735a9b8.
 // Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, ProjectFile } from "@sidecut/contracts/project";
-import { encodeProjectFile } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Clip, ProjectFile } from "@raee/contracts/project";
+import { encodeProjectFile } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 import { object } from "./import-builder";
 import { timelineText, timelineContent as content, queryTracks } from "./timeline-dump";
 import type { Transcripts } from "./speech";

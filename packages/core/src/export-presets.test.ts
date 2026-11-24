@@ -1,5 +1,5 @@
 import { it, expect } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { presetProject, exportPresetPlan } from "./export-presets";
 import { exportPlan } from "./render-plan";
 it("sizes review/1080 presets to even pixels while retaining the source project", () => {

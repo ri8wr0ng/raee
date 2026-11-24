@@ -1,11 +1,11 @@
 import { yieldTask } from "./yield-task";
-import type { Project } from "@sidecut/contracts/project";
-import { audioSegments, seamlessAudio } from "@sidecut/core/audio-plan";
-import { projectDuration } from "@sidecut/core/render-plan";
+import type { Project } from "@raee/contracts/project";
+import { audioSegments, seamlessAudio } from "@raee/core/audio-plan";
+import { projectDuration } from "@raee/core/render-plan";
 import type { LocalMediaReader } from "./preview";
-import type { Clip } from "@sidecut/contracts/project";
-import type { MeasuredSound } from "@sidecut/core/loudness";
-import { LoudnessMeter } from "@sidecut/core/loudness";
+import type { Clip } from "@raee/contracts/project";
+import type { MeasuredSound } from "@raee/core/loudness";
+import { LoudnessMeter } from "@raee/core/loudness";
 import {
   audioEnvelope,
   audioParams,
@@ -18,11 +18,11 @@ import {
   gain,
   clamp,
   StreamingLimiter,
-} from "@sidecut/core/audio-processing";
-import { effectsOf } from "@sidecut/core/effect-editing";
-import { Time } from "@sidecut/contracts/time";
+} from "@raee/core/audio-processing";
+import { effectsOf } from "@raee/core/effect-editing";
+import { Time } from "@raee/contracts/time";
 import { isolateVoice } from "./voice-isolation";
-import { cleanVoice } from "@sidecut/core/audio-processing";
+import { cleanVoice } from "@raee/core/audio-processing";
 interface DecodedAudio {
   timestamp: number;
   duration: number;

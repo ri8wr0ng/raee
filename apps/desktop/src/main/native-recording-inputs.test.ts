@@ -101,7 +101,7 @@ describe("native capture inputs", () => {
 
   it("rejects unsupported platforms or an unavailable enumerator", async () => {
     if (process.platform === "win32")
-      await expect(nativeDevices("sidecut-no-such-ffmpeg")).rejects.toThrow(/Could not start/);
+      await expect(nativeDevices("raee-no-such-ffmpeg")).rejects.toThrow(/Could not start/);
     else {
       await expect(nativeDevices("unused")).rejects.toThrow(/only supported on Windows/);
       await expect(nativeInputs("unused", { ...request, source: "screen" })).rejects.toThrow(

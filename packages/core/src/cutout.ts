@@ -1,4 +1,4 @@
-import type { Clip } from "@sidecut/contracts/project";
+import type { Clip } from "@raee/contracts/project";
 
 export interface RepairMask {
   shape: "rectangle" | "roundedRectangle" | "ellipse";

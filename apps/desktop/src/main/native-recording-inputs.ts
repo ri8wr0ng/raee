@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type {
   NativeCaptureDevice,
   NativeRecordingRequest,
-} from "@sidecut/contracts/native-recording";
+} from "@raee/contracts/native-recording";
 
 export type NativeInput = { args: string[]; video: boolean; audio: boolean };
 type Device = NativeCaptureDevice & { input: string };

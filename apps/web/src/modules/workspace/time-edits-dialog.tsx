@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldGroup, FieldLabel, FieldError } from "@sidecut/ui/components/field";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldGroup, FieldLabel, FieldError } from "@raee/ui/components/field";
 import {
   Dialog,
   DialogTrigger,
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import { RiTimeLine } from "@remixicon/react";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { ToolTip } from "./tool-tip";

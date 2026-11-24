@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useAuth } from "@workos-inc/authkit-react";
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
-import { api } from "@sidecut/cloud/api";
+import { api } from "@raee/cloud/api";
 import type { FunctionReturnType } from "convex/server";
 import { Link } from "@tanstack/react-router";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { OptionSelect } from "@sidecut/ui/components/option-select";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { OptionSelect } from "@raee/ui/components/option-select";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@sidecut/ui/components/select";
+} from "@raee/ui/components/select";
 import { currentReturnTo, useCloud } from "./cloud-provider";
 import { CloudLibrary } from "./library-panel";
 import { cloudErrorMessage } from "./subscription-error";

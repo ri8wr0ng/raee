@@ -70,18 +70,18 @@ async function synthetic(output) {
   ]);
 }
 if (process.argv.includes("--worker")) {
-  const folder = await mkdtemp(join(tmpdir(), "sidecut-capture-worker-"));
+  const folder = await mkdtemp(join(tmpdir(), "raee-capture-worker-"));
   try {
     const value = await synthetic(join(folder, "synthetic.mkv"));
     process.stdout.write(
       JSON.stringify({ code: value.code, elapsedMs: value.elapsedMs, timedOut: value.timedOut }),
     );
   } finally {
-    assert.ok(folder.startsWith(join(tmpdir(), "sidecut-capture-worker-")));
+    assert.ok(folder.startsWith(join(tmpdir(), "raee-capture-worker-")));
     await rm(folder, { recursive: true, force: true });
   }
 } else {
-  const directory = await mkdtemp(join(tmpdir(), "sidecut-capture-probe-"));
+  const directory = await mkdtemp(join(tmpdir(), "raee-capture-probe-"));
   const result = {
     testedAt: new Date().toISOString(),
     platform: process.platform,
@@ -329,7 +329,7 @@ if (process.argv.includes("--worker")) {
     result.errors.push(error.message);
     process.exitCode = 1;
   } finally {
-    assert.ok(directory.startsWith(join(tmpdir(), "sidecut-capture-probe-")));
+    assert.ok(directory.startsWith(join(tmpdir(), "raee-capture-probe-")));
     await rm(directory, { recursive: true, force: true });
     await writeFile(
       join(root, "docs/verification/lawn-videorc-native-probe.json"),

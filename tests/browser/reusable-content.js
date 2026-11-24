@@ -226,7 +226,7 @@ export async function verifyReusableContent() {
   }
   return {
     fonts: [...document.fonts]
-      .filter((f) => f.family.includes("SideCut Card"))
+      .filter((f) => f.family.includes("raE.E Card"))
       .map((f) => [f.family, f.status]),
     samples,
     inserted: { start: clip.start.seconds, duration: clip.duration.seconds, marker: movedMarker },

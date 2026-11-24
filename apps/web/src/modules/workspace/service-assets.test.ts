@@ -1,7 +1,7 @@
 import { expect, it } from "vite-plus/test";
 import { AssetProviders } from "../../../../../packages/assets/src/index";
-import { decodeAsset, type Asset } from "@sidecut/contracts/assets";
-import { serviceRequest } from "@sidecut/core/service-requests";
+import { decodeAsset, type Asset } from "@raee/contracts/assets";
+import { serviceRequest } from "@raee/core/service-requests";
 import { searchServiceAssets } from "./service-assets";
 import contract from "../../../../../tests/fixtures/tandem/resources-assets.json";
 

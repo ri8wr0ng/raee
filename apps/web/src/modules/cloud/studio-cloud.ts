@@ -1,5 +1,5 @@
 import { useAction, useMutation } from "convex/react";
-import { api } from "@sidecut/cloud/api";
+import { api } from "@raee/cloud/api";
 import { useActiveTeam } from "./active-team";
 import { recordingSnapshot } from "./recording-metadata";
 import { RecordingUpload, putPart, type UploadProgress } from "@/modules/studio/cloud-upload";

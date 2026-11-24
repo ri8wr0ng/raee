@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { BrowserProjectStore } from "@sidecut/platform-browser/storage";
-import { DurableStorage } from "@sidecut/platform-browser/sqlite-client";
-import { acquireProjectWriter } from "@sidecut/platform-browser/writer-lock";
-import { probeLocalFile } from "@sidecut/platform-browser/media";
-import type * as MediaModule from "@sidecut/platform-browser/media";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
+import { BrowserProjectStore } from "@raee/platform-browser/storage";
+import { DurableStorage } from "@raee/platform-browser/sqlite-client";
+import { acquireProjectWriter } from "@raee/platform-browser/writer-lock";
+import { probeLocalFile } from "@raee/platform-browser/media";
+import type * as MediaModule from "@raee/platform-browser/media";
 import { BrowserProjectSession } from "./browser-session";
 import { libraryOperation } from "./service-library";
-import { serviceRequest } from "@sidecut/core/service-requests";
-import type { StorageRequest } from "@sidecut/contracts/storage";
+import { serviceRequest } from "@raee/core/service-requests";
+import type { StorageRequest } from "@raee/contracts/storage";
 import type * as LegacyStorageModule from "../../../../../packages/platform-browser/src/legacy-storage";
-import { createArchive } from "@sidecut/core/archive";
+import { createArchive } from "@raee/core/archive";
 
-vi.mock("@sidecut/platform-browser/writer-lock", () => ({ acquireProjectWriter: vi.fn() }));
-vi.mock("@sidecut/platform-browser/media", async (importOriginal) => ({
+vi.mock("@raee/platform-browser/writer-lock", () => ({ acquireProjectWriter: vi.fn() }));
+vi.mock("@raee/platform-browser/media", async (importOriginal) => ({
   ...(await importOriginal<typeof MediaModule>()),
   probeLocalFile: vi.fn(),
 }));
@@ -184,7 +184,7 @@ describe("persistent browser session", () => {
         }),
         removeEntry,
       };
-      vi.stubGlobal("window", { sidecutDesktop: bridge });
+      vi.stubGlobal("window", { raeeDesktop: bridge });
       vi.stubGlobal("navigator", {
         storage: { getDirectory: async () => ({ getDirectoryHandle: async () => directory }) },
       });
@@ -245,7 +245,7 @@ describe("persistent browser session", () => {
           throw new Error("flush failed");
         },
       };
-      vi.stubGlobal("window", { sidecutDesktop: bridge });
+      vi.stubGlobal("window", { raeeDesktop: bridge });
       vi.stubGlobal("navigator", {
         storage: {
           getDirectory: async () => ({
@@ -637,7 +637,7 @@ describe("persistent browser session", () => {
     expect(value.getSnapshot().project.name).toBe("Changed after queueing");
   });
   it("guards edits during queued audio rendering and releases the guard after cancellation", async () => {
-    const service = await import("@sidecut/platform-browser/wav-export");
+    const service = await import("@raee/platform-browser/wav-export");
     const render = vi.spyOn(service, "renderWAV").mockImplementation(
       async (_project, _resource, signal) =>
         new Promise((_resolve, reject) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { ReviewThread, ReviewVersion } from "@sidecut/contracts/review";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { ReviewThread, ReviewVersion } from "@raee/contracts/review";
 import empty from "../../../../../tests/fixtures/tandem/empty.json";
 import { reviewFeedbackCSV, reviewMarker } from "./review-feedback";
 

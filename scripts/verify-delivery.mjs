@@ -7,13 +7,13 @@ import { isAbsolute, join, relative, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const tempRoot = await realpath(tmpdir());
-const profile = await mkdtemp(join(tempRoot, "sidecut-delivery-"));
+const profile = await mkdtemp(join(tempRoot, "raee-delivery-"));
 const rel = relative(tempRoot, profile);
-assert.ok(rel.startsWith("sidecut-delivery-") && !rel.includes("..") && !isAbsolute(rel));
+assert.ok(rel.startsWith("raee-delivery-") && !rel.includes("..") && !isAbsolute(rel));
 const electron = createRequire(join(root, "apps/desktop/package.json"))("electron");
-const env = { ...process.env, SIDECUT_DELIVERY_PROFILE: profile };
+const env = { ...process.env, RAEE_DELIVERY_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
-delete env.SIDECUT_RENDERER_URL;
+delete env.RAEE_RENDERER_URL;
 try {
   process.exitCode = await new Promise((done, reject) => {
     const child = spawn(electron, [join(root, "tests/desktop/verify-delivery.mjs")], {

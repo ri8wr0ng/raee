@@ -1,5 +1,5 @@
-import { parseCube } from "@sidecut/core/cube-lut";
-import type { CubeLUT } from "@sidecut/core/cube-lut";
+import { parseCube } from "@raee/core/cube-lut";
+import type { CubeLUT } from "@raee/core/cube-lut";
 import type { LocalResource } from "./storage";
 export function createLUTLoader(resource: (id: string) => Promise<LocalResource | null>) {
   const cache = new Map<string, { identity: string; lut: CubeLUT }>();

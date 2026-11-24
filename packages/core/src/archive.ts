@@ -1,5 +1,5 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { decodeProjectFile, encodeProjectFile, type ProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile, type ProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 import { makeSegment } from "./segments";
 import { ASSET_USES, assetUses } from "./asset-use";
@@ -128,7 +128,7 @@ export function createArchive(
 export function openArchive(bytes: Uint8Array) {
   const entries = readZip(bytes);
   if (!entries["project.tandem"] || !entries["manifest.json"])
-    throw new Error("Invalid SideCut archive.");
+    throw new Error("Invalid raE.E archive.");
   const decoded = decodeProjectFile(JSON.parse(strFromU8(entries["project.tandem"])));
   const file = decodeProjectFile({
     revision: 0,

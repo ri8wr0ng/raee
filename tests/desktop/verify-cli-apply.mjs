@@ -8,10 +8,10 @@ import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-cli-apply-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-cli-apply-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 async function wait(predicate) {
   const deadline = Date.now() + 30000;
@@ -42,7 +42,7 @@ async function verify() {
         const child = spawn(
           process.execPath,
           [
-            join(root, "scripts/sidecut-cli.mjs"),
+            join(root, "scripts/raee-cli.mjs"),
             ...args,
             "--endpoint-file",
             join(profile, "current.tandem.api.json"),
@@ -52,9 +52,9 @@ async function verify() {
             env: {
               ...process.env,
               ELECTRON_RUN_AS_NODE: "1",
-              SIDECUT_PROJECT: "",
+              RAEE_PROJECT: "",
               TANDEM_PROJECT: "",
-              SIDECUT_AUTHOR: "runtime-cli",
+              RAEE_AUTHOR: "runtime-cli",
             },
             windowsHide: true,
           },
@@ -188,7 +188,7 @@ async function verify() {
       limits: [
         "Windows development Electron runtime",
         "Native reference execution and installed launchers unverified",
-        "Service-generated labels and transport errors retain SideCut conventions",
+        "Service-generated labels and transport errors retain raE.E conventions",
       ],
     };
     await writeFile(

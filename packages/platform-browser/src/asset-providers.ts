@@ -5,20 +5,20 @@ import {
   type FetchedAsset,
   type ProviderInfo,
   ProviderError,
-} from "@sidecut/assets";
-import { decodeAsset, type Asset } from "@sidecut/contracts/assets";
-import { decodeProviderQuery, decodeGeneration } from "@sidecut/contracts/providers";
-import { folderAssets } from "@sidecut/assets/import-folders";
+} from "@raee/assets";
+import { decodeAsset, type Asset } from "@raee/contracts/assets";
+import { decodeProviderQuery, decodeGeneration } from "@raee/contracts/providers";
+import { folderAssets } from "@raee/assets/import-folders";
 import { normalizeAsset, type AssetLibrary, type LibraryEntry } from "./asset-library";
 import { browserProviderEnvironment } from "./providers";
-export { assetLicence } from "@sidecut/assets";
+export { assetLicence } from "@raee/assets";
 export interface ProviderBridge {
   providerCall: (id: string, request: unknown) => Promise<unknown>;
   providerCancel: (id: string) => Promise<void>;
   providerCredential: (provider: string, action: "set" | "clear", secret?: string) => Promise<void>;
 }
 export const providerBridge = () => {
-  const bridge = (globalThis as unknown as { sidecutDesktop?: ProviderBridge }).sidecutDesktop;
+  const bridge = (globalThis as unknown as { raeeDesktop?: ProviderBridge }).raeeDesktop;
   return typeof bridge?.providerCall === "function" ? bridge : undefined;
 };
 export class BrowserAssetProviders {

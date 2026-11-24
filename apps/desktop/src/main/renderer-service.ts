@@ -3,9 +3,9 @@ import type { IpcMainInvokeEvent } from "electron";
 import { randomUUID } from "node:crypto";
 import type { HostProjectService } from "./project-service.ts";
 import { bridgeChannels } from "../shared/bridge.ts";
-import { QueryError } from "@sidecut/core/project-queries";
-import { projectDuration } from "@sidecut/core/render-plan";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { QueryError } from "@raee/core/project-queries";
+import { projectDuration } from "@raee/core/render-plan";
+import { decodeProjectFile } from "@raee/contracts/project";
 import {
   pendingRequest,
   requestTransition,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator, replayJournal } from "./coordinator";
 import { easing, interpolate, keyframeValue, resolveClip } from "./keyframes";
 import { regionTransform, motionEnds, identity } from "./picture-editing";

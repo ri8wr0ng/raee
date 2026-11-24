@@ -1,9 +1,9 @@
 import { it, expect, vi } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { LoudnessMeter } from "@sidecut/core/loudness";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { LoudnessMeter } from "@raee/core/loudness";
 import { masterAudio, mixTimelineAudio, prepareTimelineAudio } from "./audio";
-import { Time } from "@sidecut/contracts/time";
-import { cleanVoice } from "@sidecut/core/audio-processing";
+import { Time } from "@raee/contracts/time";
+import { cleanVoice } from "@raee/core/audio-processing";
 import { audioIdentity, measureSource } from "./audio-analysis";
 import * as voice from "./voice-isolation";
 const rate = 48000;

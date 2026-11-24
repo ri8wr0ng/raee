@@ -1,13 +1,13 @@
-import { readPreference, writePreference } from "@sidecut/platform-browser/preferences";
+import { readPreference, writePreference } from "@raee/platform-browser/preferences";
 import { useState } from "react";
-import type { Project, Track } from "@sidecut/contracts/project";
-import { transitionWindow } from "@sidecut/core/transitions";
-import { Button } from "@sidecut/ui/components/button";
-import { FieldError } from "@sidecut/ui/components/field";
-import { Input } from "@sidecut/ui/components/input";
+import type { Project, Track } from "@raee/contracts/project";
+import { transitionWindow } from "@raee/core/transitions";
+import { Button } from "@raee/ui/components/button";
+import { FieldError } from "@raee/ui/components/field";
+import { Input } from "@raee/ui/components/input";
 import { useEditorSession } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 interface SoundDefault {
   mediaID: string;
   gainDB: number;

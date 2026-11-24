@@ -15,7 +15,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
-} from "@sidecut/ui/components/sidebar";
+} from "@raee/ui/components/sidebar";
 import {
   RiArrowLeftLine,
   RiArrowRightSLine,

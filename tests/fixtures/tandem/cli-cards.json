@@ -44,8 +44,8 @@
         "warnings": [],
         "applied": { "revision": 4, "label": "Cards" }
       },
-      "text": "1 section card (applied, revision 3):\n  1  00:03.000  \"Next\"  card 00:03.000-00:06.200 (3.2 s)  already there, renumbered\nSound: silent.\nApplied as revision 4 (\"Cards\"). Undo with `sidecut undo`."
+      "text": "1 section card (applied, revision 3):\n  1  00:03.000  \"Next\"  card 00:03.000-00:06.200 (3.2 s)  already there, renumbered\nSound: silent.\nApplied as revision 4 (\"Cards\"). Undo with `raee undo`."
     }
   ],
-  "notice": "Synthetic expectations derived from pinned Swift source, with SideCut command names. TANDEM-LICENSE applies; native reference execution is unverified."
+  "notice": "Synthetic expectations derived from pinned Swift source, with raE.E command names. TANDEM-LICENSE applies; native reference execution is unverified."
 }

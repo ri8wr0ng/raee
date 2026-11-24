@@ -1,10 +1,6 @@
-import {
-  decodeStorageRows,
-  type StorageRequest,
-  type StorageRow,
-} from "@sidecut/contracts/storage";
-import type { NativeFileReference } from "@sidecut/contracts/native-recording";
-import type { NativeBridge } from "@sidecut/contracts/desktop";
+import { decodeStorageRows, type StorageRequest, type StorageRow } from "@raee/contracts/storage";
+import type { NativeFileReference } from "@raee/contracts/native-recording";
+import type { NativeBridge } from "@raee/contracts/desktop";
 
 const chunkSize = 4 * 1024 * 1024;
 const associated = new WeakMap<Blob, string>();
@@ -12,7 +8,7 @@ const hydrated = new Map<string, Promise<File>>();
 /** Only for a fresh adoption that never became a committed project resource. */
 export async function discardNativeFile(id: string) {
   if (!/^[a-f0-9-]{36}$/.test(id)) throw new Error("Invalid native file ID.");
-  const bridge = (window as Window & { sidecutDesktop?: NativeBridge }).sidecutDesktop;
+  const bridge = (window as Window & { raeeDesktop?: NativeBridge }).raeeDesktop;
   await bridge?.storageRemoveFile?.(id);
   hydrated.delete(id);
   await (await opfsDirectory()).removeEntry(id).catch((error: unknown) => {
@@ -25,7 +21,7 @@ async function opfsDirectory() {
   });
 }
 export async function nativeFile(reference: NativeFileReference): Promise<File> {
-  const bridge = (window as Window & { sidecutDesktop?: NativeBridge }).sidecutDesktop;
+  const bridge = (window as Window & { raeeDesktop?: NativeBridge }).raeeDesktop;
   if (!bridge?.storageFileRead || !bridge.storageFileSize)
     throw new Error("Native file access is unavailable.");
   if (
@@ -108,7 +104,7 @@ export class DurableStorage {
     const bridge: NativeBridge | undefined =
       typeof window === "undefined"
         ? undefined
-        : (window as Window & { sidecutDesktop?: NativeBridge }).sidecutDesktop;
+        : (window as Window & { raeeDesktop?: NativeBridge }).raeeDesktop;
     if (bridge?.storageRequest && bridge.storagePutFile && bridge.storageGetFile) {
       const request = bridge.storageRequest,
         put = bridge.storagePutFile,

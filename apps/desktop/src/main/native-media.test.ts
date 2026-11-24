@@ -7,7 +7,7 @@ import { NativeMedia } from "./native-media.ts";
 
 describe("native media jobs", () => {
   it("rejects invalid input and reports missing backends", async () => {
-    const media = new NativeMedia("sidecut-no-such-ffmpeg", "sidecut-no-such-ffprobe");
+    const media = new NativeMedia("raee-no-such-ffmpeg", "raee-no-such-ffprobe");
     await expect(
       media.run("shell", new Uint8Array([1]), new AbortController().signal, () => {}),
     ).rejects.toThrow(/Invalid/);
@@ -56,7 +56,7 @@ describe("native media jobs", () => {
     expect(new TextDecoder().decode(decoded.slice(0, 4))).toBe("RIFF");
   }, 30_000);
   it("cancels a real child process and waits for it to close", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-child-test-")),
+    const root = await mkdtemp(join(tmpdir(), "raee-child-test-")),
       marker = join(root, "started");
     const script = join(root, "child.cjs");
     // A long-lived Node child makes cancellation deterministic without racing a tiny encode.
@@ -87,7 +87,7 @@ describe("native media jobs", () => {
     }
   });
   it("cancels an active HEVC encode and removes its temporary input and output", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-codec-cancel-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-codec-cancel-"));
     const source = join(root, "source.mkv"),
       binaries = mediaBinaries();
     const media = new NativeMedia(binaries.ffmpeg, binaries.ffprobe);

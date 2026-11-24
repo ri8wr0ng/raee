@@ -25,7 +25,7 @@ import { bridgeChannels } from "../shared/bridge.ts";
 beforeEach(() => mock.handlers.clear());
 
 it("returns only the support report through a trusted no-argument IPC call", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-support-ipc-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-support-ipc-"));
   const host = new HostProjectService(new NativeProjectStore(join(root, "private-project.tandem")));
   await host.start();
   const close = registerNativeIPC(host, (url) => url === "trusted", new ProjectAPI(host));
@@ -40,7 +40,7 @@ it("returns only the support report through a trusted no-argument IPC call", asy
     const text = await handler(event);
     assert.ok(typeof text === "string");
     const report = JSON.parse(text);
-    expect(report).toMatchObject({ format: "sidecut-support", version: 1 });
+    expect(report).toMatchObject({ format: "raee-support", version: 1 });
     expect(report).not.toHaveProperty("output");
     expect(report).not.toHaveProperty("report");
     expect(text).not.toContain(root);
@@ -68,13 +68,13 @@ it("returns only the support report through a trusted no-argument IPC call", asy
     await expect(destroyed).rejects.toThrow(/Untrusted/);
   } finally {
     await close();
-    assert.ok(root.startsWith(join(tmpdir(), "sidecut-support-ipc-")));
+    assert.ok(root.startsWith(join(tmpdir(), "raee-support-ipc-")));
     await rm(root, { recursive: true, force: true });
   }
 });
 
 it("refuses the report when the host API is unavailable", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-support-ipc-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-support-ipc-"));
   const host = new HostProjectService(new NativeProjectStore(join(root, "project.tandem")));
   await host.start();
   const close = registerNativeIPC(host, () => true);
@@ -87,13 +87,13 @@ it("refuses the report when the host API is unavailable", async () => {
     ).rejects.toThrow(/unavailable/);
   } finally {
     await close();
-    assert.ok(root.startsWith(join(tmpdir(), "sidecut-support-ipc-")));
+    assert.ok(root.startsWith(join(tmpdir(), "raee-support-ipc-")));
     await rm(root, { recursive: true, force: true });
   }
 });
 
 it("resolves Kick channel slugs to chatroom IDs through trusted IPC", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-kick-ipc-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-kick-ipc-"));
   const host = new HostProjectService(new NativeProjectStore(join(root, "project.tandem")));
   await host.start();
   const mockFetch: typeof fetch = async (input) => {

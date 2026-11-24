@@ -14,7 +14,7 @@ afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 async function setup(renderer?: ConstructorParameters<typeof ProjectAPI>[2]) {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-review-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-review-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -29,7 +29,7 @@ async function setup(renderer?: ConstructorParameters<typeof ProjectAPI>[2]) {
     new Promise<{ code: number | null; out: string; err: string }>((complete, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, windowsHide: true },
       );
       let out = "",

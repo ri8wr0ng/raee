@@ -3,7 +3,7 @@ import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
-import { effectsCatalog } from "@sidecut/core/effects";
+import { effectsCatalog } from "@raee/core/effects";
 import { parseArguments } from "../../../../scripts/cli-foundation.mjs";
 import {
   prepareResourceCommand,
@@ -21,7 +21,7 @@ afterEach(async () => {
 it("ships the authoritative offline effects catalogue", async () => {
   const path = resolve("scripts/effects-catalog.json"),
     catalogue = effectsCatalog();
-  if (process.env.SIDECUT_UPDATE_EFFECTS_CATALOG === "1")
+  if (process.env.RAEE_UPDATE_EFFECTS_CATALOG === "1")
     await writeFile(path, JSON.stringify(catalogue, null, 2) + "\n");
   expect(JSON.parse(await readFile(path, "utf8"))).toEqual(catalogue);
 });
@@ -56,7 +56,7 @@ it("matches pinned resource text and native option mappings", async () => {
     expect(() => prepareResourceCommand(parseArguments(args))).toThrow();
 });
 it("runs offline effects and one-shot watch/check without changing the host", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-resources-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-resources-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -71,13 +71,13 @@ it("runs offline effects and one-shot watch/check without changing the host", as
     new Promise<{ code: number | null; out: string; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
           },
           windowsHide: true,
@@ -122,7 +122,7 @@ it("runs offline effects and one-shot watch/check without changing the host", as
   expect((await run(["relink", "--search", root, "--dry-run"])).code).toBe(0);
 }, 20000);
 it("follows host revision events until the CLI is cancelled and releases the request", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-follow-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-follow-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -136,7 +136,7 @@ it("follows host revision events until the CLI is cancelled and releases the req
   const child = spawn(
     process.execPath,
     [
-      resolve("scripts/sidecut-cli.mjs"),
+      resolve("scripts/raee-cli.mjs"),
       "watch",
       "--json",
       "--timeout",
@@ -146,7 +146,7 @@ it("follows host revision events until the CLI is cancelled and releases the req
     ],
     {
       cwd: root,
-      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", SIDECUT_PROJECT: "", TANDEM_PROJECT: "" },
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", RAEE_PROJECT: "", TANDEM_PROJECT: "" },
       windowsHide: true,
     },
   );

@@ -1,9 +1,9 @@
 // Ported from TandemAPI/TranscriptTools.swift, TandemAPI/Captions.swift,
 // TandemAPI/TandemService.swift and TandemMedia/TranscriptAlignment.swift.
 // See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, MediaItem, Project, ProjectFile, Track } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { Time, flicksPerFrame, type FrameRate } from "@sidecut/contracts/time";
+import type { Clip, MediaItem, Project, ProjectFile, Track } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { Time, flicksPerFrame, type FrameRate } from "@raee/contracts/time";
 import { ProjectCoordinator } from "./coordinator";
 import { projectDuration } from "./render-plan";
 import { placeWords, type Transcript, type TranscriptWord } from "./transcript";

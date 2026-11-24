@@ -24,8 +24,8 @@ it("scopes cancellation to its trusted document and cancels on navigation", asyn
   const event = { sender, senderFrame: sender.mainFrame },
     id = randomUUID(),
     input = randomUUID();
-  const start = mock.handlers.get("sidecut:delivery-encode")!,
-    cancel = mock.handlers.get("sidecut:delivery-cancel")!;
+  const start = mock.handlers.get("raee:delivery-encode")!,
+    cancel = mock.handlers.get("raee:delivery-cancel")!;
   const request = { codec: "h264", videoBitrate: 100000, audioBitrate: 64000, name: "x.mp4" };
   await expect(
     start({ sender, senderFrame: { url: "trusted" } }, id, input, request),
@@ -54,7 +54,7 @@ it("waits for the cancelled encoder to release its files before shutdown complet
     isDestroyed: () => false,
   });
   const event = { sender, senderFrame: sender.mainFrame };
-  const pending = mock.handlers.get("sidecut:delivery-encode")!(event, randomUUID(), randomUUID(), {
+  const pending = mock.handlers.get("raee:delivery-encode")!(event, randomUUID(), randomUUID(), {
     codec: "h264",
     videoBitrate: 100000,
     audioBitrate: 64000,

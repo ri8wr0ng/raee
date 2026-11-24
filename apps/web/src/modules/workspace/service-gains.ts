@@ -1,10 +1,10 @@
-import type { Project } from "@sidecut/contracts/project";
-import type { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import type { MeasuredSound } from "@sidecut/core/loudness";
-import { mixTimelineAudio } from "@sidecut/platform-browser/audio";
-import { audioEnvelope } from "@sidecut/core/audio-processing";
-import { audioSegments } from "@sidecut/core/audio-plan";
-import { compareGains } from "@sidecut/core/gain-follow";
+import type { Project } from "@raee/contracts/project";
+import type { LocalMediaReader } from "@raee/platform-browser/preview";
+import type { MeasuredSound } from "@raee/core/loudness";
+import { mixTimelineAudio } from "@raee/platform-browser/audio";
+import { audioEnvelope } from "@raee/core/audio-processing";
+import { audioSegments } from "@raee/core/audio-plan";
+import { compareGains } from "@raee/core/gain-follow";
 
 export async function verifyGainLanes(
   project: Project,

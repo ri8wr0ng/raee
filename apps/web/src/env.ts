@@ -1,4 +1,4 @@
-import { createWebEnv } from "@sidecut/env/web";
+import { createWebEnv } from "@raee/env/web";
 
 export const env = createWebEnv({
   VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,

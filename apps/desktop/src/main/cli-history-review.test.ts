@@ -4,8 +4,8 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { reviewQuery } from "@sidecut/core/service-review";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { reviewQuery } from "@raee/core/service-review";
 import { parseArguments } from "../../../../scripts/cli-foundation.mjs";
 import { prepareQueryCommand, queryText } from "../../../../scripts/cli-query-commands.mjs";
 import contract from "../../../../tests/fixtures/tandem/cli-history-review.json";
@@ -22,10 +22,10 @@ function cli(root: string, endpoint: string, args: string[]) {
   return new Promise<{ code: number | null; out: string; err: string }>((done, reject) => {
     const child = spawn(
       process.execPath,
-      [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", endpoint],
+      [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", endpoint],
       {
         cwd: root,
-        env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", SIDECUT_PROJECT: "", TANDEM_PROJECT: "" },
+        env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", RAEE_PROJECT: "", TANDEM_PROJECT: "" },
         windowsHide: true,
       },
     );
@@ -100,7 +100,7 @@ it("formats history openings, scan runs and fallback events", () => {
   ).toContain("03:04:05  r1  apply  Edit  (cli)");
 });
 it("runs undo/redo counts, stale guards, history limits and validate through the shared host", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-history-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-history-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -186,7 +186,7 @@ it("runs undo/redo counts, stale guards, history limits and validate through the
   });
 }, 20000);
 it("returns exit 1 for invalid validation in text and JSON without mutating the fixture", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-validation-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-validation-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   // The authoritative host refuses invalid projects; exercise real validation at the CLI transport boundary.
   const file = decodeProjectFile({

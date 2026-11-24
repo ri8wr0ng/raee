@@ -9,10 +9,10 @@ import { promisify } from "node:util";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-segments-cli-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-segments-cli-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 async function wait(predicate) {
   const deadline = Date.now() + 30000;
@@ -51,7 +51,7 @@ async function verify() {
       (
         await promisify(execFile)(
           process.execPath,
-          [join(root, "scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", endpointFile],
+          [join(root, "scripts/raee-cli.mjs"), ...args, "--endpoint-file", endpointFile],
           {
             env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
             windowsHide: true,
@@ -259,7 +259,7 @@ async function verify() {
       const target = resolve(profile);
       if (
         dirname(target) !== resolve(tmpdir()) ||
-        !basename(target).startsWith("sidecut-segments-cli-")
+        !basename(target).startsWith("raee-segments-cli-")
       ) {
         app.exit(1);
         return;

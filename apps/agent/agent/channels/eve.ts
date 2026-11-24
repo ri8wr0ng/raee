@@ -7,14 +7,14 @@ import { eveChannel } from "eve/channels/eve";
  * so nothing else on the machine can open a session.
  */
 const desktopToken: AuthFn<Request> = (request) => {
-  const expected = process.env.SIDECUT_AGENT_TOKEN;
+  const expected = process.env.RAEE_AGENT_TOKEN;
   const token = extractBearerToken(request.headers.get("authorization"));
   if (!expected || !token) return null;
   const given = Buffer.from(token),
     wanted = Buffer.from(expected);
   if (given.length !== wanted.length || !timingSafeEqual(given, wanted)) return null;
   return {
-    authenticator: "sidecut-desktop",
+    authenticator: "raee-desktop",
     principalType: "user",
     principalId: "desktop-user",
     attributes: {},

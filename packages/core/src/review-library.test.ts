@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import empty from "../../../tests/fixtures/tandem/empty.json";
 import { ReviewStore, type ReviewStorage } from "./review-library";
-import type { StorageRequest } from "@sidecut/contracts/storage";
+import type { StorageRequest } from "@raee/contracts/storage";
 
 function storage() {
   const rows = new Map<string, string>(),

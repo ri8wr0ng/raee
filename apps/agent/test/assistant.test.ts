@@ -69,22 +69,22 @@ describe("assistant model selection", () => {
 
   it("uses exactly the provider and model the user configured", () => {
     expect(
-      selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "openrouter", SIDECUT_AGENT_MODEL: "x/y" }),
+      selectModel({ ...key, RAEE_AGENT_PROVIDER: "openrouter", RAEE_AGENT_MODEL: "x/y" }),
     ).toEqual({ provider: "openrouter", model: "x/y" });
     expect(
-      selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "openai", SIDECUT_AGENT_MODEL: " gpt-x " }),
+      selectModel({ ...key, RAEE_AGENT_PROVIDER: "openai", RAEE_AGENT_MODEL: " gpt-x " }),
     ).toEqual({ provider: "openai", model: "gpt-x" });
   });
 
   it("never picks a provider or model on the user's behalf", () => {
     expect(selectModel(key)).toBeUndefined();
-    expect(selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "anthropic" })).toBeUndefined();
-    expect(selectModel({ ...key, SIDECUT_AGENT_MODEL: "claude" })).toBeUndefined();
+    expect(selectModel({ ...key, RAEE_AGENT_PROVIDER: "anthropic" })).toBeUndefined();
+    expect(selectModel({ ...key, RAEE_AGENT_MODEL: "claude" })).toBeUndefined();
     expect(
-      selectModel({ SIDECUT_AGENT_PROVIDER: "anthropic", SIDECUT_AGENT_MODEL: "claude" }),
+      selectModel({ RAEE_AGENT_PROVIDER: "anthropic", RAEE_AGENT_MODEL: "claude" }),
     ).toBeUndefined();
     expect(
-      selectModel({ ...key, SIDECUT_AGENT_PROVIDER: "other", SIDECUT_AGENT_MODEL: "m" }),
+      selectModel({ ...key, RAEE_AGENT_PROVIDER: "other", RAEE_AGENT_MODEL: "m" }),
     ).toBeUndefined();
   });
 });

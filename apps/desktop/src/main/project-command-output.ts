@@ -1,6 +1,6 @@
 import { open, realpath, stat, unlink } from "node:fs/promises";
 import { basename, dirname, extname, isAbsolute, relative, resolve } from "node:path";
-import { QueryError } from "@sidecut/core/project-queries";
+import { QueryError } from "@raee/core/project-queries";
 
 // CLI outputs are snapshots. The running host retains ownership of its SQLite project.
 export async function writeProjectCommandOutput(

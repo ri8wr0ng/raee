@@ -1,4 +1,4 @@
-import type { StorageCollection, StorageRequest } from "@sidecut/contracts/storage";
+import type { StorageCollection, StorageRequest } from "@raee/contracts/storage";
 import { DurableStorage } from "./sqlite-client";
 import { encodeStored } from "./storage-codec";
 
@@ -18,8 +18,7 @@ export async function readLegacy(
       open.transaction?.abort();
     };
     open.onerror = () => (absent ? resolve({}) : reject(open.error));
-    open.onblocked = () =>
-      reject(new Error("Close other SideCut tabs before migrating saved data."));
+    open.onblocked = () => reject(new Error("Close other raE.E tabs before migrating saved data."));
     open.onsuccess = () => {
       const db = open.result;
       const existing = stores.filter((s) => db.objectStoreNames.contains(s));

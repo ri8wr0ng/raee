@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import type { ChatProvider } from "@sidecut/core/live-chat";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import type { ChatProvider } from "@raee/core/live-chat";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   RiTwitchFill,
   RiYoutubeFill,
@@ -15,7 +15,7 @@ import {
   RiSettings3Line,
 } from "@remixicon/react";
 import type { LiveChatController } from "./live-chat-controller";
-import type { TransportStatus } from "@sidecut/platform-browser/chat-transports";
+import type { TransportStatus } from "@raee/platform-browser/chat-transports";
 
 function KickIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (

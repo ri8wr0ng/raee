@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import { CompanionBehavior } from "./companion-behavior";
 import { planDerivedEdit, applyDerivedEdit } from "./derived-edits";
 import { ProjectCoordinator } from "./coordinator";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { projectDuration } from "./render-plan";
 import { effectsOf } from "./effect-editing";
 

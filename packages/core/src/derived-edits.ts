@@ -1,6 +1,6 @@
 import { Schema } from "effect";
-import { EditBatchSchema } from "@sidecut/contracts/commands";
-import { encodeProjectFile, decodeProjectFile, type ProjectFile } from "@sidecut/contracts/project";
+import { EditBatchSchema } from "@raee/contracts/commands";
+import { encodeProjectFile, decodeProjectFile, type ProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 import { planTighten, planCaptions, type Transcripts } from "./speech";
 import { effectsOf } from "./effect-editing";

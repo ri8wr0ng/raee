@@ -1,5 +1,5 @@
 import { createDurableRecordingFile } from "./recording-storage";
-import type { NativeBridge } from "@sidecut/contracts/desktop";
+import type { NativeBridge } from "@raee/contracts/desktop";
 
 export type RecordingSource = "screen" | "camera" | "microphone";
 export type RecordingRequest = {

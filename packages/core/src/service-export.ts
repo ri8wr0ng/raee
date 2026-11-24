@@ -1,5 +1,5 @@
 // TandemRender/ExportPlan.swift and RenderAPI.swift at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project } from "@sidecut/contracts/project";
+import type { Project } from "@raee/contracts/project";
 import { formatProject } from "./formats";
 import { QueryError } from "./project-queries";
 export function serviceFormat(source: Project, named?: string) {

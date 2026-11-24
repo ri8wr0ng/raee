@@ -64,7 +64,7 @@ it("maps native assets and segment selectors and preserves paid confirmation", (
     expect(() => prepareLibraryCommand(parseArguments(args))).toThrow();
 });
 it("validates native library syntax before dispatch and reports unavailable owners without edits", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-library-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-library-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -79,13 +79,13 @@ it("validates native library syntax before dispatch and reports unavailable owne
     new Promise<{ code: number | null; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
           },
           windowsHide: true,

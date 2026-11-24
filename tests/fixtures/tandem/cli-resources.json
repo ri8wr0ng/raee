@@ -98,5 +98,5 @@
       "text": "Dry run, nothing changed. Archiving project.tandem would write a standalone copy to /copy: the project folder (1 file, 1 KB) and 0 files from outside it (0 KB).\nRun it without --dry-run (dryRun: false) to write the archive."
     }
   ],
-  "notice": "Synthetic pinned expectations with SideCut command names. Native SSE, filesystem collection and error conventions retain recorded adapter differences. TANDEM-LICENSE applies."
+  "notice": "Synthetic pinned expectations with raE.E command names. Native SSE, filesystem collection and error conventions retain recorded adapter differences. TANDEM-LICENSE applies."
 }

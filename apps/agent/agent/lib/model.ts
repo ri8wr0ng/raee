@@ -22,8 +22,8 @@ export const contextWindowTokens = 200_000;
  * them: without an explicit provider, model and that provider's key, the assistant won't run.
  */
 export function selectModel(env: Env): { provider: AssistantProvider; model: string } | undefined {
-  const provider = env.SIDECUT_AGENT_PROVIDER as AssistantProvider | undefined;
-  const model = env.SIDECUT_AGENT_MODEL?.trim();
+  const provider = env.RAEE_AGENT_PROVIDER as AssistantProvider | undefined;
+  const model = env.RAEE_AGENT_MODEL?.trim();
   if (!provider || !providers.includes(provider) || !model) return undefined;
   if (!env[providerKeyEnv[provider]]?.trim()) return undefined;
   return { provider, model };

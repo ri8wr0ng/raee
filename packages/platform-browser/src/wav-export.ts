@@ -1,4 +1,4 @@
-import type { Project } from "@sidecut/contracts/project";
+import type { Project } from "@raee/contracts/project";
 import type { LocalResource } from "./storage";
 import { LocalMediaReader } from "./preview";
 import { mixTimelineAudio } from "./audio";

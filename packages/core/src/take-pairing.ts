@@ -1,5 +1,5 @@
 // Based on TandemMedia/TakePairing.swift. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { MediaItem } from "@sidecut/contracts/project";
+import type { MediaItem } from "@raee/contracts/project";
 
 export interface TakeSidecar {
   version: 1;

@@ -1,7 +1,7 @@
 // Ported from TandemCore/TextStyles.swift, TandemRender/TitlePresets.swift,
 // TandemRender/TextRenderer.swift (TextAnimationState) and TandemRender/ProjectFonts.swift.
 // See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, Project } from "@sidecut/contracts/project";
+import type { Clip, Project } from "@raee/contracts/project";
 import { easing } from "./keyframes";
 
 export interface RGBA {

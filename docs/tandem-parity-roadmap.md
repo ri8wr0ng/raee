@@ -6,7 +6,7 @@ The follow-up [parity gap fixes](verification/parity-gap-fixes.md) add closed-pr
 
 ## Goal and baseline
 
-Build SideCut as a browser-first Tandem-compatible editor, with an optional Electron application for Windows, macOS, and Linux. Humans and agents must use the same editing commands and project authority. Keep media local, preserve the existing shadcn preset, and use `vp` for every development command.
+Build raE.E as a browser-first Tandem-compatible editor, with an optional Electron application for Windows, macOS, and Linux. Humans and agents must use the same editing commands and project authority. Keep media local, preserve the existing shadcn preset, and use `vp` for every development command.
 
 This roadmap expands [the architecture plan](monorepo-plan.md). It is a delivery backlog, not a claim of compatibility or a complete technical design for every subsystem. Start with phase 001 and complete one small phase at a time. Resolve each subsystem's design choices before its implementation.
 
@@ -24,9 +24,9 @@ Authoritative reference files at that revision:
 
 - Project compatibility: decode supported `.tandem` files, preserve IDs, defaults, metadata, paths, and settings, and export files Tandem can reopen. Cover schema version 2 and the older versions the reference actually migrates. Reject newer versions explicitly.
 - Edit compatibility: match command arguments, defaults, validation, batch atomicity, revision checks, idempotency, links, ripple behavior, warnings, and undo results.
-- Interface parity: provide equivalent editing workflows and shortcuts using SideCut's existing design system. Match behavior rather than copying macOS window chrome.
+- Interface parity: provide equivalent editing workflows and shortcuts using raE.E's existing design system. Match behavior rather than copying macOS window chrome.
 - Media parity: support the reference content types, compositing order, audio levels, transitions, titles, analysis, and exports. Record a tested tolerance where different media engines cannot produce identical pixels or samples.
-- Agent compatibility: preserve the reference operation/tool names, request and result shapes, JSON/text output conventions, errors, and shared editing authority. SideCut can use its own executable name; existing scripts need an explicit compatibility launcher if they assume `tandem`.
+- Agent compatibility: preserve the reference operation/tool names, request and result shapes, JSON/text output conventions, errors, and shared editing authority. raE.E can use its own executable name; existing scripts need an explicit compatibility launcher if they assume `tandem`.
 - Platform parity: test Windows, macOS, and Linux desktop builds. Test the hosted editor separately in Chromium, Firefox, and WebKit/Safari. Build success alone does not establish editing or codec support.
 
 Browser editing must work without an installed companion. A web page cannot independently provide stdio MCP, arbitrary folder watching, OS credential storage, or every native codec. Browser features must expose capability checks and useful alternatives. Desktop is the target for the complete native workflow. Browser limitations remain recorded gaps; they never count as completed parity.
@@ -1073,7 +1073,7 @@ Accept each declared distribution/session separately and document unverified com
 ### Phase 140: Pinned parity audit
 
 - [ ] Compare every command, service operation, tool, effect, transition, and UI workflow with the baseline inventories.
-- [ ] Run Tandem -> SideCut -> Tandem round trips on macOS and compare render/audio references on all targets.
+- [ ] Run Tandem -> raE.E -> Tandem round trips on macOS and compare render/audio references on all targets.
 
 Accept when the compatibility report links evidence for every supported claim, lists remaining gaps, and names the pinned upstream revision. Only then describe the release's actual parity level.
 

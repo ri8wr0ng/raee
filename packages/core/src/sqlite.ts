@@ -1,4 +1,4 @@
-import { decodeStorageRows, type StorageRequest } from "@sidecut/contracts/storage";
+import { decodeStorageRows, type StorageRequest } from "@raee/contracts/storage";
 
 export interface SQLiteDriver {
   exec(sql: string, values?: readonly (string | null)[]): void;

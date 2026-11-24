@@ -12,8 +12,8 @@ import {
   remoteState,
   signedIntent,
   type RemoteIntent,
-} from "@sidecut/core/remote-control";
-import { object } from "@sidecut/core/interchange";
+} from "@raee/core/remote-control";
+import { object } from "@raee/core/interchange";
 import type { ProjectAPI } from "./project-api.ts";
 
 type Device = {

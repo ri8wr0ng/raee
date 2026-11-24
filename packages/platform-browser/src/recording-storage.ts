@@ -1,5 +1,5 @@
-import { RecordingStore } from "@sidecut/core/recordings";
-import { recordingFilename, type RecordingEntry } from "@sidecut/contracts/recordings";
+import { RecordingStore } from "@raee/core/recordings";
+import { recordingFilename, type RecordingEntry } from "@raee/contracts/recordings";
 import { DurableStorage } from "./sqlite-client";
 import type { RecordingFile } from "./recording";
 

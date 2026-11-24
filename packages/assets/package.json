@@ -1,5 +1,5 @@
 {
-  "name": "@sidecut/assets",
+  "name": "@raee/assets",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -12,10 +12,10 @@
     "typecheck": "vp exec tsc --noEmit"
   },
   "dependencies": {
-    "@sidecut/contracts": "workspace:*"
+    "@raee/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@sidecut/config": "workspace:*",
+    "@raee/config": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   }

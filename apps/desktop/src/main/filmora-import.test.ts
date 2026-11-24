@@ -12,7 +12,7 @@ afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-filmora-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-filmora-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const folder = join(root, "项目 with spaces.wfp.dir/ProjectFolder");
   await mkdir(join(folder, "Medias/main"), { recursive: true });
@@ -99,7 +99,7 @@ describe("desktop Filmora folders", () => {
   });
   it("refuses metadata escaping via a directory junction and respects cancellation", async () => {
     const { root, folder } = await fixture();
-    const outside = await mkdtemp(join(tmpdir(), "sidecut-filmora-external-"));
+    const outside = await mkdtemp(join(tmpdir(), "raee-filmora-external-"));
     cleanup.push(() => rm(outside, { recursive: true, force: true }));
     await writeFile(join(outside, "timeline.wesproj"), "{}");
     await symlink(outside, join(folder, "Medias/external"), "junction");

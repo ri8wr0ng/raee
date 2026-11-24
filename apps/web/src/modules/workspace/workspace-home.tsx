@@ -2,7 +2,7 @@ import {
   openPreferences,
   readPreference,
   writePreference,
-} from "@sidecut/platform-browser/preferences";
+} from "@raee/platform-browser/preferences";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -20,9 +20,9 @@ import {
   RiPulseLine,
   RiCheckDoubleLine,
 } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
-import { Alert, AlertTitle, AlertDescription } from "@sidecut/ui/components/alert";
-import { Tip, TooltipProvider } from "@sidecut/ui/components/tooltip";
+import { Button } from "@raee/ui/components/button";
+import { Alert, AlertTitle, AlertDescription } from "@raee/ui/components/alert";
+import { Tip, TooltipProvider } from "@raee/ui/components/tooltip";
 import { ExportDialog } from "./export-dialog";
 import { Timeline } from "./timeline";
 import { Viewer } from "./viewer";

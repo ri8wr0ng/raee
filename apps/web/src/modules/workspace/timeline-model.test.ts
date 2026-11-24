@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 import {
   activeClips,
   atFrame,

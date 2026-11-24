@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
-import type { LiveAudioSettings } from "@sidecut/core/live-audio";
-import { Button } from "@sidecut/ui/components/button";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/components/select";
-import { Slider } from "@sidecut/ui/components/slider";
+import type { LiveAudioSettings } from "@raee/core/live-audio";
+import { Button } from "@raee/ui/components/button";
+import { Checkbox } from "@raee/ui/components/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@raee/ui/components/select";
+import { Slider } from "@raee/ui/components/slider";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 import { Meter, MeterIndicator, MeterTrack } from "@ui-sdk/react/meter";
 import { Toggle } from "@ui-sdk/react/toggle";

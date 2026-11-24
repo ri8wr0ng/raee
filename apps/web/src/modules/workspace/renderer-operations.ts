@@ -1,9 +1,9 @@
 import type { BrowserProjectSession } from "./browser-session";
-import { serviceRequest, rendererMutations } from "@sidecut/core/service-requests";
-import { speechQuery, helperPlan } from "@sidecut/core/service-speech";
+import { serviceRequest, rendererMutations } from "@raee/core/service-requests";
+import { speechQuery, helperPlan } from "@raee/core/service-speech";
 import { transcribeService } from "./service-transcribe";
-import { EditError } from "@sidecut/core/coordinator";
-import { QueryError } from "@sidecut/core/project-queries";
+import { EditError } from "@raee/core/coordinator";
+import { QueryError } from "@raee/core/project-queries";
 
 export async function rendererOperation(
   session: BrowserProjectSession,
@@ -103,7 +103,7 @@ export async function rendererOperation(
   await session.analysis.prepareSpeech();
   signal.throwIfAborted();
   if (operation === "comments") {
-    const { reviewQuery } = await import("@sidecut/core/service-review");
+    const { reviewQuery } = await import("@raee/core/service-review");
     return reviewQuery(file, operation, request, undefined, session.analysis.transcriptFor);
   }
   if (operation === "cards") {

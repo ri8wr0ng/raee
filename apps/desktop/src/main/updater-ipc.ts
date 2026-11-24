@@ -1,6 +1,6 @@
 import { app, ipcMain, shell, webContents } from "electron";
 import type { IpcMainInvokeEvent } from "electron";
-import type { UpdateState } from "@sidecut/contracts/desktop";
+import type { UpdateState } from "@raee/contracts/desktop";
 import { bridgeChannels } from "../shared/bridge.ts";
 import { createUpdateController } from "./updater.ts";
 

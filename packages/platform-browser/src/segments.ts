@@ -1,9 +1,9 @@
-import { QueryError } from "@sidecut/core/project-queries";
+import { QueryError } from "@raee/core/project-queries";
 import type { DurableStorage } from "./sqlite-client";
 import { encodeStored, decodeStored } from "./storage-codec";
 import { migrateLibrary } from "./legacy-storage";
 import { storedResource } from "./storage";
-import { decodeSegment, type SavedSegment } from "@sidecut/core/segments";
+import { decodeSegment, type SavedSegment } from "@raee/core/segments";
 import type { LocalResource } from "./storage";
 export interface SegmentEntry {
   segment: SavedSegment;

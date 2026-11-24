@@ -1,6 +1,6 @@
 {
   "revision": "735a9b8e162c1f951044baa892d94993869f2e77",
-  "notice": "Tool properties/defaults/annotations extracted from pinned Swift. Apply command properties/definitions use the current portable SideCut command schema, not native model definitions. Project field help shortened. TANDEM-LICENSE applies.",
+  "notice": "Tool properties/defaults/annotations extracted from pinned Swift. Apply command properties/definitions use the current portable raE.E command schema, not native model definitions. Project field help shortened. TANDEM-LICENSE applies.",
   "tools": [
     {
       "name": "status",

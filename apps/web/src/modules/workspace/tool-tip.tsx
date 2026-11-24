@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Tip } from "@raee/ui/components/tooltip";
 
 export const MOD =
   typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl";

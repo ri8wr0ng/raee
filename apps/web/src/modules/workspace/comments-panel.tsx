@@ -1,20 +1,20 @@
 import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 import { RiAddLine, RiCheckLine, RiChat3Line, RiEditLine, RiSearchLine } from "@remixicon/react";
-import { Time } from "@sidecut/contracts/time";
-import { markerKind, type Marker } from "@sidecut/contracts/project";
-import { CommentEdits, oneLine } from "@sidecut/core/markers";
-import { Button } from "@sidecut/ui/components/button";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Time } from "@raee/contracts/time";
+import { markerKind, type Marker } from "@raee/contracts/project";
+import { CommentEdits, oneLine } from "@raee/core/markers";
+import { Button } from "@raee/ui/components/button";
+import { Tip } from "@raee/ui/components/tooltip";
 import {
   Empty,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
-} from "@sidecut/ui/components/empty";
+} from "@raee/ui/components/empty";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { timecode } from "./timeline-model";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { Textarea } from "@raee/ui/components/textarea";
 import { SegmentedControl, SegmentedControlItem } from "@ui-sdk/react/segmented-control";
 
 type Filter = "all" | "comment" | "todo";

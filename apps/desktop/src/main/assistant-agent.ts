@@ -130,7 +130,7 @@ export class AssistantAgent {
     } catch {
       return {
         status: "unavailable",
-        message: "The assistant isn't built. Run `vp run --filter @sidecut/agent build`.",
+        message: "The assistant isn't built. Run `vp run --filter @raee/agent build`.",
       };
     }
     await mkdir(this.options.dataDir, { recursive: true });
@@ -147,10 +147,10 @@ export class AssistantAgent {
       NITRO_HOST: "127.0.0.1",
       PORT: String(port),
       NITRO_PORT: String(port),
-      SIDECUT_AGENT_TOKEN: token,
-      SIDECUT_AGENT_PROVIDER: provider,
-      SIDECUT_AGENT_MODEL: model,
-      SIDECUT_API_FILE: this.options.apiFile,
+      RAEE_AGENT_TOKEN: token,
+      RAEE_AGENT_PROVIDER: provider,
+      RAEE_AGENT_MODEL: model,
+      RAEE_API_FILE: this.options.apiFile,
       WORKFLOW_LOCAL_DATA_DIR: this.options.dataDir,
       WORKFLOW_LOCAL_BASE_URL: baseUrl,
       EVE_SCHEDULES_DISABLED: "1",

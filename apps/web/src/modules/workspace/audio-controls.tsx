@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import type { Clip } from "@sidecut/contracts/project";
-import type { MeasuredSound } from "@sidecut/core/loudness";
-import { speechMediaID } from "@sidecut/core/audio-editing";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { measureSource } from "@sidecut/platform-browser/audio-analysis";
-import { Button } from "@sidecut/ui/components/button";
-import { FieldError } from "@sidecut/ui/components/field";
+import type { Clip } from "@raee/contracts/project";
+import type { MeasuredSound } from "@raee/core/loudness";
+import { speechMediaID } from "@raee/core/audio-editing";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
+import { measureSource } from "@raee/platform-browser/audio-analysis";
+import { Button } from "@raee/ui/components/button";
+import { FieldError } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { CommitInput } from "./commit-input";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
-import { voiceIsolationAvailable } from "@sidecut/platform-browser/voice-isolation";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { voiceIsolationAvailable } from "@raee/platform-browser/voice-isolation";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 export function AudioControls({ clip }: { clip: Clip }) {
   const { snapshot, session, editor } = useEditorSession();

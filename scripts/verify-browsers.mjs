@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, ".."),
   publicRoot = join(root, "apps/web/.output/public");
-const temporary = await mkdtemp(join(tmpdir(), "sidecut-browser-"));
+const temporary = await mkdtemp(join(tmpdir(), "raee-browser-"));
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -44,9 +44,9 @@ const server = createServer(async (req, res) => {
 await new Promise((done) => server.listen(0, "127.0.0.1", done));
 const url = `http://127.0.0.1:${server.address().port}`;
 const results = [];
-const evidencePrefix = process.env.SIDECUT_VERIFICATION_PREFIX ?? "phase-136";
+const evidencePrefix = process.env.RAEE_VERIFICATION_PREFIX ?? "phase-136";
 assert.match(evidencePrefix, /^[a-z0-9-]+$/);
-const selectedEngine = process.env.SIDECUT_VERIFICATION_ENGINE;
+const selectedEngine = process.env.RAEE_VERIFICATION_ENGINE;
 assert.ok(selectedEngine == null || ["chromium", "firefox", "webkit"].includes(selectedEngine));
 try {
   for (const [name, engine] of Object.entries({ chromium, firefox, webkit })) {
@@ -301,6 +301,6 @@ try {
   if (results.some((r) => !r.accepted)) process.exitCode = 1;
 } finally {
   await new Promise((done) => server.close(done));
-  assert.ok(temporary.startsWith(join(tmpdir(), "sidecut-browser-")));
+  assert.ok(temporary.startsWith(join(tmpdir(), "raee-browser-")));
   await rm(temporary, { recursive: true, force: true });
 }

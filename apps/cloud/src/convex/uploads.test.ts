@@ -21,10 +21,10 @@ const owner = {
 const outsider = { ...owner, subject: "outsider", email: "outsider@example.com" };
 
 // Restore the flag after every test so ordering never leaks billing state.
-const originalFlag = process.env.SIDECUT_BILLING_ENABLED;
+const originalFlag = process.env.RAEE_BILLING_ENABLED;
 function setBilling(value: string | undefined) {
-  if (value === undefined) delete process.env.SIDECUT_BILLING_ENABLED;
-  else process.env.SIDECUT_BILLING_ENABLED = value;
+  if (value === undefined) delete process.env.RAEE_BILLING_ENABLED;
+  else process.env.RAEE_BILLING_ENABLED = value;
 }
 afterEach(() => setBilling(originalFlag));
 

@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { RiAddLine, RiRobot2Line, RiSendPlane2Line, RiStopLine } from "@remixicon/react";
 import { useEveAgent, type EveMessagePart, type EveToolPart } from "eve/react";
-import { Button } from "@sidecut/ui/components/button";
-import { Tip } from "@sidecut/ui/components/tooltip";
-import { Field, FieldDescription, FieldLabel } from "@sidecut/ui/components/field";
-import { Input } from "@sidecut/ui/components/input";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { Button } from "@raee/ui/components/button";
+import { Tip } from "@raee/ui/components/tooltip";
+import { Field, FieldDescription, FieldLabel } from "@raee/ui/components/field";
+import { Input } from "@raee/ui/components/input";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Textarea } from "@raee/ui/components/textarea";
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@sidecut/ui/components/empty";
+} from "@raee/ui/components/empty";
 import { useEditorSession } from "./editor-session";
 import {
   assistantBridge,

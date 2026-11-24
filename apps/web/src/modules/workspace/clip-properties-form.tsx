@@ -1,12 +1,12 @@
 import { useState } from "react";
-import type { Clip } from "@sidecut/contracts/project";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { FieldError } from "@sidecut/ui/components/field";
+import type { Clip } from "@raee/contracts/project";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { FieldError } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function ClipPropertiesForm({ clip }: { clip: Clip }) {
   const { session, snapshot } = useEditorSession();

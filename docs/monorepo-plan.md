@@ -1,4 +1,4 @@
-# SideCut monorepo plan
+# raE.E monorepo plan
 
 Status: monorepo foundation implemented. The selected shadcn/TanStack Start template, shared UI, single config package, and Effect dependency are in place. Media editing, desktop packaging, and agent integration remain future phases.
 
@@ -10,10 +10,10 @@ Status: monorepo foundation implemented. The selected shadcn/TanStack Start temp
 - Offer an optional Electron desktop app for Windows, macOS, and Linux.
 - Use React, TypeScript, Vite, TanStack Start, TanStack Router, Effect, and shadcn/ui.
 - Start from the user's shadcn monorepo command and preset `b7kBsBkh7b`; retain the generated UI, theme, and `cn` utility.
-- Keep TypeScript, lint, and formatter policies in one extensible workspace package, `@sidecut/config`, with independent subpath exports.
+- Keep TypeScript, lint, and formatter policies in one extensible workspace package, `@raee/config`, with independent subpath exports.
 - Interpret "Lite OXC" as Oxlint for linting and Oxfmt for formatting.
 - Use `vp` for installs, dependency management, tool execution, and workspace tasks. Retain pnpm workspaces and the lockfile as Vite+'s underlying package-management format. Vite+ includes Vite, Vitest, Oxlint, Oxfmt, packaging tools, and a workspace task runner. It satisfies the Vite requirement without adding Turborepo alongside another task runner.
-- The product is SideCut and workspace packages use the `@sidecut/*` namespace.
+- The product is raE.E and workspace packages use the `@raee/*` namespace.
 
 The browser and desktop share one editor interface, project schema, edit semantics, and render planning. Their storage and media implementations differ. Browser installation as a PWA is optional and separate from installing the Electron desktop app.
 
@@ -93,7 +93,7 @@ This is the intended structure as functionality lands. Packages and applications
 |   |   `-- tsconfig.preload.json
 |   `-- agent/                       # Later: CLI and stdio MCP entry points
 |-- packages/
-|   |-- config/                     # One workspace package: @sidecut/config
+|   |-- config/                     # One workspace package: @raee/config
 |   |   |-- typescript/
 |   |   |   |-- base.json
 |   |   |   |-- web.json
@@ -195,23 +195,23 @@ Keep time calculations exact. Decide the internal integer/rational representatio
 
 ## Shared TypeScript configuration
 
-One private ESM workspace package, `@sidecut/config`, owns all three tooling families. It exposes explicit subpaths without a root barrel or application runtime dependencies. It is a development dependency of consumers, not part of the shipped editor bundle.
+One private ESM workspace package, `@raee/config`, owns all three tooling families. It exposes explicit subpaths without a root barrel or application runtime dependencies. It is a development dependency of consumers, not part of the shipped editor bundle.
 
 Example consumer paths:
 
 ```text
-@sidecut/config/typescript/base.json
-@sidecut/config/typescript/web.json
-@sidecut/config/typescript/desktop.json
-@sidecut/config/oxlint/base
-@sidecut/config/oxlint/web
-@sidecut/config/oxlint/desktop
-@sidecut/config/oxfmt/base
-@sidecut/config/oxfmt/web
-@sidecut/config/oxfmt/desktop
+@raee/config/typescript/base.json
+@raee/config/typescript/web.json
+@raee/config/typescript/desktop.json
+@raee/config/oxlint/base
+@raee/config/oxlint/web
+@raee/config/oxlint/desktop
+@raee/config/oxfmt/base
+@raee/config/oxfmt/web
+@raee/config/oxfmt/desktop
 ```
 
-Consumers use TypeScript `extends`, for example `@sidecut/config/typescript/web.json`. Within the config package, web and desktop presets extend `./base.json`. Export each JSON file and TS config module explicitly in `package.json`.
+Consumers use TypeScript `extends`, for example `@raee/config/typescript/web.json`. Within the config package, web and desktop presets extend `./base.json`. Export each JSON file and TS config module explicitly in `package.json`.
 
 - `base.json`: strict mode, unchecked indexed access checks, exact optional properties, override checks, consistent casing, verbatim module syntax, isolated modules, no emit, neutral ECMAScript libraries, and `types: []`. Use bundler resolution for internal source-consumed libraries. Pick a compatible pinned TypeScript/Vite toolchain at implementation time.
 - `web.json`: extends base with the React JSX runtime and DOM libraries. Used by the web app, shared UI, and desktop renderer.
@@ -225,11 +225,11 @@ Vite transpilation does not replace type checking. CI runs the workspace TypeScr
 
 ## Shared Oxlint and Oxfmt configuration
 
-`@sidecut/config/oxlint/base` exports common correctness and import-boundary policy. The `web` preset composes base with React, browser, and accessibility rules; `desktop` composes base with host/Node rules. A desktop renderer consumes the web policy. The root `vite.config.ts` composes these objects into Vite+'s `lint` block with workspace-relative file overrides. Additional packages can extend the presets without copying rules. Ensure the selected Vite+ version's config types match the exported object shapes.
+`@raee/config/oxlint/base` exports common correctness and import-boundary policy. The `web` preset composes base with React, browser, and accessibility rules; `desktop` composes base with host/Node rules. A desktop renderer consumes the web policy. The root `vite.config.ts` composes these objects into Vite+'s `lint` block with workspace-relative file overrides. Additional packages can extend the presets without copying rules. Ensure the selected Vite+ version's config types match the exported object shapes.
 
 Enforce correctness, React hooks, JSX accessibility, consistent type imports, and the browser/native import boundary. Add shadcn lint rules once their support for the selected shared UI import paths is verified. Do not inherit T3-specific rule exceptions or custom plugins wholesale.
 
-`@sidecut/config/oxfmt/base` exports a plain formatting options object for Vite+'s `fmt` block. Use two spaces, semicolons, double quotes, trailing commas, and a 100-character print width as initial defaults. The `web` and `desktop` entry points initially re-export base, preserving the requested extension points without introducing different formatting styles. Consumers can compose a real override when needed. This is object composition, not an assumed JSON `extends` capability in Oxfmt.
+`@raee/config/oxfmt/base` exports a plain formatting options object for Vite+'s `fmt` block. Use two spaces, semicolons, double quotes, trailing commas, and a 100-character print width as initial defaults. The `web` and `desktop` entry points initially re-export base, preserving the requested extension points without introducing different formatting styles. Consumers can compose a real override when needed. This is object composition, not an assumed JSON `extends` capability in Oxfmt.
 
 Keep repository-specific ignores in the root configuration: build outputs, generated routes/schema files, coverage, caches, native binaries, and the lockfile where appropriate. Apply the same policy to apps, packages, scripts, docs, and CI-owned source formats supported by the formatter. A package has no separate formatter configuration unless it has a real exception.
 
@@ -244,9 +244,9 @@ Use Vite+'s workspace runner and caching. Track shared config files as task inpu
 
 ## shadcn/ui ownership
 
-Use `packages/ui` as the single owner of shadcn components and shared styles. Set up `components.json` in the web app and UI package with matching preset/base/icon settings and aliases targeting `@sidecut/ui` exports. Tailwind must scan both the app and UI package sources.
+Use `packages/ui` as the single owner of shadcn components and shared styles. Set up `components.json` in the web app and UI package with matching preset/base/icon settings and aliases targeting `@raee/ui` exports. Tailwind must scan both the app and UI package sources.
 
-Use the component base produced by the selected preset/template and verify it in generated `components.json`. Keep preset `b7kBsBkh7b` consistent across app and UI package. Import concrete subpaths such as `@sidecut/ui/components/button`, `@sidecut/ui/lib/utils`, and `@sidecut/ui/styles/globals.css`.
+Use the component base produced by the selected preset/template and verify it in generated `components.json`. Keep preset `b7kBsBkh7b` consistent across app and UI package. Import concrete subpaths such as `@raee/ui/components/button`, `@raee/ui/lib/utils`, and `@raee/ui/styles/globals.css`.
 
 Use shadcn controls for dialogs, menus, command palette, sliders, tabs, tooltips, progress, forms, and resizable panels. Timeline tracks, waveform drawing, and the video compositor remain editor-specific code. Shared component styling uses semantic tokens and variants; feature layout remains inside feature modules.
 
@@ -285,7 +285,7 @@ This is the proposed direct-dependency/tool inventory, not a lockfile or a claim
 - **`tailwindcss`, `@tailwindcss/vite`:** styles, semantic tokens, and shared UI source scanning.
 - **Generated UI primitive dependency:** retain the base selected by the template and verify its actual package from the generated manifest.
 - **Generated Remix Icon dependency:** preserve the selected preset's `remixicon` library consistently. Do not add Lucide as a second icon system.
-- **Generated `cn` utility:** reuse `packages/ui/src/lib/utils.ts` through `@sidecut/ui/lib/utils`. `clsx` and `tailwind-merge` are its implementation dependencies when generated; there is no additional hand-written helper or application-level class-composition layer. Keep `class-variance-authority` where generated component variants require it.
+- **Generated `cn` utility:** reuse `packages/ui/src/lib/utils.ts` through `@raee/ui/lib/utils`. `clsx` and `tailwind-merge` are its implementation dependencies when generated; there is no additional hand-written helper or application-level class-composition layer. Keep `class-variance-authority` where generated component variants require it.
 - **Generated font setup:** retain Geist Mono and Instrument Sans from the preset; avoid replacing their loader or asset setup before inspecting the template output.
 - **`tw-animate-css`:** component animation utilities if required by the selected generated styles; honor reduced motion.
 - Component-specific dependencies, such as the resizable panel implementation or toast primitives, are accepted from the selected registry component and recorded when generated. Do not add an additional general animation or drag/drop framework before the actual interaction requires it.
@@ -325,7 +325,7 @@ The following tools remain conditional:
 
 - Confirm the first supported browser/codec/export baseline through the media probe.
 - Benchmark and select the native export path after the browser slice; broad native feature parity is not assumed.
-- The product name is SideCut, the package namespace is `@sidecut/*`, and the visual preset is `b7kBsBkh7b`.
+- The product name is raE.E, the package namespace is `@raee/*`, and the visual preset is `b7kBsBkh7b`.
 - Verify the generated TanStack Start/Vite plugin configuration against Vite+ and inspect any generated task-runner migration before scaffolding changes are kept.
 - Select an explicit policy for retaining large source files in browser-managed storage versus asking users to reselect them.
 

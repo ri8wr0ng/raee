@@ -1,4 +1,4 @@
-import type { SoundMatch } from "@sidecut/core/sound-sync";
+import type { SoundMatch } from "@raee/core/sound-sync";
 export function syncSound(reference: Float32Array, file: Float32Array, signal: AbortSignal) {
   signal.throwIfAborted();
   if (typeof Worker === "undefined") throw new Error("Sound alignment needs browser workers.");

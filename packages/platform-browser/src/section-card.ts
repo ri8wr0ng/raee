@@ -9,7 +9,7 @@ import {
   type Band,
   type CardProps,
   type RGBA,
-} from "@sidecut/core/section-cards";
+} from "@raee/core/section-cards";
 import anton from "@fontsource/anton/files/anton-latin-400-normal.woff2?url";
 import instrumentSans from "@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url";
 import jetbrainsMono from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url";
@@ -17,9 +17,9 @@ import jetbrainsMono from "@fontsource-variable/jetbrains-mono/files/jetbrains-m
 const LATIN =
   "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD";
 const FACES = [
-  { family: "SideCut Card Anton", url: anton, weight: "400" },
-  { family: "SideCut Card Sans", url: instrumentSans, weight: "400 700" },
-  { family: "SideCut Card Mono", url: jetbrainsMono, weight: "100 800" },
+  { family: "raE.E Card Anton", url: anton, weight: "400" },
+  { family: "raE.E Card Sans", url: instrumentSans, weight: "400 700" },
+  { family: "raE.E Card Mono", url: jetbrainsMono, weight: "100 800" },
 ];
 let loaded: Promise<void> | null = null;
 /** Loads the card typefaces once; a failed load falls back to system faces as the reference does. */
@@ -42,11 +42,11 @@ export function ensureCardFonts(): Promise<void> {
   return loaded;
 }
 const font = {
-  title: (size: number) => `400 ${size}px "SideCut Card Anton", Impact, "Arial Narrow", sans-serif`,
+  title: (size: number) => `400 ${size}px "raE.E Card Anton", Impact, "Arial Narrow", sans-serif`,
   sans: (size: number, weight: number) =>
-    `${weight} ${size}px "SideCut Card Sans", system-ui, sans-serif`,
+    `${weight} ${size}px "raE.E Card Sans", system-ui, sans-serif`,
   mono: (size: number, weight: number) =>
-    `${weight} ${size}px "SideCut Card Mono", ui-monospace, Consolas, monospace`,
+    `${weight} ${size}px "raE.E Card Mono", ui-monospace, Consolas, monospace`,
 };
 const css = (c: RGBA) =>
   `rgba(${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)},${c.a})`;

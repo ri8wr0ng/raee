@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
 import { SourcePreview } from "./source-preview";
 import type { BrowserProjectSession } from "./browser-session";
-import { BrowserJobs } from "@sidecut/platform-browser/jobs";
+import { BrowserJobs } from "@raee/platform-browser/jobs";
 
 const project = () =>
   decodeProjectFile({

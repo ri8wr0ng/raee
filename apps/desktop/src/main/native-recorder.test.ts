@@ -522,7 +522,7 @@ describe("native recorder", () => {
     const { ffmpeg, ffprobe } = mediaBinaries();
     const recorder = new NativeRecorder(ffmpeg, ffprobe, root, {
       inputProvider: async () => ({
-        args: ["-f", "lavfi", "-i", "sidecut_invalid_source"],
+        args: ["-f", "lavfi", "-i", "raee_invalid_source"],
         video: true,
         audio: false,
       }),

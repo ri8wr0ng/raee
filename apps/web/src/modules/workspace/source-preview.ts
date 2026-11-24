@@ -1,9 +1,9 @@
-import { mixTimelineAudio, prepareTimelineAudio } from "@sidecut/platform-browser/audio";
-import { measureSource } from "@sidecut/platform-browser/audio-analysis";
-import { createLUTLoader } from "@sidecut/platform-browser/lut";
-import { paintPicture } from "@sidecut/platform-browser/picture";
-import { LocalMediaReader, PlaybackClock } from "@sidecut/platform-browser/preview";
-import type { Project, Clip } from "@sidecut/contracts/project";
+import { mixTimelineAudio, prepareTimelineAudio } from "@raee/platform-browser/audio";
+import { measureSource } from "@raee/platform-browser/audio-analysis";
+import { createLUTLoader } from "@raee/platform-browser/lut";
+import { paintPicture } from "@raee/platform-browser/picture";
+import { LocalMediaReader, PlaybackClock } from "@raee/platform-browser/preview";
+import type { Project, Clip } from "@raee/contracts/project";
 import { activeClips, previewIssue, projectDuration } from "./timeline-model";
 import type { BrowserProjectSession } from "./browser-session";
 

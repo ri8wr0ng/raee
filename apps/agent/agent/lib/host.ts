@@ -48,7 +48,7 @@ export async function callHostTool(
     if (!result.effects.length) throw new Error("Unknown effect type.");
     return toolResult(tool.operation, result, json).content as ToolContent[];
   }
-  const host = await discoverHost(process.env.SIDECUT_API_FILE);
+  const host = await discoverHost(process.env.RAEE_API_FILE);
   const result = await hostCall(host, tool.operation, input, signal, "assistant");
   return toolResult(tool.operation, result, json).content as ToolContent[];
 }

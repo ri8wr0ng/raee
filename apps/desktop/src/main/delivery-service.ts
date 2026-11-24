@@ -13,8 +13,8 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join } from "node:path";
-import type { NativeDeliveryRequest } from "@sidecut/contracts/native-delivery";
-import type { NativeFileReference } from "@sidecut/contracts/native-recording";
+import type { NativeDeliveryRequest } from "@raee/contracts/native-delivery";
+import type { NativeFileReference } from "@raee/contracts/native-recording";
 import { NativeMedia } from "./native-media.ts";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

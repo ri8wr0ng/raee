@@ -1,6 +1,6 @@
 // Ported from TandemCore/DeadAir.swift, PageChanges.swift and LowFrameRate.swift at 735a9b8.
 // See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project, Clip } from "@sidecut/contracts/project";
+import type { Project, Clip } from "@raee/contracts/project";
 import { resolveClip } from "./keyframes";
 import { layerGeometry } from "./render-plan";
 import { clipMediaID } from "./project-queries";

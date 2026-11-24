@@ -1,5 +1,5 @@
-import { decodeProjectFile, encodeProjectFile, type ProjectFile } from "@sidecut/contracts/project";
-import type { ReviewThread, ReviewVersion } from "@sidecut/contracts/review";
+import { decodeProjectFile, encodeProjectFile, type ProjectFile } from "@raee/contracts/project";
+import type { ReviewThread, ReviewVersion } from "@raee/contracts/review";
 
 export function reviewMarker(version: ReviewVersion, thread: ReviewThread, current: ProjectFile) {
   const frozen = decodeProjectFile(JSON.parse(version.source.snapshotJSON));

@@ -1,5 +1,5 @@
 import type { AuthConfig } from "convex/server";
-import { createAuthEnv } from "@sidecut/env/cloud";
+import { createAuthEnv } from "@raee/env/cloud";
 
 const { WORKOS_CLIENT_ID: clientId } = createAuthEnv(process.env);
 

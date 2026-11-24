@@ -1,6 +1,6 @@
 // Ported from TandemCore/Layout.swift and Editing.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, Project } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import type { Clip, Project } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import type { EditContext } from "./timeline-editing";
 import { requireClip, unlocked, replace } from "./timeline-editing";
 import { knownParameter, resolveClip } from "./keyframes";

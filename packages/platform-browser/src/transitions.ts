@@ -1,5 +1,5 @@
 // Timing/geometry ported from TandemRender/Transitions.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import { directionVector, transitionProgress } from "@sidecut/core/transitions";
+import { directionVector, transitionProgress } from "@raee/core/transitions";
 export const surface = (width: number, height: number) => {
   const value = document.createElement("canvas");
   value.width = width;

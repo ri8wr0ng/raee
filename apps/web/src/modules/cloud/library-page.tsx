@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@workos-inc/authkit-react";
 import { Link } from "@tanstack/react-router";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { OptionSelect } from "@sidecut/ui/components/option-select";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { OptionSelect } from "@raee/ui/components/option-select";
 import { AppPage } from "@/modules/shell/app-shell";
 import { useActiveTeam } from "./active-team";
 import { currentReturnTo, useCloud } from "./cloud-provider";

@@ -16,6 +16,6 @@ The model distinguishes background, hair, body skin, face skin, clothes and
 accessories. Accessories are a different backend from native Tandem's RVM/Vision.
 
 `alpha-sticker.gif`, `alpha-sticker.webp` and `alpha-sticker.apng` are synthetic
-64 × 64, two-frame fixtures generated for SideCut with FFmpeg. A red square moves
+64 × 64, two-frame fixtures generated for raE.E with FFmpeg. A red square moves
 from x=8 to x=32 over transparent pixels, with 0.5 seconds per frame. These three
 fixtures are dedicated to the public domain under CC0.

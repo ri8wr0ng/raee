@@ -1,11 +1,11 @@
 import { readdir, lstat, readFile, realpath } from "node:fs/promises";
 import { join, extname, relative, isAbsolute } from "node:path";
-import type { FolderMedia } from "@sidecut/contracts/desktop";
+import type { FolderMedia } from "@raee/contracts/desktop";
 
 // Ported role/exclusion rules from pinned TandemMedia/MediaScanner.swift.
 const skipped = new Set([".tandem", "exports", "node_modules", ".build", ".git"]);
-export { mediaRole } from "@sidecut/core/media-role";
-import { video, audio, images, mediaRole } from "@sidecut/core/media-role";
+export { mediaRole } from "@raee/core/media-role";
+import { video, audio, images, mediaRole } from "@raee/core/media-role";
 interface Candidate {
   size: number;
   modified: number;

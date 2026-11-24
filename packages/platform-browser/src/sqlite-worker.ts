@@ -1,6 +1,6 @@
 import sqlite3InitModule from "@sqlite.org/sqlite-wasm";
-import { SQLiteRepository } from "@sidecut/core/sqlite";
-import { decodeStorageRequest } from "@sidecut/contracts/storage";
+import { SQLiteRepository } from "@raee/core/sqlite";
+import { decodeStorageRequest } from "@raee/contracts/storage";
 
 const sqlite = sqlite3InitModule();
 let pool: Awaited<ReturnType<Awaited<typeof sqlite>["installOpfsSAHPoolVfs"]>> | undefined;

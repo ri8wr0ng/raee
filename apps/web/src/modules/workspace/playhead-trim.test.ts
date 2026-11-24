@@ -1,7 +1,7 @@
 import { expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
+import { ProjectCoordinator } from "@raee/core/coordinator";
 import { playheadTrim } from "./playhead-trim";
 
 const fixture = () =>

@@ -1,4 +1,4 @@
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 
 // Tag every composite value so user objects cannot collide with file references.
 interface FileStorage {

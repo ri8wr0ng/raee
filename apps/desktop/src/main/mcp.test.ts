@@ -15,7 +15,7 @@ afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 it("speaks MCP over stdio with 43 pinned tools and the studio extension, shared edits, undo, failures and cancellation", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-mcp-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-mcp-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -26,10 +26,10 @@ it("speaks MCP over stdio with 43 pinned tools and the studio extension, shared 
   cleanup.push(() => server.close());
   const path = join(root, "endpoint.json");
   await writeFile(path, JSON.stringify(endpoint));
-  const client = new Client({ name: "SideCut acceptance", version: "1.0" }),
+  const client = new Client({ name: "raE.E acceptance", version: "1.0" }),
     transport = new StdioClientTransport({
       command: process.execPath,
-      args: [resolve("scripts/sidecut-mcp.mjs"), "--endpoint-file", path],
+      args: [resolve("scripts/raee-mcp.mjs"), "--endpoint-file", path],
       env: {
         ...Object.fromEntries(
           Object.entries(process.env).filter(
@@ -95,7 +95,7 @@ it("speaks MCP over stdio with 43 pinned tools and the studio extension, shared 
     await client.callTool({ name: "history", arguments: { json: true } }),
   );
   expect(history.content[0]?.type === "text" && history.content[0].text).toContain(
-    "SideCut acceptance",
+    "raE.E acceptance",
   );
   expect(
     (await client.callTool({ name: "undo", arguments: { expectedRevision: 1 } })).isError,
@@ -149,7 +149,7 @@ it("speaks MCP over stdio with 43 pinned tools and the studio extension, shared 
 });
 
 it("initializes and lists contracts offline, keeping malformed discovery credentials out of replies", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-mcp-offline-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-mcp-offline-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const path = join(root, "endpoint.json");
   const secret = "a".repeat(64);
@@ -158,7 +158,7 @@ it("initializes and lists contracts offline, keeping malformed discovery credent
   await client.connect(
     new StdioClientTransport({
       command: process.execPath,
-      args: [resolve("scripts/sidecut-mcp.mjs"), "--endpoint-file", path],
+      args: [resolve("scripts/raee-mcp.mjs"), "--endpoint-file", path],
       env: { ELECTRON_RUN_AS_NODE: "1" },
       stderr: "pipe",
     }),

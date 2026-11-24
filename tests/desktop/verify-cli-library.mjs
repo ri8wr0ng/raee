@@ -7,10 +7,10 @@ import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-cli-library-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-cli-library-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let resultCode = 0;
 const evidence = { platform: process.platform };
 async function wait(predicate) {
@@ -76,7 +76,7 @@ async function verify() {
         const child = spawn(
           process.execPath,
           [
-            join(root, "scripts/sidecut-cli.mjs"),
+            join(root, "scripts/raee-cli.mjs"),
             ...args,
             "--endpoint-file",
             join(profile, "current.tandem.api.json"),
@@ -86,9 +86,9 @@ async function verify() {
             env: {
               ...process.env,
               ELECTRON_RUN_AS_NODE: "1",
-              SIDECUT_PROJECT: "",
+              RAEE_PROJECT: "",
               TANDEM_PROJECT: "",
-              SIDECUT_AUTHOR: "runtime-cli",
+              RAEE_AUTHOR: "runtime-cli",
             },
             windowsHide: true,
           },

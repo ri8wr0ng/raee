@@ -1,6 +1,6 @@
 import { it, expect } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { ProjectCoordinator } from "@raee/core/coordinator";
 import { toggleClipKeyframes } from "./keyframe-shortcut";
 it("toggles native transform pairs and sound gain, retains the last removed value and undoes atomically", () => {
   const coordinator = new ProjectCoordinator(

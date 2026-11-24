@@ -1,5 +1,5 @@
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { markerKind } from "@sidecut/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
+import { markerKind } from "@raee/contracts/project";
 import { queryClips } from "./project-queries";
 import { modelProblems, checkRanges } from "./quality-check";
 import type { Range } from "./speech";

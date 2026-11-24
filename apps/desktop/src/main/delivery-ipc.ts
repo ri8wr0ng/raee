@@ -36,7 +36,7 @@ export function registerNativeDelivery(
     return id;
   };
   ipcMain.handle(
-    "sidecut:delivery-encode",
+    "raee:delivery-encode",
     async (event, id: unknown, inputID: unknown, value: unknown) => {
       const frame = check(event),
         idValue = requestID(id),
@@ -72,7 +72,7 @@ export function registerNativeDelivery(
       }
     },
   );
-  ipcMain.handle("sidecut:delivery-cancel", (event, id: unknown) => {
+  ipcMain.handle("raee:delivery-cancel", (event, id: unknown) => {
     const frame = check(event),
       job = jobs.get(event.sender);
     if (!job || job.frame !== frame || job.id !== requestID(id))

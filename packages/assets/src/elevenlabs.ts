@@ -1,5 +1,5 @@
-import { decodeAsset } from "@sidecut/contracts/assets";
-import { decodeGeneration } from "@sidecut/contracts/providers";
+import { decodeAsset } from "@raee/contracts/assets";
+import { decodeGeneration } from "@raee/contracts/providers";
 import {
   ProviderHTTP,
   ProviderError,

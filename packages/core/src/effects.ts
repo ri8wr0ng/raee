@@ -1,7 +1,7 @@
 // Metadata ported from TandemCore/EffectRegistry.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { ClipEffect, ParamValue } from "@sidecut/contracts/project";
+import type { ClipEffect, ParamValue } from "@raee/contracts/project";
 import definitions from "./effect-registry.json";
-import { transitionTypes } from "@sidecut/contracts/project";
+import { transitionTypes } from "@raee/contracts/project";
 import { fixedParameters } from "./keyframes";
 import { QueryError } from "./project-queries";
 export interface ParamDefinition {

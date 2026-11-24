@@ -1,5 +1,5 @@
 import { useRef, useState, useSyncExternalStore } from "react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import {
   Dialog,
   DialogTrigger,
@@ -8,19 +8,19 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@sidecut/ui/components/dialog";
-import { Progress } from "@sidecut/ui/components/progress";
-import { Alert, AlertTitle, AlertDescription } from "@sidecut/ui/components/alert";
+} from "@raee/ui/components/dialog";
+import { Progress } from "@raee/ui/components/progress";
+import { Alert, AlertTitle, AlertDescription } from "@raee/ui/components/alert";
 import { UploadToCloudButton } from "../cloud/upload-button-lazy";
-import { exportPlan, projectDuration } from "@sidecut/core/render-plan";
-import { exportPresetPlan, type ExportPreset } from "@sidecut/core/export-presets";
-import { missingFonts, missingFontWarning } from "@sidecut/core/text";
-import { fontAvailable } from "@sidecut/platform-browser/text";
+import { exportPlan, projectDuration } from "@raee/core/render-plan";
+import { exportPresetPlan, type ExportPreset } from "@raee/core/export-presets";
+import { missingFonts, missingFontWarning } from "@raee/core/text";
+import { fontAvailable } from "@raee/platform-browser/text";
 import { useFontVersion } from "./text-inspector";
-import { formatOf } from "@sidecut/core/formats";
+import { formatOf } from "@raee/core/formats";
 import { useEditorSession, useEditorView } from "./editor-session";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 export function ExportDialog({
   open,

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-export async function discoverHost(path = process.env.SIDECUT_API_FILE) {
+export async function discoverHost(path = process.env.RAEE_API_FILE) {
   if (!path) {
     const base =
       process.platform === "win32"
@@ -10,7 +10,7 @@ export async function discoverHost(path = process.env.SIDECUT_API_FILE) {
         : process.platform === "darwin"
           ? join(homedir(), "Library", "Application Support")
           : (process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"));
-    if (!base) throw new Error("Set SIDECUT_API_FILE to the desktop discovery file.");
+    if (!base) throw new Error("Set RAEE_API_FILE to the desktop discovery file.");
     path = join(base, "sidecut", "current.tandem.api.json");
   }
   const raw = await readFile(path, "utf8");

@@ -12,10 +12,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-adapters-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-adapters-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270/";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270/";
 let resultCode = 0;
 const wait = async (predicate) => {
   const until = Date.now() + 30000;
@@ -49,7 +49,7 @@ async function verify() {
     const cli = async (...args) => {
       const result = await promisify(execFile)(
         process.execPath,
-        [join(root, "scripts/sidecut-cli.mjs"), ...args, "--json", "--endpoint-file", endpointFile],
+        [join(root, "scripts/raee-cli.mjs"), ...args, "--json", "--endpoint-file", endpointFile],
         { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, windowsHide: true },
       );
       return JSON.parse(result.stdout);
@@ -172,7 +172,7 @@ async function verify() {
     await mcp.connect(
       new StdioClientTransport({
         command: process.execPath,
-        args: [join(root, "scripts/sidecut-mcp.mjs"), "--endpoint-file", endpointFile],
+        args: [join(root, "scripts/raee-mcp.mjs"), "--endpoint-file", endpointFile],
         env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
         stderr: "pipe",
       }),

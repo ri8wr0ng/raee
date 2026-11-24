@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { FieldError } from "@sidecut/ui/components/field";
+import { FieldError } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { CommitInput } from "./commit-input";
 import { HiddenLabel, Hint, InspectorSection, PropertyPair, PropertyRow } from "./inspector-layout";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 const FRAME_RATES = [
   [24000, 1001, "23.976"],

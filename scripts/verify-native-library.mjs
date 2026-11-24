@@ -7,17 +7,17 @@ import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "..");
 const tempRoot = await realpath(tmpdir());
-const profile = await mkdtemp(join(tempRoot, "sidecut-native-library-"));
+const profile = await mkdtemp(join(tempRoot, "raee-native-library-"));
 const relativeProfile = relative(tempRoot, profile);
 assert.ok(
-  relativeProfile.startsWith("sidecut-native-library-") &&
+  relativeProfile.startsWith("raee-native-library-") &&
     !relativeProfile.includes("..") &&
     !isAbsolute(relativeProfile),
 );
 const binary = createRequire(join(root, "apps/desktop/package.json"))("electron");
-const environment = { ...process.env, SIDECUT_NATIVE_LIBRARY_PROFILE: profile };
+const environment = { ...process.env, RAEE_NATIVE_LIBRARY_PROFILE: profile };
 delete environment.ELECTRON_RUN_AS_NODE;
-delete environment.SIDECUT_RENDERER_URL;
+delete environment.RAEE_RENDERER_URL;
 try {
   const code = await new Promise((done, reject) => {
     const child = spawn(binary, [join(root, "tests/desktop/verify-native-library.mjs")], {

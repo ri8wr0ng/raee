@@ -1,5 +1,5 @@
 // Requires build:desktop and a dev server at http://127.0.0.1:4270.
-// With ELECTRON_RUN_AS_NODE unset: vp exec --filter @sidecut/desktop electron ../../tests/desktop/verify-service.mjs
+// With ELECTRON_RUN_AS_NODE unset: vp exec --filter @raee/desktop electron ../../tests/desktop/verify-service.mjs
 import { app, BrowserWindow, nativeImage } from "electron";
 import { mkdtempSync } from "node:fs";
 import { readFile, writeFile, rm } from "node:fs/promises";
@@ -9,10 +9,10 @@ import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-service-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-service-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 const evidence = {};
 let resultCode = 0;
 const wait = async (predicate) => {

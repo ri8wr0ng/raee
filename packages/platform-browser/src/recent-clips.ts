@@ -1,4 +1,4 @@
-import { RecentClipBuffer, type LiveMark } from "@sidecut/core/recent-clips";
+import { RecentClipBuffer, type LiveMark } from "@raee/core/recent-clips";
 import {
   ALL_FORMATS,
   BlobSource,

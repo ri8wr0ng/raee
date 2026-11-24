@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { RiFilmLine, RiResetLeftLine } from "@remixicon/react";
-import type { Clip } from "@sidecut/contracts/project";
-import { transformOf } from "@sidecut/core/picture-editing";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { FieldError } from "@sidecut/ui/components/field";
+import type { Clip } from "@raee/contracts/project";
+import { transformOf } from "@raee/core/picture-editing";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { FieldError } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { RegionZoomDialog } from "./region-zoom-dialog";
 import { CommitInput } from "./commit-input";
@@ -17,7 +17,7 @@ import {
   PropertyPair,
   PropertyRow,
 } from "./inspector-layout";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 type PictureKey =
   | "x"

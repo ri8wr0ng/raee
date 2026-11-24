@@ -1,5 +1,5 @@
 // Browser-selected folder equivalent of TandemAssets ImportFolders/SharedLibraryProvider.
-import { decodeAsset, type Asset } from "@sidecut/contracts/assets";
+import { decodeAsset, type Asset } from "@raee/contracts/assets";
 import { title } from "./provider.ts";
 export interface FolderFile {
   path: string;

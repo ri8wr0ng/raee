@@ -81,7 +81,7 @@ export async function verifyAssets() {
     name: "Verification icon",
     tags: ["synthetic", "red"],
     licenceClass: "creditNeeded",
-    creditLine: "SideCut test fixture, CC0",
+    creditLine: "raE.E test fixture, CC0",
   };
   const svg = new File(
     [

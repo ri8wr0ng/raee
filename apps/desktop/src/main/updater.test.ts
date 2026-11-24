@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { describe, expect, it, vi } from "vite-plus/test";
-import type { UpdateState } from "@sidecut/contracts/desktop";
+import type { UpdateState } from "@raee/contracts/desktop";
 import { createUpdateController, type Updater } from "./updater.ts";
 
 function fakeUpdater() {

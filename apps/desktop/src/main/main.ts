@@ -1,5 +1,5 @@
 import { BrowserWindow, app, dialog, ipcMain, net, protocol, shell } from "electron";
-import { createDesktopEnv } from "@sidecut/env/desktop";
+import { createDesktopEnv } from "@raee/env/desktop";
 import { stat, writeFile, unlink, mkdir } from "node:fs/promises";
 import { dirname, join, isAbsolute } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -52,9 +52,9 @@ if (smoke) {
   app.setPath("userData", profile);
 }
 
-// SIDECUT_RENDERER_URL points the window at a local web dev server instead of the build.
+// RAEE_RENDERER_URL points the window at a local web dev server instead of the build.
 const devUrl = (() => {
-  const value = createDesktopEnv(process.env).SIDECUT_RENDERER_URL;
+  const value = createDesktopEnv(process.env).RAEE_RENDERER_URL;
   if (!value) return undefined;
   return new URL(value);
 })();

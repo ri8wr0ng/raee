@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import type { CaptureSource } from "@sidecut/contracts/desktop";
+import type { CaptureSource } from "@raee/contracts/desktop";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
 
 /** The desktop app can capture system sound on Windows only. */

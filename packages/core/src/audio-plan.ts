@@ -1,6 +1,6 @@
 // Audio scheduling from TandemRender/RenderPlan.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project, Track } from "@sidecut/contracts/project";
-import type { Clip } from "@sidecut/contracts/project";
+import type { Project, Track } from "@raee/contracts/project";
+import type { Clip } from "@raee/contracts/project";
 import { effectsOf } from "./effect-editing";
 import { transitionWindow } from "./transitions";
 

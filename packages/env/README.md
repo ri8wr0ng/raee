@@ -1,6 +1,6 @@
 # Environment validation
 
-`@sidecut/env` uses [T3 Env Core](https://env.t3.gg/docs/core) and Zod. Import
+`@raee/env` uses [T3 Env Core](https://env.t3.gg/docs/core) and Zod. Import
 the entry point for your runtime: `/web`, `/landing`, `/cloud`, or `/desktop`.
 Factories validate supplied values; they do not read files or implicitly access
 `process.env`. Browser entry points contain only public `VITE_` schemas.

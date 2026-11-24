@@ -1,6 +1,6 @@
 import { BrowserWindow, dialog, ipcMain, systemPreferences } from "electron";
 import type { IpcMainInvokeEvent } from "electron";
-import type { NativeRecordingRequest } from "@sidecut/contracts/native-recording";
+import type { NativeRecordingRequest } from "@raee/contracts/native-recording";
 import { streamDestination, streamDestinations } from "./native-streaming.ts";
 import { bridgeChannels } from "../shared/bridge.ts";
 import type { NativeRecorder } from "./native-recorder.ts";

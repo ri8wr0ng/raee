@@ -6,19 +6,19 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
-import type { LiveAssets } from "@sidecut/core/live-assets";
-import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
-import type { LiveStudio } from "@sidecut/core/live-studio";
-import { LiveAudioMixer, type LiveAudioChannel } from "@sidecut/platform-browser/live-audio";
-import { LiveStudioOutput } from "@sidecut/platform-browser/live-studio";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { RecentClips } from "@sidecut/platform-browser/recent-clips";
-import { recordingLimits } from "@sidecut/platform-browser/recording";
+import { DEFAULT_LIVE_ASSETS, liveAssets } from "@raee/core/live-assets";
+import type { LiveAssets } from "@raee/core/live-assets";
+import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@raee/core/live-audio";
+import type { LiveStudio } from "@raee/core/live-studio";
+import { LiveAudioMixer, type LiveAudioChannel } from "@raee/platform-browser/live-audio";
+import { LiveStudioOutput } from "@raee/platform-browser/live-studio";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
+import { RecentClips } from "@raee/platform-browser/recent-clips";
+import { recordingLimits } from "@raee/platform-browser/recording";
 import { useLiveChatController } from "./live-chat-controller";
 import { LiveChatPanel } from "./live-chat-panel";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import { Radio, RadioGroup } from "@ui-sdk/react/radio";
 import { Toggle } from "@ui-sdk/react/toggle";
 import {
@@ -30,7 +30,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@sidecut/ui/components/select";
+} from "@raee/ui/components/select";
 import { useNavigate } from "@tanstack/react-router";
 import {
   RiAddLine,

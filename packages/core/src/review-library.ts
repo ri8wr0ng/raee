@@ -1,12 +1,12 @@
 /// <reference lib="dom" />
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import {
   decodeReviewThread,
   decodeReviewVersion,
   type ReviewThread,
   type ReviewVersion,
-} from "@sidecut/contracts/review";
-import type { StorageRequest, StorageRow } from "@sidecut/contracts/storage";
+} from "@raee/contracts/review";
+import type { StorageRequest, StorageRow } from "@raee/contracts/storage";
 
 export interface ReviewStorage {
   request: (request: StorageRequest) => readonly StorageRow[] | Promise<readonly StorageRow[]>;

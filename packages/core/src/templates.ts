@@ -8,9 +8,9 @@ import {
   type Clip,
   type MediaItem,
   type Project,
-} from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { Time } from "@sidecut/contracts/time";
+} from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { Time } from "@raee/contracts/time";
 import { SECTION_CARD, cardProps, fittedDuration } from "./section-cards";
 import {
   clearRange,

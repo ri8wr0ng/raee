@@ -1,5 +1,5 @@
 import { createStore } from "zustand/vanilla";
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 import type { KeymapOverrides } from "./keyboard";
 export const KEYMAP_STORAGE_KEY = "sidecut.keymap.v1";
 export const KEYMAP_OVERRIDES_STORAGE_KEY = "sidecut.keymap.overrides.v1";

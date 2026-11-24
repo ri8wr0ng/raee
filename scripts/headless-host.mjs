@@ -18,8 +18,7 @@ process.once("beforeExit", () => {
   for (const owner of owners) void owner();
 });
 function executable() {
-  if (process.env.SIDECUT_APP_EXECUTABLE)
-    return { file: process.env.SIDECUT_APP_EXECUTABLE, args: [] };
+  if (process.env.RAEE_APP_EXECUTABLE) return { file: process.env.RAEE_APP_EXECUTABLE, args: [] };
   if (/^(?:raE\.E|raee|sidecut)(?:\.exe)?$/i.test(process.execPath.split(/[\\/]/).at(-1)))
     return { file: process.execPath, args: [] };
   let root = dirname(fileURLToPath(import.meta.url));
@@ -30,7 +29,7 @@ function executable() {
   try {
     return { file: require("electron"), args: [desktop] };
   } catch {
-    throw new Error("Install raE.E or set SIDECUT_APP_EXECUTABLE to use headless hosting.");
+    throw new Error("Install raE.E or set RAEE_APP_EXECUTABLE to use headless hosting.");
   }
 }
 /** Reuse the authoritative owner, or acquire its existing file lock in a hidden desktop host. */
@@ -46,7 +45,7 @@ export async function acquireProjectHost(flags, { library = false, signal } = {}
   } catch (error) {
     if (
       flags.has("endpoint-file") ||
-      process.env.SIDECUT_API_FILE ||
+      process.env.RAEE_API_FILE ||
       (error.code !== "ENOENT" && error.cause?.code !== "ENOENT")
     )
       throw error;
@@ -75,7 +74,7 @@ export async function acquireProjectHost(flags, { library = false, signal } = {}
     if (!found) {
       const launch = executable();
       if (launch.args.length) await access(resolve(launch.args[0], "dist/main.mjs"));
-      profile = await mkdtemp(join(tmpdir(), "sidecut-headless-"));
+      profile = await mkdtemp(join(tmpdir(), "raee-headless-"));
       const env = { ...process.env };
       delete env.ELECTRON_RUN_AS_NODE;
       child = spawn(
@@ -89,11 +88,7 @@ export async function acquireProjectHost(flags, { library = false, signal } = {}
         ],
         {
           env,
-          stdio: [
-            "ignore",
-            "ignore",
-            process.env.SIDECUT_HEADLESS_DIAGNOSTICS ? "inherit" : "ignore",
-          ],
+          stdio: ["ignore", "ignore", process.env.RAEE_HEADLESS_DIAGNOSTICS ? "inherit" : "ignore"],
           windowsHide: true,
         },
       );

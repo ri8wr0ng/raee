@@ -1,5 +1,5 @@
 // Ported from TandemAPI/TimelineDump.swift at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, Project, ProjectFile } from "@sidecut/contracts/project";
+import type { Clip, Project, ProjectFile } from "@raee/contracts/project";
 import { object } from "./import-builder";
 import { projectDuration } from "./render-plan";
 import { speechTracks, unionRanges, type Transcripts } from "./speech";

@@ -11,8 +11,8 @@ export default defineConfig({
   // First transcription must not reload the editor while its worker is running.
   optimizeDeps: {
     include: [
-      "@sidecut/platform-browser > @huggingface/transformers",
-      "@sidecut/platform-browser > onnxruntime-web/wasm",
+      "@raee/platform-browser > @huggingface/transformers",
+      "@raee/platform-browser > onnxruntime-web/wasm",
     ],
   },
   plugins:

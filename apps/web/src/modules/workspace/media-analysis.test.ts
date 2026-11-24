@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { BrowserJobs } from "@sidecut/platform-browser/jobs";
-import { sourceSamples, type SourceSamples } from "@sidecut/platform-browser/source-analysis";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { BrowserJobs } from "@raee/platform-browser/jobs";
+import { sourceSamples, type SourceSamples } from "@raee/platform-browser/source-analysis";
 import type { BrowserProjectSession } from "./browser-session";
 import { MediaAnalysis } from "./media-analysis";
 
-vi.mock("@sidecut/platform-browser/source-analysis", () => ({ sourceSamples: vi.fn() }));
+vi.mock("@raee/platform-browser/source-analysis", () => ({ sourceSamples: vi.fn() }));
 const samples: SourceSamples = {
   duration: 1,
   peaks: new Float32Array([0.5]),

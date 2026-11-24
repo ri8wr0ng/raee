@@ -1,8 +1,8 @@
 // Ported from TandemCore/Editing.swift (markers) and TandemCore/Comments.swift.
 // See tests/fixtures/tandem/TANDEM-LICENSE.
 import { Schema } from "effect";
-import { MarkerSchema, markerKind, type Marker, type Project } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import { MarkerSchema, markerKind, type Marker, type Project } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import { mergePatch } from "./json-merge-patch";
 import type { EditContext } from "./timeline-editing";
 

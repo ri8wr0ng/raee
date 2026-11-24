@@ -1,6 +1,6 @@
 # Local media models
 
-SideCut downloads model weights on first use and stores them in the local derived cache. Model weights are not included in the application package. Changing a backend uses a separate cache key.
+raE.E downloads model weights on first use and stores them in the local derived cache. Model weights are not included in the application package. Changing a backend uses a separate cache key.
 
 ## Recurrent video matting
 
@@ -8,8 +8,8 @@ The Cutout inspector offers MediaPipe and Robust Video Matting (RVM). MediaPipe 
 
 - Official project: [PeterL1n/RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting).
 - Model: [MobileNetV3 FP32 ONNX, release v1.0.0](https://github.com/PeterL1n/RobustVideoMatting/releases/download/v1.0.0/rvm_mobilenetv3_fp32.onnx).
-- SHA-256: `88d4531297118f595bf2fd60f6f566aec2e559393802d1f436c380f0cbbd2828`. SideCut verifies downloaded and cached model bytes before inference.
-- Upstream licence: GPL-3.0. The upstream repository supplies its licence and model usage terms. This optional download is not covered by SideCut's source licence.
+- SHA-256: `88d4531297118f595bf2fd60f6f566aec2e559393802d1f436c380f0cbbd2828`. raE.E verifies downloaded and cached model bytes before inference.
+- Upstream licence: GPL-3.0. The upstream repository supplies its licence and model usage terms. This optional download is not covered by raE.E's source licence.
 - Runtime: ONNX Runtime Web WASM, one thread, maximum input size 1280 by 720, downsample ratio 0.375.
 - Reference: [official inference interface](https://github.com/PeterL1n/RobustVideoMatting/blob/master/documentation/inference.md).
 
@@ -23,4 +23,4 @@ The model repository lists the Apache-2.0 licence. Language configuration and ca
 
 ## Voice isolation
 
-SideCut uses RNNoise. Tandem uses Apple's sound isolation processor. Their outputs and performance differ. The presence of the same control does not establish audio quality parity.
+raE.E uses RNNoise. Tandem uses Apple's sound isolation processor. Their outputs and performance differ. The presence of the same control does not establish audio quality parity.

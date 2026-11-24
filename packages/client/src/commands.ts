@@ -1,4 +1,4 @@
-import type { EditCommandInput } from "@sidecut/contracts/commands";
+import type { EditCommandInput } from "@raee/contracts/commands";
 
 export type Command = EditCommandInput;
 type Keys<T> = T extends unknown ? keyof T : never;

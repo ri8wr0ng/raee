@@ -10,7 +10,7 @@ import {
   RiVolumeMuteLine,
   RiVolumeUpLine,
 } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import { Toggle } from "@ui-sdk/react/toggle";
 import { Toolbar, ToolbarButton, ToolbarGroup } from "@ui-sdk/react/toolbar";
 
