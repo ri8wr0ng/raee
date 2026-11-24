@@ -1,11 +1,13 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import type {
-  NativeCaptureDevice,
-  NativeRecordingRequest,
-} from "@raee/contracts/native-recording";
+import type { NativeCaptureDevice, NativeRecordingRequest } from "@raee/contracts/native-recording";
 
-export type NativeInput = { args: string[]; video: boolean; audio: boolean };
+export type NativeInput = {
+  args: string[];
+  video: boolean;
+  audio: boolean;
+  pipe?: boolean;
+};
 type Device = NativeCaptureDevice & { input: string };
 
 // DirectShow uses ':' as a separator; reject names that could alter its input syntax.
@@ -127,6 +129,13 @@ export function assembleNativeInputs(
   request: NativeRecordingRequest,
   available: Device[],
 ): NativeInput {
+  if (request.source === "program")
+    return {
+      args: ["-thread_queue_size", "512", "-f", "webm", "-i", "pipe:0"],
+      video: true,
+      audio: true,
+      pipe: true,
+    };
   const select = (id: string | undefined, kind: Device["kind"]): Device => {
     const matches = available.filter((device) => device.id === id && device.kind === kind);
     const selected = matches[0];
@@ -167,6 +176,7 @@ export async function nativeInputs(
   ffmpeg: string,
   request: NativeRecordingRequest,
 ): Promise<NativeInput> {
+  if (request.source === "program") return assembleNativeInputs(request, []);
   if (process.platform !== "win32") throw new Error("Native capture is only supported on Windows.");
   const needsDevices = request.source !== "screen" || request.microphoneID !== undefined;
   return assembleNativeInputs(request, needsDevices ? await devices(ffmpeg) : []);

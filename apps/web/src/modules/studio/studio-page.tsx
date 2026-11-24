@@ -18,7 +18,7 @@ function CloudStudioPanel({ onBusy }: { onBusy: (busy: boolean) => void }) {
 }
 
 export function StudioPage() {
-  const { configured } = useCloud();
+  const { configured, available, activate } = useCloud();
   const { snapshot } = useEditorSession();
   // A ref, not state: Studio clears it right before navigating to the editor after an upload.
   const busy = useRef(false);
@@ -78,7 +78,19 @@ export function StudioPage() {
           ) : configured ? (
             <CloudStudioPanel onBusy={onBusy} />
           ) : (
-            <StudioPanel onBusy={onBusy} cloud={LOCAL_ONLY} />
+            <StudioPanel
+              onBusy={onBusy}
+              cloud={
+                available
+                  ? {
+                      state: "unavailable",
+                      reason: "Connect to the cloud to save takes to your team.",
+                      // Cloud loads with the page, so connecting reloads Studio once.
+                      action: { label: "Connect cloud", run: activate },
+                    }
+                  : LOCAL_ONLY
+              }
+            />
           )}
         </Suspense>
       )}

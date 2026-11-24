@@ -9,6 +9,7 @@ export const bridgeChannels = {
   nativeRecordingDevices: "raee:native-recording-devices",
   nativeRecordingStart: "raee:native-recording-start",
   nativeRecordingStop: "raee:native-recording-stop",
+  nativeRecordingWrite: "raee:native-recording-write",
   nativeRecordingList: "raee:native-recording-list",
   nativeRecordingStreamStatus: "raee:native-recording-stream-status",
   nativeRecordingRetry: "raee:native-recording-retry",
@@ -62,6 +63,12 @@ export const bridgeChannels = {
   updateCheck: "raee:update-check",
   updateDownload: "raee:update-download",
   updateInstall: "raee:update-install",
+  cloudAuthConfigure: "raee:cloud-auth-configure",
+  cloudAuthState: "raee:cloud-auth-state",
+  cloudAuthSignIn: "raee:cloud-auth-sign-in",
+  cloudAuthSignOut: "raee:cloud-auth-sign-out",
+  cloudAuthToken: "raee:cloud-auth-token",
+  cloudAuthChanged: "raee:cloud-auth-changed",
 } as const;
 
 export type DesktopAppInfo = {

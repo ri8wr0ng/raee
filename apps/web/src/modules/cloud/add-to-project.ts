@@ -100,6 +100,10 @@ export function isAbortError(cause: unknown): boolean {
   );
 }
 
+// Raw chunks are folded into a Blob at this size. Large Blobs can live on disk in the browser, so
+// long recordings do not have to fit in the page's memory.
+const FOLD_BYTES = 8 * 1024 * 1024;
+
 function abortError() {
   return new DOMException("Download cancelled.", "AbortError");
 }
@@ -136,7 +140,9 @@ export async function downloadToFile({
     onProgress?.({ loaded: blob.size, total: blob.size });
     return new File([blob], fileName, { type });
   }
-  const chunks: BlobPart[] = [];
+  const folded: Blob[] = [];
+  let chunks: Uint8Array[] = [];
+  let chunkBytes = 0;
   let loaded = 0;
   try {
     for (;;) {
@@ -144,12 +150,18 @@ export async function downloadToFile({
       const { done, value } = await reader.read();
       if (done) break;
       chunks.push(value);
+      chunkBytes += value.byteLength;
       loaded += value.byteLength;
+      if (chunkBytes >= FOLD_BYTES) {
+        folded.push(new Blob(chunks as BlobPart[]));
+        chunks = [];
+        chunkBytes = 0;
+      }
       onProgress?.({ loaded, total });
     }
   } catch (cause) {
     await reader.cancel().catch(() => {});
     throw signal?.aborted ? abortError() : cause;
   }
-  return new File(chunks, fileName, { type });
+  return new File([...folded, ...(chunks as BlobPart[])], fileName, { type });
 }

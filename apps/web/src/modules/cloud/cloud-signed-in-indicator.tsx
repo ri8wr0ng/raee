@@ -1,9 +1,8 @@
-import { useAuth } from "@workos-inc/authkit-react";
+import { useCloudAuth } from "./cloud-auth";
 
-// Loaded only when cloud is configured, so useAuth always has an AuthKitProvider above it.
-// Kept in its own module so AuthKit stays out of the editor's entry bundle.
+// Loaded only when cloud is configured, so a cloud session is always mounted above it.
 export default function CloudSignedInIndicator() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useCloudAuth();
   if (isLoading || !user) return null;
   return (
     <>

@@ -18,7 +18,8 @@ import { describeQuality, useOutputQuality, videoBitrate } from "@/modules/studi
 export function NativeRecordingControls() {
   const { snapshot } = useEditorSession();
   const bridge = nativeBridge();
-  const [source, setSource] = useState<NativeRecordingRequest["source"]>("screen");
+  const [source, setSource] =
+    useState<Exclude<NativeRecordingRequest["source"], "program">>("screen");
   const [encoder, setEncoder] = useState<NativeRecordingRequest["encoder"]>("auto");
   const [deviceID, setDeviceID] = useState("");
   const [microphoneID, setMicrophoneID] = useState("");

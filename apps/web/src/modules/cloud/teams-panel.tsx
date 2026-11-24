@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@workos-inc/authkit-react";
+import { useCloudAuth } from "./cloud-auth";
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { api } from "@raee/cloud/api";
 import type { FunctionReturnType } from "convex/server";
@@ -38,7 +38,7 @@ export default function CloudTeams({ view = "team" }: { view?: CloudView }) {
 }
 
 function Account({ view }: { view: CloudView }) {
-  const { user, signIn, signOut } = useAuth();
+  const { user, signIn, signOut } = useCloudAuth();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const [error, setError] = useState("");
   if (isLoading) return <p role="status">Connecting your account…</p>;
@@ -49,7 +49,7 @@ function Account({ view }: { view: CloudView }) {
         {error && <p role="alert">{error}</p>}
         <Button
           onClick={() => {
-            void signIn({ state: { returnTo: currentReturnTo() } }).catch(() =>
+            void signIn({ returnTo: currentReturnTo() }).catch(() =>
               setError("Sign-in could not start. Try again."),
             );
           }}

@@ -29,6 +29,7 @@ beforeEach(() => {
     devices: vi.fn().mockResolvedValue([]),
     start: vi.fn().mockResolvedValue({}),
     stop: vi.fn().mockResolvedValue({}),
+    write: vi.fn().mockResolvedValue(undefined),
     list: vi.fn().mockResolvedValue([]),
     retry: vi.fn(),
     close: vi.fn(),
@@ -146,6 +147,41 @@ it("stops only the recording a late start created when the renderer is destroyed
       encoder: "auto",
     }),
   ).resolves.toEqual({ id: "next" });
+});
+it("accepts a program source without device lookup and forwards validated chunks", async () => {
+  mock.dialog.mockResolvedValue({ response: 1 });
+  const event = { sender, senderFrame: sender.mainFrame };
+  await mock.handlers.get(bridgeChannels.nativeRecordingStart)!(event, {
+    projectID: "project",
+    source: "program",
+    encoder: "software",
+  });
+  expect(recorder.devices).not.toHaveBeenCalled();
+  expect(recorder.start).toHaveBeenCalledWith(expect.objectContaining({ source: "program" }));
+  const write = mock.handlers.get(bridgeChannels.nativeRecordingWrite)!;
+  const bytes = new Uint8Array([1, 2, 3]);
+  await write(event, "rec-1", bytes);
+  expect(recorder.write).toHaveBeenCalledWith("rec-1", bytes);
+  await expect(write(event, "rec-1", "not-bytes")).rejects.toThrow("Invalid");
+  await expect(write(event, 42, bytes)).rejects.toThrow("Invalid");
+  await expect(write(event, "rec-1", new Uint8Array(16 * 1024 * 1024 + 1))).rejects.toThrow(
+    "Invalid",
+  );
+});
+it("rejects program requests that carry capture devices", async () => {
+  const event = { sender, senderFrame: sender.mainFrame };
+  for (const extra of [{ deviceID: "cam" }, { microphoneID: "mic" }]) {
+    await expect(
+      mock.handlers.get(bridgeChannels.nativeRecordingStart)!(event, {
+        projectID: "project",
+        source: "program",
+        encoder: "software",
+        ...extra,
+      }),
+    ).rejects.toThrow("Invalid");
+  }
+  expect(mock.dialog).not.toHaveBeenCalled();
+  expect(recorder.start).not.toHaveBeenCalled();
 });
 it("rejects a second stop and status from a stopped owner", async () => {
   mock.dialog.mockResolvedValue({ response: 1 });

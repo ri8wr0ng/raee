@@ -54,3 +54,14 @@ it("permits explicit local development and rejects insecure remote backends", ()
     cloudConfig({ url: "http://remote.example", clientId: "client_test" }, "http://localhost:3000"),
   ).toBeNull();
 });
+
+it("lets the desktop app use cloud through its main-process sign-in", () => {
+  const env = { url: "https://example.convex.cloud", clientId: "client_test" };
+  expect(cloudConfig(env, "sidecut://app")).toBeNull();
+  expect(cloudConfig(env, "sidecut://app", true)).toMatchObject({
+    url: "https://example.convex.cloud",
+    clientId: "client_test",
+    devMode: false,
+    desktop: true,
+  });
+});

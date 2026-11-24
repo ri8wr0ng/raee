@@ -39,7 +39,11 @@ type Session = {
   started: number;
   stream: NativeStreamStatus;
 };
-type Proc = { child: ChildProcessWithoutNullStreams; done: Promise<number | null> };
+type Proc = {
+  child: ChildProcessWithoutNullStreams;
+  done: Promise<number | null>;
+  pipe: boolean;
+};
 type Options = {
   inputProvider?: (request: NativeRecordingRequest) => Promise<NativeInput>;
   encoderCandidates?: readonly string[];
@@ -396,40 +400,46 @@ export class NativeRecorder {
       child.stdin.on("error", () => {});
       const proc: Proc = {
         child,
+        pipe: input.pipe === true,
         done: new Promise((resolve) => {
           child.on("error", () => {});
           child.on("close", resolve);
         }),
       };
       this.dispatch({ type: "spawned", session, proc });
-      await new Promise<void>((resolve, reject) => {
-        const cleanup = () => {
-          clearTimeout(timer);
-          child.stdout.removeListener("data", progress);
-          child.removeListener("close", ended);
-          child.removeListener("error", ended);
-          child.stdout.resume();
-        };
-        let pending = "";
-        const progress = (chunk: Buffer) => {
-          pending = (pending + chunk.toString()).slice(-8192);
-          if (/out_time_us=[1-9]\d*/.test(pending)) {
+      if (input.pipe) {
+        // Pipe input produces no progress until the renderer sends data; discard
+        // the progress stream so FFmpeg never blocks on a full stdout pipe.
+        child.stdout.resume();
+      } else
+        await new Promise<void>((resolve, reject) => {
+          const cleanup = () => {
+            clearTimeout(timer);
+            child.stdout.removeListener("data", progress);
+            child.removeListener("close", ended);
+            child.removeListener("error", ended);
+            child.stdout.resume();
+          };
+          let pending = "";
+          const progress = (chunk: Buffer) => {
+            pending = (pending + chunk.toString()).slice(-8192);
+            if (/out_time_us=[1-9]\d*/.test(pending)) {
+              cleanup();
+              resolve();
+            }
+          };
+          const ended = () => {
             cleanup();
-            resolve();
-          }
-        };
-        const ended = () => {
-          cleanup();
-          reject(new Error("Could not start native recording"));
-        };
-        const timer = setTimeout(() => {
-          child.kill();
-          ended();
-        }, 20000);
-        child.stdout.on("data", progress);
-        child.once("close", ended);
-        child.once("error", ended);
-      });
+            reject(new Error("Could not start native recording"));
+          };
+          const timer = setTimeout(() => {
+            child.kill();
+            ended();
+          }, 20000);
+          child.stdout.on("data", progress);
+          child.once("close", ended);
+          child.once("error", ended);
+        });
       const owned = session;
       this.dispatch({ type: "ready", session: owned });
       // An explicit stop moves the operation to `stopping` first; only a recording that is
@@ -477,7 +487,8 @@ export class NativeRecorder {
     try {
       session.recording.status = "stopping";
       await this.save(session.recording);
-      child.stdin.write("q\n");
+      if (proc.pipe) child.stdin.end();
+      else child.stdin.write("q\n");
       const timer = setTimeout(() => child.kill(), 10000);
       const code = await done.finally(() => clearTimeout(timer));
       this.dispatch({ type: "processEnded", session });
@@ -499,6 +510,22 @@ export class NativeRecorder {
     } finally {
       this.dispatch({ type: "release" });
     }
+  }
+  async write(id: string, bytes: Uint8Array): Promise<void> {
+    const active = this.op;
+    if (active.kind !== "recording" || active.session.recording.id !== id || !active.proc.pipe)
+      throw new Error("No active pipe recording with that ID");
+    const { child } = active.proc;
+    if (child.stdin.write(bytes)) return;
+    await new Promise<void>((resolve) => {
+      const settled = () => {
+        child.stdin.removeListener("drain", settled);
+        child.removeListener("close", settled);
+        resolve();
+      };
+      child.stdin.once("drain", settled);
+      child.once("close", settled);
+    });
   }
   private async cleanupPublishedRemuxes(id: string): Promise<void> {
     const folder = await this.safeFolder(id),

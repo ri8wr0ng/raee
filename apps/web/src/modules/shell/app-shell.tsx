@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   RiCloudLine,
   RiFilmLine,
@@ -24,6 +24,10 @@ const DESTINATIONS = [
 /** Every app page shares one dark frame: the rail switches between capture, editing and the team. */
 export function AppShell({ children }: { children: ReactNode }) {
   const { configured } = useCloud();
+  // Opening a cloud file (/edit/$mediaId) is part of editing.
+  const opening = useRouterState({
+    select: (state) => state.location.pathname.startsWith("/edit/"),
+  });
   return (
     <div className="app-frame">
       <nav className="app-rail" aria-label="App">
@@ -37,6 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="app-rail-link"
             activeOptions={{ exact: true }}
             activeProps={{ "aria-current": "page" }}
+            {...(to === "/" && opening ? { "aria-current": "page" as const } : {})}
           >
             <Icon aria-hidden="true" />
             <span>{label}</span>

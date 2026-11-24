@@ -10,6 +10,8 @@ import {
   link,
 } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import assert from "node:assert/strict";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
@@ -36,6 +38,7 @@ const synthetic = async () => ({
   audio: true,
 });
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const execFileAsync = promisify(execFile);
 async function cleanup(root: string) {
   assert.ok(root.startsWith(join(tmpdir(), "native-recorder-")));
   await rm(root, { recursive: true, force: true });
@@ -565,6 +568,73 @@ describe("native recorder", () => {
       expect(ready.status).toBe("ready");
       expect(ready.elapsedSeconds).toBeGreaterThan(300);
       expect(ready.tracks.map((track) => track.kind)).toEqual(["video"]);
+    } finally {
+      await recorder.close();
+      await cleanup(root);
+    }
+  }, 30000);
+  it("records renderer-supplied WebM chunks through the pipe input", async () => {
+    const root = await mkdtemp(join(tmpdir(), "native-recorder-"));
+    const { ffmpeg, ffprobe } = mediaBinaries();
+    const source = join(root, "source.webm");
+    await execFileAsync(ffmpeg, [
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=128x128:rate=15",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=440:sample_rate=44100",
+      "-t",
+      "2",
+      "-c:v",
+      "libvpx-vp9",
+      "-c:a",
+      "libopus",
+      "-y",
+      source,
+    ]);
+    const bytes = await readFile(source);
+    const recorder = new NativeRecorder(ffmpeg, ffprobe, root, {
+      inputProvider: async () => ({
+        args: ["-thread_queue_size", "512", "-f", "webm", "-i", "pipe:0"],
+        video: true,
+        audio: true,
+        pipe: true,
+      }),
+    });
+    try {
+      const started = await recorder.start({ ...request, source: "program" });
+      await expect(recorder.write(randomUUID(), bytes)).rejects.toThrow(/pipe recording/);
+      for (let offset = 0; offset < bytes.length; offset += 64 * 1024)
+        await recorder.write(started.id, bytes.subarray(offset, offset + 64 * 1024));
+      const ready = await recorder.stop(started.id);
+      expect(ready.status).toBe("ready");
+      expect(ready.tracks.map((track) => track.kind).sort()).toEqual(["audio", "video"]);
+      expect(ready.elapsedSeconds).toBeGreaterThan(0);
+      await expect(recorder.write(started.id, bytes)).rejects.toThrow(/pipe recording/);
+    } finally {
+      await recorder.close();
+      await cleanup(root);
+    }
+  }, 30000);
+  it("rejects pipe writes without an active pipe recording", async () => {
+    const root = await mkdtemp(join(tmpdir(), "native-recorder-"));
+    const { ffmpeg, ffprobe } = mediaBinaries();
+    const recorder = new NativeRecorder(ffmpeg, ffprobe, root, { inputProvider: synthetic });
+    try {
+      await expect(recorder.write(randomUUID(), new Uint8Array(1))).rejects.toThrow(
+        /pipe recording/,
+      );
+      const started = await recorder.start(request);
+      await expect(recorder.write(started.id, new Uint8Array(1))).rejects.toThrow(/pipe recording/);
+      await pause(800);
+      await recorder.stop(started.id);
+      await expect(recorder.write(started.id, new Uint8Array(1))).rejects.toThrow(/pipe recording/);
     } finally {
       await recorder.close();
       await cleanup(root);

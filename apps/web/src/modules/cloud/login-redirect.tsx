@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@workos-inc/authkit-react";
+import { useCloudAuth } from "./cloud-auth";
 import { useCloud } from "./cloud-provider";
 
 // WorkOS Initiate login URI: starts AuthKit sign-in without a click (invitations, password resets).
@@ -11,7 +11,7 @@ export default function LoginRedirect() {
 }
 
 function StartSignIn() {
-  const { isLoading, user, signIn } = useAuth();
+  const { isLoading, user, signIn } = useCloudAuth();
   const started = useRef(false);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -21,7 +21,7 @@ function StartSignIn() {
       window.location.replace("/");
       return;
     }
-    void signIn({ state: { returnTo: "/team" } }).catch(() =>
+    void signIn({ returnTo: "/team" }).catch(() =>
       setError("Sign-in could not start. Reload to try again."),
     );
   }, [isLoading, user, signIn]);

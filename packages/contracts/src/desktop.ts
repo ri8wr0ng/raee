@@ -67,6 +67,16 @@ export type UpdateState =
   | { status: "ready"; version: string }
   | { status: "error"; message: string };
 
+export type CloudAuthUser = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  profilePictureUrl: string | null;
+};
+
+export type CloudAuthState = { user: CloudAuthUser | null; loading: boolean };
+
 export interface NativeBridge {
   supportReport?: () => Promise<string>;
   deliveryEncode?: (
@@ -78,6 +88,7 @@ export interface NativeBridge {
   nativeRecordingDevices?: () => Promise<NativeCaptureDevice[]>;
   nativeRecordingStart?: (request: NativeRecordingRequest) => Promise<NativeRecording>;
   nativeRecordingStop?: () => Promise<NativeRecording>;
+  nativeRecordingWrite?: (id: string, bytes: Uint8Array) => Promise<void>;
   nativeRecordingList?: () => Promise<NativeRecording[]>;
   nativeRecordingStreamStatus?: () => Promise<NativeStreamStatus>;
   nativeRecordingRetry?: (id: string) => Promise<NativeRecording>;
@@ -102,6 +113,15 @@ export interface NativeBridge {
   updateCheck?: () => Promise<void>;
   updateDownload?: () => Promise<void>;
   updateInstall?: () => Promise<void>;
+  cloudAuthConfigure?: (config: {
+    clientId: string;
+    apiHostname?: string;
+  }) => Promise<CloudAuthState>;
+  cloudAuthState?: () => Promise<CloudAuthState>;
+  cloudAuthSubscribe?: (listener: (state: CloudAuthState) => void) => () => void;
+  cloudAuthSignIn?: (config: { clientId: string; apiHostname?: string }) => Promise<CloudAuthState>;
+  cloudAuthSignOut?: () => Promise<void>;
+  cloudAuthToken?: (forceRefresh: boolean) => Promise<string | null>;
   recordingDirectory?: () => Promise<boolean>;
   recordingExport?: (id: string) => Promise<{ name: string; bytes: number }>;
   storageRequest?: (request: unknown) => Promise<unknown>;

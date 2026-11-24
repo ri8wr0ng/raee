@@ -42,7 +42,9 @@ VITE_WORKOS_API_HOSTNAME=auth.<your-domain>
 
 Register the app origin in WorkOS CORS settings and its root URL (for example, `https://<your-domain>/`) as the redirect and sign-out URI. The dialog opens automatically on the OAuth return and AuthKit processes the code/state. For localhost development without a custom auth domain, set `VITE_WORKOS_DEV_MODE=true`; production always disables this mode. API keys must never use the `VITE_` prefix.
 
-The dialog supports team creation/selection, a verified-email invitation inbox, member role changes, removal, and sent-invitation revocation. Invitations are shown in the recipient's Teams inbox; creating one does not send email. Selecting a team does not upload a local project. Desktop custom-scheme origins and unconfigured builds show a local-only state; desktop OAuth remains separate acceptance work.
+The dialog supports team creation/selection, a verified-email invitation inbox, member role changes, removal, and sent-invitation revocation. Invitations are shown in the recipient's Teams inbox; creating one does not send email. Selecting a team does not upload a local project. Unconfigured builds show a local-only state.
+
+The desktop app signs in from its main process: it opens the system browser with a PKCE request whose redirect URI is `http://127.0.0.1:<random port>/callback`, so register `http://127.0.0.1:*/callback` as a Redirect URI in WorkOS. The refresh token is stored encrypted with the OS keychain (Electron `safeStorage`). Desktop requests come from the origin `sidecut://app`, so add it to the R2 bucket's CORS `AllowedOrigins` (PUT and GET) next to the web origin. WorkOS documents `http://127.0.0.1` for native clients in production; confirm the wildcard port is accepted in your production environment.
 
 ## Keep media private
 

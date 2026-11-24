@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@workos-inc/authkit-react";
+import { useCloudAuth } from "./cloud-auth";
 import { Link } from "@tanstack/react-router";
 import { Button, buttonVariants } from "@raee/ui/components/button";
 import { OptionSelect } from "@raee/ui/components/option-select";
@@ -69,7 +69,7 @@ function TeamLibrary() {
 }
 
 function SignInButton() {
-  const { signIn } = useAuth();
+  const { signIn } = useCloudAuth();
   const [error, setError] = useState("");
   return (
     <>
@@ -77,7 +77,7 @@ function SignInButton() {
       <Button
         size="sm"
         onClick={() => {
-          void signIn({ state: { returnTo: currentReturnTo() } }).catch(() =>
+          void signIn({ returnTo: currentReturnTo() }).catch(() =>
             setError("Sign-in could not start. Try again."),
           );
         }}

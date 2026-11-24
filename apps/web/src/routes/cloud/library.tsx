@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CloudConnectedPage } from "@/modules/cloud/cloud-lazy";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/cloud/library")({ component: CloudLibrary });
-
-function CloudLibrary() {
-  return <CloudConnectedPage section="library" />;
-}
+// The team library lives on the app rail's Library page.
+export const Route = createFileRoute("/cloud/library")({
+  beforeLoad: () => {
+    throw redirect({ to: "/library", replace: true });
+  },
+});

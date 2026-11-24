@@ -74,7 +74,10 @@ export function registerNativeRecorder(
       typeof input.projectID !== "string" ||
       !input.projectID.trim() ||
       input.projectID.length > 200 ||
-      (input.source !== "screen" && input.source !== "camera" && input.source !== "microphone") ||
+      (input.source !== "screen" &&
+        input.source !== "camera" &&
+        input.source !== "microphone" &&
+        input.source !== "program") ||
       (input.encoder !== "auto" && input.encoder !== "software") ||
       (input.deviceID !== undefined &&
         (typeof input.deviceID !== "string" || !input.deviceID || input.deviceID.length > 512)) ||
@@ -82,8 +85,10 @@ export function registerNativeRecorder(
         (typeof input.microphoneID !== "string" ||
           !input.microphoneID ||
           input.microphoneID.length > 512)) ||
+      (input.source === "program" &&
+        (input.deviceID !== undefined || input.microphoneID !== undefined)) ||
       (input.source === "screen" && input.deviceID !== undefined) ||
-      (input.source !== "screen" && !input.deviceID) ||
+      ((input.source === "camera" || input.source === "microphone") && !input.deviceID) ||
       (input.source === "microphone" && input.microphoneID !== undefined) ||
       (input.frameRate !== undefined && ![24, 30, 60].includes(input.frameRate as number)) ||
       (input.maxHeight !== undefined && ![720, 1080, 1440].includes(input.maxHeight as number)) ||
@@ -156,6 +161,21 @@ export function registerNativeRecorder(
     if (!owns(event, frame)) throw new Error("No native recording owned by this document.");
     return recorder.streamStatus();
   });
+  ipcMain.handle(
+    bridgeChannels.nativeRecordingWrite,
+    async (event, id: unknown, bytes: unknown) => {
+      const frame = check(event);
+      if (!owns(event, frame) || !owner)
+        throw new Error("No native recording owned by this document.");
+      if (
+        typeof id !== "string" ||
+        !(bytes instanceof Uint8Array) ||
+        bytes.byteLength > 16 * 1024 * 1024
+      )
+        throw new Error("Invalid native recording chunk.");
+      await recorder.write(id, bytes);
+    },
+  );
   ipcMain.handle(bridgeChannels.nativeRecordingStart, async (event, input: unknown) => {
     const frame = check(event);
     const request = parse(input);
@@ -190,7 +210,7 @@ export function registerNativeRecorder(
       event.sender.removeListener("render-process-gone", revoke);
     };
     try {
-      const devices = await recorder.devices();
+      const devices = request.source === "program" ? [] : await recorder.devices();
       const selected = request.deviceID
         ? devices.find((device) => device.id === request.deviceID && device.kind === request.source)
         : undefined;
@@ -214,7 +234,9 @@ export function registerNativeRecorder(
       const description =
         request.source === "screen"
           ? "the entire desktop"
-          : `the selected ${request.source} (${selected?.name})`;
+          : request.source === "program"
+            ? "the program output"
+            : `the selected ${request.source} (${selected?.name})`;
       const destinations = streamDestinations(request.streamURL, request.streamURLs);
       const streaming = destinations.length > 0;
       const choice = await dialog.showMessageBox(window, {

@@ -1,33 +1,8 @@
-import { Component, Suspense, lazy, useState, type ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@raee/ui/components/sidebar";
-import {
-  RiArrowLeftLine,
-  RiArrowRightSLine,
-  RiArrowRightUpLine,
-  RiFilmLine,
-  RiFolderVideoLine,
-  RiGroupLine,
-  RiLiveLine,
-} from "@remixicon/react";
-import { CloudContent } from "./cloud-content";
+import { useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { RiArrowLeftLine, RiArrowRightUpLine, RiFolderVideoLine } from "@remixicon/react";
+import { AppShell } from "@/modules/shell/app-shell";
 import { browserCloudConfig } from "./config";
-import { useCloud } from "./cloud-context";
 import { cloudSections, type Section } from "./cloud-sections";
 import "./cloud-dashboard.css";
 
@@ -67,179 +42,21 @@ function useConfigured() {
   return configured;
 }
 
-const SidebarTeam = lazy(() => import("./sidebar-team"));
-
-// The "Create" group: destinations outside the cloud workspace.
-const appLinks = [
-  { to: "/studio", label: "Studio", icon: RiLiveLine },
-  { to: "/", label: "Edit", icon: RiFilmLine },
-] as const;
-
 function sectionLabel(section: Section) {
   return cloudSections.find((item) => item.id === section)?.label ?? "Overview";
 }
 
-/** Persistent frame: shadcn sidebar on the left, the active cloud page on the right. */
+/** Cloud pages share the app rail with Studio, Library, Edit and Team. */
 export function CloudLayout({ children }: { children: ReactNode }) {
-  const configured = useConfigured();
   return (
-    <SidebarProvider className="dark cloud-dashboard">
-      <a className="cloud-skip" href="#cloud-main">
-        Skip to content
-      </a>
-      <CloudSidebar />
-      <SidebarInset className="cloud-body">
-        <header className="cloud-topbar">
-          <div className="cloud-topbar-title">
-            <SidebarTrigger aria-label="Toggle navigation" />
-            <CloudBreadcrumb />
-          </div>
-          <span className="cloud-connection">
-            {configured ? "Cloud enabled" : "Cloud not configured"}
-          </span>
-        </header>
-        <main id="cloud-main" className="cloud-main" tabIndex={-1}>
+    <AppShell>
+      <div className="app-page cloud-dashboard">
+        <main id="cloud-main" className="cloud-main">
           {children}
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </AppShell>
   );
-}
-
-function useCurrentSection() {
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const path = pathname.replace(/\/+$/, "") || "/";
-  return (
-    cloudSections.find((item) => item.to !== "/cloud" && path.startsWith(item.to)) ??
-    cloudSections[0]
-  );
-}
-
-function CloudBreadcrumb() {
-  const section = useCurrentSection();
-  return (
-    <nav aria-label="Breadcrumb">
-      <ol className="cloud-breadcrumb">
-        <li>
-          <Link to="/cloud" activeOptions={{ exact: true }}>
-            Cloud
-          </Link>
-        </li>
-        <li aria-hidden="true">
-          <RiArrowRightSLine size={16} />
-        </li>
-        <li>
-          <span aria-current="page">{section.label}</span>
-        </li>
-      </ol>
-    </nav>
-  );
-}
-
-function CloudSidebar() {
-  const current = useCurrentSection();
-  const { configured } = useCloud();
-  const { setOpenMobile } = useSidebar();
-  const closeMobile = () => setOpenMobile(false);
-
-  return (
-    <Sidebar className="dark cloud-sidebar">
-      <SidebarHeader className="cloud-sidebar-header">
-        <Link to="/" className="cloud-brand" aria-label="raE.E home" onClick={closeMobile}>
-          <img src="/brand/mark-white.svg" alt="" width={28} height={28} />
-          <span>raE.E</span>
-        </Link>
-      </SidebarHeader>
-      <SidebarContent>
-        <nav aria-label="Main navigation">
-          <SidebarGroup>
-            <SidebarGroupLabel>Create</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {appLinks.map(({ to, label, icon: Icon }) => (
-                  <SidebarMenuItem key={to}>
-                    <SidebarMenuButton render={<Link to={to} onClick={closeMobile} />}>
-                      <Icon aria-hidden="true" />
-                      <span>{label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Cloud</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {cloudSections.map(({ id, to, label, icon: Icon }) => (
-                  <SidebarMenuItem key={id}>
-                    <SidebarMenuButton
-                      isActive={current.id === id}
-                      render={
-                        <Link
-                          to={to}
-                          // Without exact matching, /cloud would also count as active on every subpage.
-                          activeOptions={{ exact: true }}
-                          onClick={closeMobile}
-                        />
-                      }
-                    >
-                      <Icon aria-hidden="true" />
-                      <span>{label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </nav>
-      </SidebarContent>
-      <SidebarFooter className="cloud-sidebar-footer">
-        {configured ? (
-          <SidebarTeamBoundary onNavigate={closeMobile}>
-            <Suspense fallback={<StaticTeamLink onNavigate={closeMobile} />}>
-              <SidebarTeam onNavigate={closeMobile} />
-            </Suspense>
-          </SidebarTeamBoundary>
-        ) : (
-          <StaticTeamLink onNavigate={closeMobile} />
-        )}
-      </SidebarFooter>
-    </Sidebar>
-  );
-}
-
-/** Team link without live data: used before cloud is set up, while loading, or if loading fails. */
-function StaticTeamLink({ onNavigate }: { onNavigate(): void }) {
-  return (
-    <Link to="/cloud/team" className="cloud-team-link" onClick={onNavigate}>
-      <span className="cloud-team-avatar" aria-hidden="true">
-        <RiGroupLine size={14} />
-      </span>
-      <span className="cloud-team-text">
-        <span className="cloud-team-name">Team</span>
-        <span className="cloud-team-detail">Account and team</span>
-      </span>
-    </Link>
-  );
-}
-
-// A failed team query should not take the whole sidebar down with it.
-class SidebarTeamBoundary extends Component<
-  { onNavigate(): void; children: ReactNode },
-  { failed: boolean }
-> {
-  override state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  override render() {
-    return this.state.failed ? (
-      <StaticTeamLink onNavigate={this.props.onNavigate} />
-    ) : (
-      this.props.children
-    );
-  }
 }
 
 function PageHeading({ section }: { section: Section }) {
@@ -263,7 +80,7 @@ export function CloudOverviewPage() {
           <p>
             Organize shared media, choose your team and bring collaborators into the same workspace.
           </p>
-          <Link to="/cloud/library" className="cloud-primary-link">
+          <Link to="/library" className="cloud-primary-link">
             Open library <RiArrowRightUpLine size={18} aria-hidden="true" />
           </Link>
         </div>
@@ -274,7 +91,7 @@ export function CloudOverviewPage() {
               ? "Open Team to sign in, choose a workspace or accept an invitation."
               : "Team and library access will be available when cloud services are configured for this app."}
           </p>
-          <Link to="/cloud/team">
+          <Link to="/team">
             Account and team <RiArrowRightUpLine size={16} aria-hidden="true" />
           </Link>
         </div>
@@ -302,20 +119,6 @@ export function CloudOverviewPage() {
               </Link>
             ))}
         </div>
-      </section>
-    </>
-  );
-}
-
-export function CloudConnectedPage({ section }: { section: "team" | "library" }) {
-  return (
-    <>
-      <PageHeading section={section} />
-      <section
-        className="cloud-connected-panel"
-        aria-label={section === "team" ? "Account and team" : "Team library"}
-      >
-        <CloudContent view={section} />
       </section>
     </>
   );

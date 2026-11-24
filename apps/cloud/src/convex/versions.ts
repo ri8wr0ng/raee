@@ -316,7 +316,13 @@ export const uploaded = internalMutation({
       parts.reduce((sum, p) => sum + p.bytes, 0) !== version.expectedBytes
     )
       throw new ConvexError("Upload incomplete.");
-    await ctx.db.patch(version._id, { status: "processing" });
+    // No processing worker yet: the original upload serves as playback, so the version is ready at once.
+    await ctx.db.patch(version._id, { status: "ready", playbackKey: version.objectKey });
+    const media = await ctx.db.get(version.mediaId);
+    if (!media) throw new ConvexError("Media unavailable.");
+    const current = media.readyVersionId ? await ctx.db.get(media.readyVersionId) : null;
+    if (!current || current.number < version.number)
+      await ctx.db.patch(media._id, { readyVersionId: version._id });
   },
 });
 

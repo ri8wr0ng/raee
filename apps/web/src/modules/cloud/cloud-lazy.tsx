@@ -7,9 +7,6 @@ export const CloudLayout = lazy(() => dashboard().then((m) => ({ default: m.Clou
 export const CloudOverviewPage = lazy(() =>
   dashboard().then((m) => ({ default: m.CloudOverviewPage })),
 );
-export const CloudConnectedPage = lazy(() =>
-  dashboard().then((m) => ({ default: m.CloudConnectedPage })),
-);
 export const CloudUpcomingPage = lazy(() =>
   dashboard().then((m) => ({ default: m.CloudUpcomingPage })),
 );
