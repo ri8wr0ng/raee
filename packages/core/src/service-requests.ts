@@ -1,6 +1,6 @@
 import { QueryError, parseQueryTime } from "./project-queries";
 import { object } from "./interchange";
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 const edit = {
   apply: "boolean",
   label: "string",

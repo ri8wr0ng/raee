@@ -1,10 +1,10 @@
-import type { ClipEffect } from "@sidecut/contracts/project";
-import type { CubeLUT } from "@sidecut/core/cube-lut";
-import { compileEffect } from "@sidecut/core/color-processing";
-import type { RGB } from "@sidecut/core/color-processing";
-import type { Raster } from "@sidecut/core/spatial-processing";
-import { blur, sharpen, pixelate } from "@sidecut/core/spatial-processing";
-import { resolvedParams, styleEffects } from "@sidecut/core/effects";
+import type { ClipEffect } from "@raee/contracts/project";
+import type { CubeLUT } from "@raee/core/cube-lut";
+import { compileEffect } from "@raee/core/color-processing";
+import type { RGB } from "@raee/core/color-processing";
+import type { Raster } from "@raee/core/spatial-processing";
+import { blur, sharpen, pixelate } from "@raee/core/spatial-processing";
+import { resolvedParams, styleEffects } from "@raee/core/effects";
 export async function processPicture(
   source: CanvasImageSource,
   width: number,

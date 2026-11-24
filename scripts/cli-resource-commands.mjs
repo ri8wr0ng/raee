@@ -85,7 +85,7 @@ export function prepareResourceCommand(parsed) {
       input = { ...input };
       const legacyRelink = operation === "relink" && (input.mediaID != null || input.path != null);
       if (["archive", "relink"].includes(operation) && !legacyRelink && input.author == null)
-        input.author = process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
+        input.author = process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
       if (operation === "archive" && input.withCache && input.to == null)
         throw new Error("--with-cache requires --to.");
       if (operation === "check") {
@@ -220,7 +220,7 @@ export function resourceText(operation, r) {
     lines.push(...(r.warnings ?? []).map((w) => `Warning: ${w}`));
     if (r.commands?.length)
       lines.push(
-        `Fix: sidecut apply${r.revision != null ? ` --expect ${r.revision}` : ""} --label "${r.cuts == null ? "Hold the frame before each flicker" : "Move clipped cuts into pauses"}" '${JSON.stringify(r.commands)}'`,
+        `Fix: raee apply${r.revision != null ? ` --expect ${r.revision}` : ""} --label "${r.cuts == null ? "Hold the frame before each flicker" : "Move clipped cuts into pauses"}" '${JSON.stringify(r.commands)}'`,
       );
     return lines.join("\n");
   }
@@ -298,7 +298,7 @@ export function resourceText(operation, r) {
   } else {
     if (r.revision != null && r.mode === "consolidate" && !nothing)
       lines.push(
-        `The project is at revision ${r.revision}; \`sidecut undo\` points it back at the old paths (the copies stay).`,
+        `The project is at revision ${r.revision}; \`raee undo\` points it back at the old paths (the copies stay).`,
       );
     if (r.manifest) lines.push(`Manifest: ${r.manifest}`);
   }

@@ -1,17 +1,17 @@
 import { useState } from "react";
-import type { MediaItem } from "@sidecut/contracts/project";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import type { MediaItem } from "@raee/contracts/project";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldDescription,
   FieldError,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function MediaPlacementForm({ item }: { item: MediaItem }) {
   const { session, snapshot, editor } = useEditorSession();

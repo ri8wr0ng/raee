@@ -1,7 +1,7 @@
-import type { Clip, Project } from "@sidecut/contracts/project";
-import { resolveClip } from "@sidecut/core/keyframes";
-import { resolvedParams } from "@sidecut/core/effects";
-import type { ClipEffect } from "@sidecut/contracts/project";
+import type { Clip, Project } from "@raee/contracts/project";
+import { resolveClip } from "@raee/core/keyframes";
+import { resolvedParams } from "@raee/core/effects";
+import type { ClipEffect } from "@raee/contracts/project";
 function property(value: unknown, parts: string[]): unknown {
   for (const part of parts)
     value =

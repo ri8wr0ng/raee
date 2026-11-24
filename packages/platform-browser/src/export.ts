@@ -3,16 +3,16 @@ import { exportOutput } from "./export-output";
 import { mixTimelineAudio } from "./audio";
 import { measureSource } from "./audio-analysis";
 import { createLUTLoader } from "./lut";
-import { effectsOf } from "@sidecut/core/effect-editing";
-import { resolvedParams } from "@sidecut/core/effects";
-import type { ClipEffect } from "@sidecut/contracts/project";
+import { effectsOf } from "@raee/core/effect-editing";
+import { resolvedParams } from "@raee/core/effects";
+import type { ClipEffect } from "@raee/contracts/project";
 import { paintPicture } from "./picture";
-import type { Project, Clip } from "@sidecut/contracts/project";
-import { enabledTracks, exportPlan, projectDuration } from "@sidecut/core/render-plan";
-import { audioSegments } from "@sidecut/core/audio-plan";
-import { transitionWindow } from "@sidecut/core/transitions";
+import type { Project, Clip } from "@raee/contracts/project";
+import { enabledTracks, exportPlan, projectDuration } from "@raee/core/render-plan";
+import { audioSegments } from "@raee/core/audio-plan";
+import { transitionWindow } from "@raee/core/transitions";
 import type { LocalResource } from "./storage";
-import { LoudnessMeter, type MeasuredSound } from "@sidecut/core/loudness";
+import { LoudnessMeter, type MeasuredSound } from "@raee/core/loudness";
 import { LocalMediaReader } from "./preview";
 
 export async function renderWebM(

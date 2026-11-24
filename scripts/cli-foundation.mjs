@@ -29,7 +29,7 @@ const aliases = { h: "help", v: "version", o: "output", expect: "expected-revisi
 export function parseArguments(args) {
   const flags = new Map();
   const program = new Command()
-    .name("sidecut")
+    .name("raee")
     .helpOption(false)
     .allowExcessArguments()
     .configureOutput({ writeErr: () => {} })
@@ -81,7 +81,7 @@ export function parseArguments(args) {
 // ProjectLocator at the pinned revision: explicit path, environment, nearest parent;
 // rendered .mp4/.mov/.m4v.tandem snapshots never become the editing target.
 export async function findProject(path, directory = process.cwd(), env = process.env) {
-  const explicit = path ?? env.SIDECUT_PROJECT ?? env.TANDEM_PROJECT;
+  const explicit = path ?? env.RAEE_PROJECT ?? env.TANDEM_PROJECT;
   const single = async (folder, required) => {
     const entries = await readdir(folder, { withFileTypes: true });
     const projects = entries
@@ -136,15 +136,14 @@ export function defaultDiscoveryPath(env = process.env, platform = process.platf
       : platform === "darwin"
         ? join(homedir(), "Library", "Application Support")
         : (env.XDG_CONFIG_HOME ?? join(homedir(), ".config"));
-  if (!base)
-    throw new Error("Set --endpoint-file or SIDECUT_API_FILE to the desktop discovery file.");
+  if (!base) throw new Error("Set --endpoint-file or RAEE_API_FILE to the desktop discovery file.");
   return join(base, "sidecut", "current.tandem.api.json");
 }
 export async function discoverEndpoint(flags, env = process.env, directory = process.cwd()) {
   const project = await findProject(flags.get("project"), directory, env);
   const file =
     flags.get("endpoint-file") ??
-    env.SIDECUT_API_FILE ??
+    env.RAEE_API_FILE ??
     (project ? `${project}.api.json` : defaultDiscoveryPath(env));
   let endpoint;
   try {
@@ -193,7 +192,7 @@ export async function verifyProjectOwner(project, status) {
 }
 export function commandHelp(topic) {
   if (topic === "segments" || ["save-segment", "insert-segment"].includes(topic))
-    return `Usage: sidecut segments [list | save NAME | insert NAME] [options]
+    return `Usage: raee segments [list | save NAME | insert NAME] [options]
   save NAME --clips clip_a,clip_b | --from TIME --to TIME
             [--field clipID=Label ...] [--replace]
   insert NAME --at TIME [--value key=text ...] [--mode place|overwrite|insert]
@@ -214,10 +213,10 @@ export function segmentText(operation, result) {
       ? [
           `Segments in ${result.folder} (${result.segments.length}):`,
           ...result.segments.map((s) => `  ${s.name}  ${line(s)}`),
-          'Put one on the timeline with sidecut segments insert "<name>" --at <time> (--value key=text fills a field).',
+          'Put one on the timeline with raee segments insert "<name>" --at <time> (--value key=text fills a field).',
         ]
       : [
-          `No segments in ${result.folder} yet. Save one with sidecut segments save "Intro" --clips clip_a,clip_b.`,
+          `No segments in ${result.folder} yet. Save one with raee segments save "Intro" --clips clip_a,clip_b.`,
         ];
     return [...rows, ...result.problems.map((p) => `Warning: ${p}`)].join("\n");
   }
@@ -228,7 +227,7 @@ export function segmentText(operation, result) {
         ? `Copied beside it, so it stands on its own: ${result.copied.join(", ")}.`
         : "It plays no files, so nothing was copied.",
       ...result.notes.map((n) => `Note: ${n}`),
-      `Insert it with sidecut segments insert "${result.segment.name}" --at <time>.`,
+      `Insert it with raee segments insert "${result.segment.name}" --at <time>.`,
     ].join("\n");
   return [
     `Put the segment "${result.segment.name}" at ${result.at} s as revision ${result.applied.revision} (${result.segment.duration} s, one undo step).`,

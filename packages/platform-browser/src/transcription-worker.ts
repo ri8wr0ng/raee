@@ -4,7 +4,7 @@ import {
   TRANSCRIPTION_REVISION,
   transcriptionLanguage,
 } from "./transcription-config";
-import type { Transcript } from "@sidecut/core/transcript";
+import type { Transcript } from "@raee/core/transcript";
 
 // This worker only downloads public model/runtime files. PCM never leaves the worker.
 env.allowLocalModels = false;

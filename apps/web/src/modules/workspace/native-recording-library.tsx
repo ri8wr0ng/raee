@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RiFolderVideoLine } from "@remixicon/react";
-import type { NativeRecording } from "@sidecut/contracts/native-recording";
-import { Button } from "@sidecut/ui/components/button";
+import type { NativeRecording } from "@raee/contracts/native-recording";
+import { Button } from "@raee/ui/components/button";
 import { useEditorSession } from "./editor-session";
 import { nativeBridge } from "./host-coordinator";
 import { MediaSection } from "./media-section";

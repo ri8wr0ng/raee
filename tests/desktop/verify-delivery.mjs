@@ -8,11 +8,11 @@ import { createRequire } from "node:module";
 import { isAbsolute, join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
-const profile = process.env.SIDECUT_DELIVERY_PROFILE;
+const profile = process.env.RAEE_DELIVERY_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
+delete process.env.RAEE_RENDERER_URL;
 const require = createRequire(join(root, "apps/desktop/package.json"));
 const ffmpeg = require("ffmpeg-static"),
   ffprobe = require("ffprobe-static").path;
@@ -184,7 +184,7 @@ async function verify() {
     await until(async () => {
       try {
         return await evaluate(
-          "Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)",
+          "Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)",
         );
       } catch {
         return false;
@@ -208,7 +208,7 @@ async function verify() {
     const imported = await until(
       async () => {
         const result = await evaluate(
-          "JSON.parse(window.sidecutDesktop.projectRequest(JSON.stringify({type:'snapshot'})).snapshot.json)",
+          "JSON.parse(window.raeeDesktop.projectRequest(JSON.stringify({type:'snapshot'})).snapshot.json)",
         );
         return result.project.media.find((m) => m.nativeRecording?.id === id) && result;
       },
@@ -218,7 +218,7 @@ async function verify() {
     const mediaID = imported.project.media.find((m) => m.nativeRecording?.id === id).id;
     const resource = async () =>
       evaluate(`(async () => {
-      const row = (await window.sidecutDesktop.storageRequest({type:'read',collection:'resources',key:JSON.stringify(${JSON.stringify([imported.project.id, mediaID])})}))[0];
+      const row = (await window.raeeDesktop.storageRequest({type:'read',collection:'resources',key:JSON.stringify(${JSON.stringify([imported.project.id, mediaID])})}))[0];
       if (!row) return null;
       const entries = JSON.parse(row.value)[1];
       return { file: entries.find(e => e[0] === 'file')?.[1], state: entries.find(e => e[0] === 'state')?.[1] };
@@ -228,7 +228,7 @@ async function verify() {
     assert.equal(saved.file?.[0], "file");
     const fileID = saved.file[1];
     assert.equal(
-      await evaluate(`window.sidecutDesktop.storageFileSize(${JSON.stringify(fileID)})`),
+      await evaluate(`window.raeeDesktop.storageFileSize(${JSON.stringify(fileID)})`),
       bytes,
     );
     report.checks.import = {
@@ -238,7 +238,7 @@ async function verify() {
       fileID,
       bytes,
     };
-    await evaluate("window.sidecutDesktop.projectFlush()");
+    await evaluate("window.raeeDesktop.projectFlush()");
     stage = "reloadAndSeek";
     const acceptUnload = (event) => event.preventDefault();
     window.webContents.once("will-prevent-unload", acceptUnload);
@@ -249,7 +249,7 @@ async function verify() {
     await until(async () => {
       try {
         return await evaluate(
-          "Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)",
+          "Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)",
         );
       } catch {
         return false;
@@ -274,7 +274,7 @@ async function verify() {
     assert.ok(playback.times.every((time, index) => Math.abs(time - [1, 305, 608][index]) < 1));
     report.checks.reloadAndSeek = { status: "pass", ...playback };
     stage = "deleteRetainsResource";
-    await evaluate(`window.sidecutDesktop.nativeRecordingDelete(${JSON.stringify(id)})`);
+    await evaluate(`window.raeeDesktop.nativeRecordingDelete(${JSON.stringify(id)})`);
     await assert.rejects(stat(folder), { code: "ENOENT" });
     assert.equal((await resource())?.file?.[1], fileID);
     const retained = await seek();
@@ -304,10 +304,10 @@ async function verify() {
     );
     const shortBytes = await import("node:fs/promises").then((fs) => fs.readFile(shortPath));
     const inputID = await evaluate(
-      `window.sidecutDesktop.storagePutFile(new Uint8Array(${JSON.stringify([...shortBytes])}))`,
+      `window.raeeDesktop.storagePutFile(new Uint8Array(${JSON.stringify([...shortBytes])}))`,
     );
     const output = await evaluate(
-      `window.sidecutDesktop.deliveryEncode(${JSON.stringify(randomUUID())}, ${JSON.stringify(inputID)}, {codec:'h264',videoBitrate:500000,audioBitrate:64000,name:'delivery-check.mp4'})`,
+      `window.raeeDesktop.deliveryEncode(${JSON.stringify(randomUUID())}, ${JSON.stringify(inputID)}, {codec:'h264',videoBitrate:500000,audioBitrate:64000,name:'delivery-check.mp4'})`,
     );
     const encoded = JSON.parse(
       run(

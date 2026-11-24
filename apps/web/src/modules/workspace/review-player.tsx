@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from "react";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import type { ReviewVersion } from "@sidecut/contracts/review";
-import { Button } from "@sidecut/ui/components/button";
+import { decodeProjectFile } from "@raee/contracts/project";
+import type { ReviewVersion } from "@raee/contracts/review";
+import { Button } from "@raee/ui/components/button";
 import { Toggle } from "@ui-sdk/react/toggle";
 import { reviewFrameTime, reviewReverseTime, reviewShuttleRate } from "./review-player-logic";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 type Props = {
   url: string;

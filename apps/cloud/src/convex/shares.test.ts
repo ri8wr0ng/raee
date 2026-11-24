@@ -39,6 +39,8 @@ async function setup() {
     await t.mutation(internal.versions.uploaded, { versionId });
     const version = await t.run((ctx) => ctx.db.get(versionId));
     if (!version) throw new Error("Missing version");
+    // uploaded marks the version ready; return it to processing so `processed` can run.
+    await t.run((ctx) => ctx.db.patch(versionId, { status: "processing" }));
     await t.mutation(internal.versions.processed, {
       versionId,
       attempt: 1,

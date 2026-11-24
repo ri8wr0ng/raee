@@ -1,5 +1,5 @@
 import { BrowserWindow, app, dialog, ipcMain, net, protocol, shell } from "electron";
-import { createDesktopEnv } from "@sidecut/env/desktop";
+import { createDesktopEnv } from "@raee/env/desktop";
 import { stat, writeFile, unlink, mkdir } from "node:fs/promises";
 import { dirname, join, isAbsolute } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -14,6 +14,7 @@ import { resolveRendererPath } from "./renderer-path.ts";
 import { registerRecordingStorage } from "./recording-ipc.ts";
 import { registerCapturePermissions } from "./capture-permissions.ts";
 import { registerUpdater } from "./updater-ipc.ts";
+import { registerCloudAuth } from "./cloud-auth.ts";
 import { DesktopAssetProviders } from "./asset-providers.ts";
 import { HostProjectService } from "./project-service.ts";
 import { NativeProjectStore } from "./project-store.ts";
@@ -52,9 +53,9 @@ if (smoke) {
   app.setPath("userData", profile);
 }
 
-// SIDECUT_RENDERER_URL points the window at a local web dev server instead of the build.
+// RAEE_RENDERER_URL points the window at a local web dev server instead of the build.
 const devUrl = (() => {
-  const value = createDesktopEnv(process.env).SIDECUT_RENDERER_URL;
+  const value = createDesktopEnv(process.env).RAEE_RENDERER_URL;
   if (!value) return undefined;
   return new URL(value);
 })();
@@ -229,6 +230,7 @@ void app
     registerCapturePermissions(isTrusted);
 
     void registerUpdater(isTrusted, app.isPackaged && !smoke && !headlessProject);
+    registerCloudAuth(isTrusted);
 
     ipcMain.handle(bridgeChannels.appInfo, (event): DesktopAppInfo => {
       if (

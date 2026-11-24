@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { transcribeService } from "./service-transcribe";
 import type { MediaAnalysisState } from "./media-analysis";
-import type { Transcript } from "@sidecut/core/transcript";
+import type { Transcript } from "@raee/core/transcript";
 
 const file = decodeProjectFile({
   revision: 2,

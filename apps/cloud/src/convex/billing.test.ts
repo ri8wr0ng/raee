@@ -39,10 +39,10 @@ const payload = {
 };
 
 // Restore the flag after every test so ordering never leaks billing state.
-const originalFlag = process.env.SIDECUT_BILLING_ENABLED;
+const originalFlag = process.env.RAEE_BILLING_ENABLED;
 function setBilling(value: string | undefined) {
-  if (value === undefined) delete process.env.SIDECUT_BILLING_ENABLED;
-  else process.env.SIDECUT_BILLING_ENABLED = value;
+  if (value === undefined) delete process.env.RAEE_BILLING_ENABLED;
+  else process.env.RAEE_BILLING_ENABLED = value;
 }
 afterEach(() => setBilling(originalFlag));
 
@@ -64,6 +64,8 @@ async function setup() {
   await t.mutation(internal.versions.uploaded, { versionId });
   const version = await t.run((ctx) => ctx.db.get(versionId));
   if (!version) throw new Error("Missing version");
+  // uploaded marks the version ready; return it to processing so `processed` can run.
+  await t.run((ctx) => ctx.db.patch(versionId, { status: "processing" }));
   await t.mutation(internal.versions.processed, {
     versionId,
     attempt: 1,
@@ -117,7 +119,7 @@ async function startJob(
 describe("billing off (self-hosted default)", () => {
   it("keeps upload, share, guest comment and job creation working without an account", async () => {
     const { t, a, teamId, versionId } = await setup();
-    expect(process.env.SIDECUT_BILLING_ENABLED).toBeUndefined();
+    expect(process.env.RAEE_BILLING_ENABLED).toBeUndefined();
 
     const upload = await a.mutation(api.versions.begin, {
       mediaId: (await t.run((ctx) => ctx.db.get(versionId)))!.mediaId,

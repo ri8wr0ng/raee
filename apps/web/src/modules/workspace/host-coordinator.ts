@@ -1,11 +1,11 @@
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import type { NativeBridge, HostSnapshot, HostRequest } from "@sidecut/contracts/desktop";
-import type { CommitResult, JournalEntry, SessionSnapshot } from "@sidecut/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
+import type { NativeBridge, HostSnapshot, HostRequest } from "@raee/contracts/desktop";
+import type { CommitResult, JournalEntry, SessionSnapshot } from "@raee/core/coordinator";
 
 export function nativeBridge(): NativeBridge | undefined {
   return typeof window === "undefined"
     ? undefined
-    : (window as unknown as { sidecutDesktop?: NativeBridge }).sidecutDesktop;
+    : (window as unknown as { raeeDesktop?: NativeBridge }).raeeDesktop;
 }
 
 export class HostCoordinator {

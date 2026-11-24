@@ -7,9 +7,9 @@ import {
   type Clip,
   type Marker,
   type Project,
-} from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { Time, flicksPerFrame, type FrameRate } from "@sidecut/contracts/time";
+} from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { Time, flicksPerFrame, type FrameRate } from "@raee/contracts/time";
 import {
   clearRange,
   end,

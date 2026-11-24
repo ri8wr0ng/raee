@@ -8,8 +8,8 @@ import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "..");
-const url = process.env.SIDECUT_VERIFY_URL ?? "http://127.0.0.1:4270";
-const temporary = await mkdtemp(join(tmpdir(), "sidecut-filmora-"));
+const url = process.env.RAEE_VERIFY_URL ?? "http://127.0.0.1:4270";
+const temporary = await mkdtemp(join(tmpdir(), "raee-filmora-"));
 const selected = join(temporary, "项目 with spaces.wfp.dir");
 const fixture = JSON.parse(
   await readFile(join(root, "tests/fixtures/tandem/filmora-mappings.json"), "utf8"),
@@ -178,7 +178,7 @@ try {
     `import { app } from "electron"; app.setPath("userData", ${JSON.stringify(join(temporary, "profile"))}); app.setAppPath(${JSON.stringify(join(root, "apps/desktop"))}); await import(${JSON.stringify(pathToFileURL(join(root, "apps/desktop/dist/main.mjs")).href)});`,
   );
   const require = createRequire(join(root, "apps/desktop/package.json"));
-  const environment = { ...process.env, SIDECUT_RENDERER_URL: url };
+  const environment = { ...process.env, RAEE_RENDERER_URL: url };
   delete environment.ELECTRON_RUN_AS_NODE;
   const desktop = await _electron.launch({
     executablePath: require("electron"),

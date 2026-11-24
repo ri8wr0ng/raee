@@ -6,13 +6,13 @@ import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "..");
 const temp = await realpath(tmpdir());
-const profile = await mkdtemp(join(temp, "sidecut-long-delivery-"));
+const profile = await mkdtemp(join(temp, "raee-long-delivery-"));
 const rel = relative(temp, profile);
-assert.ok(rel.startsWith("sidecut-long-delivery-") && !rel.includes("..") && !isAbsolute(rel));
+assert.ok(rel.startsWith("raee-long-delivery-") && !rel.includes("..") && !isAbsolute(rel));
 const binary = createRequire(join(root, "apps/desktop/package.json"))("electron");
-const env = { ...process.env, SIDECUT_LONG_DELIVERY_PROFILE: profile };
+const env = { ...process.env, RAEE_LONG_DELIVERY_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
-delete env.SIDECUT_RENDERER_URL;
+delete env.RAEE_RENDERER_URL;
 try {
   const code = await new Promise((done, reject) => {
     const child = spawn(binary, [join(root, "tests/desktop/verify-long-delivery.mjs")], {

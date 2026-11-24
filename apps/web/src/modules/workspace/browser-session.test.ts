@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { BrowserProjectStore } from "@sidecut/platform-browser/storage";
-import { DurableStorage } from "@sidecut/platform-browser/sqlite-client";
-import { acquireProjectWriter } from "@sidecut/platform-browser/writer-lock";
-import { probeLocalFile } from "@sidecut/platform-browser/media";
-import type * as MediaModule from "@sidecut/platform-browser/media";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
+import { BrowserProjectStore } from "@raee/platform-browser/storage";
+import { DurableStorage } from "@raee/platform-browser/sqlite-client";
+import { acquireProjectWriter } from "@raee/platform-browser/writer-lock";
+import { probeLocalFile } from "@raee/platform-browser/media";
+import type * as MediaModule from "@raee/platform-browser/media";
 import { BrowserProjectSession } from "./browser-session";
 import { libraryOperation } from "./service-library";
-import { serviceRequest } from "@sidecut/core/service-requests";
-import type { StorageRequest } from "@sidecut/contracts/storage";
+import { serviceRequest } from "@raee/core/service-requests";
+import type { StorageRequest } from "@raee/contracts/storage";
 import type * as LegacyStorageModule from "../../../../../packages/platform-browser/src/legacy-storage";
-import { createArchive } from "@sidecut/core/archive";
+import { createArchive } from "@raee/core/archive";
 
-vi.mock("@sidecut/platform-browser/writer-lock", () => ({ acquireProjectWriter: vi.fn() }));
-vi.mock("@sidecut/platform-browser/media", async (importOriginal) => ({
+vi.mock("@raee/platform-browser/writer-lock", () => ({ acquireProjectWriter: vi.fn() }));
+vi.mock("@raee/platform-browser/media", async (importOriginal) => ({
   ...(await importOriginal<typeof MediaModule>()),
   probeLocalFile: vi.fn(),
 }));
@@ -184,7 +184,7 @@ describe("persistent browser session", () => {
         }),
         removeEntry,
       };
-      vi.stubGlobal("window", { sidecutDesktop: bridge });
+      vi.stubGlobal("window", { raeeDesktop: bridge });
       vi.stubGlobal("navigator", {
         storage: { getDirectory: async () => ({ getDirectoryHandle: async () => directory }) },
       });
@@ -245,7 +245,7 @@ describe("persistent browser session", () => {
           throw new Error("flush failed");
         },
       };
-      vi.stubGlobal("window", { sidecutDesktop: bridge });
+      vi.stubGlobal("window", { raeeDesktop: bridge });
       vi.stubGlobal("navigator", {
         storage: {
           getDirectory: async () => ({
@@ -637,7 +637,7 @@ describe("persistent browser session", () => {
     expect(value.getSnapshot().project.name).toBe("Changed after queueing");
   });
   it("guards edits during queued audio rendering and releases the guard after cancellation", async () => {
-    const service = await import("@sidecut/platform-browser/wav-export");
+    const service = await import("@raee/platform-browser/wav-export");
     const render = vi.spyOn(service, "renderWAV").mockImplementation(
       async (_project, _resource, signal) =>
         new Promise((_resolve, reject) => {
@@ -697,6 +697,42 @@ describe("persistent browser session", () => {
     await value.openProject(new File([bytes.slice().buffer], "portable.sidecut"));
     expect(await (await value.resource("med_archive"))!.file.text()).toBe("source bytes");
     expect(value.getSnapshot().project.media[0]!.path).toBe("media/0-source.wav");
+  });
+
+  it("hands its files to a cloud save and opens a cloud copy as a new project", async () => {
+    const value = session();
+    await value.start();
+    const file = decodeProjectFile({
+      revision: 0,
+      project: {
+        id: "prj_cloud",
+        name: "Cloud cut",
+        media: [{ id: "med_cloud", path: "C:/footage/take.wav", kind: "audio" }],
+      },
+    });
+    await value.openProject(new File([encodeProjectFile(file)], "cloud.tandem"));
+    await expect(value.cloudProject()).rejects.toThrow("isn't stored on this device");
+    resources.set("med_cloud", {
+      file: new File(["take bytes"], "take.wav", { type: "audio/wav" }),
+      state: "available",
+      detail: "",
+    });
+    const local = await value.cloudProject();
+    expect(local).toMatchObject({
+      projectID: "prj_cloud",
+      name: "Cloud cut",
+      mediaIDs: ["med_cloud"],
+    });
+    expect(local.resources.map((entry) => entry.key)).toEqual(["med_cloud"]);
+
+    resources.clear();
+    const opened = await value.openCloudProject(local.json, [
+      { key: "med_cloud", file: new File(["downloaded"], "take.wav", { type: "audio/wav" }) },
+    ]);
+    expect(opened).not.toBe("prj_cloud");
+    expect(value.getSnapshot().project.id).toBe(opened);
+    expect(value.getSnapshot().project.media[0]!.path).toBe("C:/footage/take.wav");
+    expect(await (await value.resource("med_cloud"))!.file.text()).toBe("downloaded");
   });
 
   it("opens Filmora folder metadata and leaves the current project intact on malformed import", async () => {

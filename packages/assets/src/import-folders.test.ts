@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { folderAssets } from "./import-folders.ts";
 import { localProvider } from "./local.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 import { mockEnvironment } from "./test-support.ts";
 describe("108.02 import folders", () => {
   it("uses the nearest licence and preserves stable relative IDs", async () => {

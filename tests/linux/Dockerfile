@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxdamage1 libxcomposite1 libxfixes3 libxi6 libxcursor1 libxrender1 \
     libpango-1.0-0 libgl1 fonts-liberation libfuse2 zip xz-utils xdg-utils \
     && rm -rf /var/lib/apt/lists/* \
-    && printf 'node ALL=(root) NOPASSWD: /usr/bin/dpkg\n' > /etc/sudoers.d/sidecut-test
+    && printf 'node ALL=(root) NOPASSWD: /usr/bin/dpkg\n' > /etc/sudoers.d/raee-test
 
 USER node
 ENV CI=1 VP_VERSION=1.4.0 VP_NODE_MANAGER=no VP_HOME=/home/node/.local/share/vite-plus
@@ -26,7 +26,7 @@ RUN find scripts tests/linux -name '*.sh' -exec sed -i 's/\r$//' {} +
 RUN --mount=type=cache,target=/home/node/.pnpm-store,uid=1000,gid=1000 \
     --mount=type=cache,target=/home/node/.cache/electron,uid=1000,gid=1000 \
     npm_config_store_dir=/home/node/.pnpm-store vp install --frozen-lockfile \
-    && vp exec --filter @sidecut/desktop install-electron
+    && vp exec --filter @raee/desktop install-electron
 RUN vp run lint && vp run typecheck && vp test run --maxWorkers=1 --testTimeout=30000
 RUN vp run package:desktop
 

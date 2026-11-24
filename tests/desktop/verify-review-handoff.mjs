@@ -5,12 +5,12 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
 const root = resolve(import.meta.dirname, "../..");
-const profile = process.env.SIDECUT_REVIEW_HANDOFF_PROFILE;
+const profile = process.env.RAEE_REVIEW_HANDOFF_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
-const restart = process.env.SIDECUT_HANDOFF_RESTART === "1";
+delete process.env.RAEE_RENDERER_URL;
+const restart = process.env.RAEE_HANDOFF_RESTART === "1";
 const statePath = join(profile, "handoff-fixture-state.json");
 const report = restart
   ? JSON.parse(await readFile(statePath, "utf8"))
@@ -63,7 +63,7 @@ async function verify() {
     await until(
       () =>
         evaluate(
-          "Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)",
+          "Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)",
         ).catch(() => false),
       "editor",
     );
@@ -73,7 +73,7 @@ async function verify() {
       `[...(${scope}).querySelectorAll('button')].find(b => b.textContent.trim() === ${JSON.stringify(label)})`;
     const rows = async (collection) =>
       evaluate(
-        `window.sidecutDesktop.storageRequest({type:'read',collection:${JSON.stringify(collection)}}).then(rows => rows.map(row => JSON.parse(row.value)))`,
+        `window.raeeDesktop.storageRequest({type:'read',collection:${JSON.stringify(collection)}}).then(rows => rows.map(row => JSON.parse(row.value)))`,
       );
     const setInput = async (selector, value) =>
       evaluate(
@@ -89,7 +89,7 @@ async function verify() {
     };
     const digest = async (version) => {
       const bytes = await evaluate(
-        `window.sidecutDesktop.storageGetFile(${JSON.stringify(version.artifact.fileID)})`,
+        `window.raeeDesktop.storageGetFile(${JSON.stringify(version.artifact.fileID)})`,
       );
       const data = Buffer.from(Object.values(bytes));
       assert.equal(data.length, version.artifact.bytes);
@@ -533,9 +533,9 @@ async function verify() {
     );
     stage = "staleGuard";
     const stale = await evaluate(`(async () => {
-      const rows = await window.sidecutDesktop.storageRequest({type:'read', collection:'reviewThreads', key:${JSON.stringify(point.id)}});
+      const rows = await window.raeeDesktop.storageRequest({type:'read', collection:'reviewThreads', key:${JSON.stringify(point.id)}});
       try {
-        await window.sidecutDesktop.storageRequest({type:'commit', checks:[{collection:'reviewThreads', key:${JSON.stringify(point.id)}, value:null}], writes:[{collection:'reviewThreads', key:${JSON.stringify(point.id)}, value:rows[0].value}]});
+        await window.raeeDesktop.storageRequest({type:'commit', checks:[{collection:'reviewThreads', key:${JSON.stringify(point.id)}, value:null}], writes:[{collection:'reviewThreads', key:${JSON.stringify(point.id)}, value:rows[0].value}]});
         return false;
       } catch { return true; }
     })()`);
@@ -643,7 +643,7 @@ async function verify() {
     );
     assert.equal(await digest(a), aDigest);
     report.checks.isolation = { status: "pass", immutableA: true, distinctThreads: true };
-    await evaluate("window.sidecutDesktop.projectFlush()");
+    await evaluate("window.raeeDesktop.projectFlush()");
     report.saved = {
       versions: await rows("reviewVersions"),
       threads: await rows("reviewThreads"),

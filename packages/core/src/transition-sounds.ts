@@ -1,9 +1,9 @@
 // Ported from TandemCore/TransitionSounds.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
 import { Schema } from "effect";
-import { ClipSchema, TrackSchema } from "@sidecut/contracts/project";
-import type { Project, Clip, Track } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { Time } from "@sidecut/contracts/time";
+import { ClipSchema, TrackSchema } from "@raee/contracts/project";
+import type { Project, Clip, Track } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { Time } from "@raee/contracts/time";
 import { transitionWindow } from "./transitions";
 import { tracks, replace, end, tidy } from "./timeline-editing";
 import type { EditContext } from "./timeline-editing";

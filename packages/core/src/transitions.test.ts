@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile, transitionTypes } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile, transitionTypes } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 import { framePlan, previewIssue, exportPlan, sourceTime } from "./render-plan";
 import { transitionWindow, transitionProgress, directionVector } from "./transitions";

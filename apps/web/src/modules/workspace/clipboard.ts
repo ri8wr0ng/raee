@@ -1,5 +1,5 @@
-import type { Project, Clip } from "@sidecut/contracts/project";
-import { object } from "@sidecut/core/interchange";
+import type { Project, Clip } from "@raee/contracts/project";
+import { object } from "@raee/core/interchange";
 export interface ClipClipboard {
   projectID: string;
   origin: number;

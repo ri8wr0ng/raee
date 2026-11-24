@@ -11,7 +11,7 @@ afterEach(async () => {
   for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true });
 });
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-project-test-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-project-test-"));
   roots.push(root);
   const path = join(root, "test.tandem"),
     service = new HostProjectService(new NativeProjectStore(path));

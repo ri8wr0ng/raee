@@ -1,6 +1,6 @@
 // A stand-in for `workspace/editor-session`, for panels that only read the project and the playhead.
-import { decodeProjectFile, type Project } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import { decodeProjectFile, type Project } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 
 export function fakeProject(project: Record<string, unknown>): Project {
   return decodeProjectFile({ revision: 1, project }).project;

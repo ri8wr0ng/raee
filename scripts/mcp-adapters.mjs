@@ -76,7 +76,7 @@ export function prepareTool(name, args = {}) {
 }
 
 export function clientAuthor(name = "mcp", env = process.env) {
-  const explicit = env.SIDECUT_AUTHOR ?? env.TANDEM_AUTHOR;
+  const explicit = env.RAEE_AUTHOR ?? env.TANDEM_AUTHOR;
   if (explicit) return explicit;
   const known = name.toLowerCase().match(/claude|codex|cursor|gemini/);
   return known?.[0] ?? name;

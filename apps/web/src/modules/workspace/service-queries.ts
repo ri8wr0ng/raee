@@ -4,15 +4,15 @@ import {
   analysisJobKinds,
   decodeQueryState,
   type QueryState,
-} from "@sidecut/core/query-state";
-import { queryTimeline, queryRequest } from "@sidecut/core/project-queries";
-import { missingFonts, missingFontWarning } from "@sidecut/core/text";
-import { fontAvailable, restoreFonts } from "@sidecut/platform-browser/text";
-import { cachedMatte } from "@sidecut/platform-browser/cutout";
-import { cachedSourceMeasurement, audioIdentity } from "@sidecut/platform-browser/audio-analysis";
-import { derivedCache } from "@sidecut/platform-browser/derived-cache";
-import type { SourceSamples } from "@sidecut/platform-browser/source-analysis";
-import { object } from "@sidecut/core/interchange";
+} from "@raee/core/query-state";
+import { queryTimeline, queryRequest } from "@raee/core/project-queries";
+import { missingFonts, missingFontWarning } from "@raee/core/text";
+import { fontAvailable, restoreFonts } from "@raee/platform-browser/text";
+import { cachedMatte } from "@raee/platform-browser/cutout";
+import { cachedSourceMeasurement, audioIdentity } from "@raee/platform-browser/audio-analysis";
+import { derivedCache } from "@raee/platform-browser/derived-cache";
+import type { SourceSamples } from "@raee/platform-browser/source-analysis";
+import { object } from "@raee/core/interchange";
 
 export async function rendererQuery(
   session: BrowserProjectSession,

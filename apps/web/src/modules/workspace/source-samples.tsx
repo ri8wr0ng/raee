@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { Clip } from "@sidecut/contracts/project";
+import type { Clip } from "@raee/contracts/project";
 import { useEditorSession } from "./editor-session";
 
 function useSourceSamples(mediaID: string) {

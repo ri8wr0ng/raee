@@ -1,7 +1,7 @@
 // Reference: TandemImport/Filmora/{FilmoraImporter,FilmoraMapping}.swift at 735a9b8.
 // Notice: tests/fixtures/tandem/TANDEM-LICENSE.
 import { object, list, number, text, type ObjectValue } from "./import-builder";
-import type { Clip, ClipEffect, ParamValue } from "@sidecut/contracts/project";
+import type { Clip, ClipEffect, ParamValue } from "@raee/contracts/project";
 
 export type FilmoraProperties = Record<string, NonNullable<Clip["video"]>[string]>;
 export type FilmoraMappedEffect = Pick<ClipEffect, "id" | "type" | "enabled" | "params">;

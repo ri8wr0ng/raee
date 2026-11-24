@@ -6,21 +6,21 @@ import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, ".."),
-  profile = await mkdtemp(join(tmpdir(), "sidecut-native-recorder-"));
+  profile = await mkdtemp(join(tmpdir(), "raee-native-recorder-"));
 const binary = createRequire(join(root, "apps/desktop/package.json"))("electron");
-const environment = { ...process.env, SIDECUT_NATIVE_TEST_PROFILE: profile };
+const environment = { ...process.env, RAEE_NATIVE_TEST_PROFILE: profile };
 delete environment.ELECTRON_RUN_AS_NODE;
-delete environment.SIDECUT_RENDERER_URL;
+delete environment.RAEE_RENDERER_URL;
 try {
   for (const stage of ["record", "recover"]) {
     if (stage === "recover") {
       // The fixture crashed its own host. Its close event above proves the disposable lock is stale.
-      assert.ok(profile.startsWith(join(tmpdir(), "sidecut-native-recorder-")));
+      assert.ok(profile.startsWith(join(tmpdir(), "raee-native-recorder-")));
       await rm(join(profile, "current.tandem.lock"), { force: true });
     }
     const code = await new Promise((done, reject) => {
       const child = spawn(binary, [join(root, "tests/desktop/verify-native-recorder.mjs")], {
-        env: { ...environment, SIDECUT_NATIVE_TEST_STAGE: stage },
+        env: { ...environment, RAEE_NATIVE_TEST_STAGE: stage },
         windowsHide: true,
         stdio: "inherit",
       });
@@ -47,6 +47,6 @@ try {
     }
   }
 } finally {
-  assert.ok(profile.startsWith(join(tmpdir(), "sidecut-native-recorder-")));
+  assert.ok(profile.startsWith(join(tmpdir(), "raee-native-recorder-")));
   await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 }

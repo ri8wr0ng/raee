@@ -7,16 +7,16 @@ import { tmpdir } from "node:os";
 import { acquireProjectHost } from "../../scripts/headless-host.mjs";
 import { hostCall, watchHost } from "../../scripts/host-client.mjs";
 
-const root = await mkdtemp(join(tmpdir(), "sidecut-headless-acceptance-"));
+const root = await mkdtemp(join(tmpdir(), "raee-headless-acceptance-"));
 let owner, other, reopened, library;
 const results = { platform: process.platform, production: true };
 try {
   process.env.APPDATA = join(root, "appdata");
   process.env.XDG_CONFIG_HOME = join(root, "config");
-  delete process.env.SIDECUT_API_FILE;
-  delete process.env.SIDECUT_PROJECT;
+  delete process.env.RAEE_API_FILE;
+  delete process.env.RAEE_PROJECT;
   delete process.env.TANDEM_PROJECT;
-  delete process.env.SIDECUT_RENDERER_URL;
+  delete process.env.RAEE_RENDERER_URL;
   await mkdir(process.env.APPDATA, { recursive: true });
   const path = join(root, "Closed 项目.tandem");
   const json = JSON.stringify({
@@ -52,8 +52,8 @@ try {
   assert.equal(initial.revision, 0);
   other = await acquireProjectHost(flags);
   assert.equal(other.endpoint.pid, owner.endpoint.pid, "one authoritative process");
-  const runner = join(root, "sidecut-run.mjs");
-  await cp(new URL("../../scripts/sidecut-run.mjs", import.meta.url), runner);
+  const runner = join(root, "raee-run.mjs");
+  await cp(new URL("../../scripts/raee-run.mjs", import.meta.url), runner);
   await cp(new URL("../../packages/client/dist", import.meta.url), join(root, "sdk"), {
     recursive: true,
   });

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LiveChat, type ChatMessage, type ChatProvider } from "@sidecut/core/live-chat";
+import { LiveChat, type ChatMessage, type ChatProvider } from "@raee/core/live-chat";
 import {
   TwitchChatTransport,
   YouTubeChatTransport,
   KickChatTransport,
   type PlatformConfigs,
   type TransportStatus,
-} from "@sidecut/platform-browser/chat-transports";
+} from "@raee/platform-browser/chat-transports";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
 
 const STORAGE_KEY = "sidecut:live-chat:configs";

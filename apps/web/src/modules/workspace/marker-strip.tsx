@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { Time } from "@sidecut/contracts/time";
-import { markerKind, markerKinds, type Marker } from "@sidecut/contracts/project";
-import { CommentEdits, oneLine } from "@sidecut/core/markers";
-import { Button } from "@sidecut/ui/components/button";
+import { Time } from "@raee/contracts/time";
+import { markerKind, markerKinds, type Marker } from "@raee/contracts/project";
+import { CommentEdits, oneLine } from "@raee/core/markers";
+import { Button } from "@raee/ui/components/button";
 import { Toolbar, ToolbarButton } from "@ui-sdk/react/toolbar";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@sidecut/ui/components/field";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import { RiAddLine, RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
 import { useEditorCommand } from "./use-editor-command";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Textarea } from "@raee/ui/components/textarea";
 
 const KIND_LABEL: Record<string, string> = {
   marker: "Marker",

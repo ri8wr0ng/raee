@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { serviceExportPlan, serviceFormat } from "./service-export";
 import { speechLevel } from "./audio-editing";
 import { compareGains } from "./gain-follow";

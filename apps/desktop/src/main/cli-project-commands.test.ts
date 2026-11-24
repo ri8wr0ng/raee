@@ -7,15 +7,15 @@ import { NativeProjectStore } from "./project-store.ts";
 import { HostProjectService } from "./project-service.ts";
 import { ProjectAPI } from "./project-api.ts";
 import { LocalHTTPService } from "./http-service.ts";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { replayJournal } from "@sidecut/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { replayJournal } from "@raee/core/coordinator";
 
 const cleanup: (() => Promise<unknown>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 function cli(...args: string[]) {
-  return node([resolve("scripts/sidecut-cli.mjs"), ...args]);
+  return node([resolve("scripts/raee-cli.mjs"), ...args]);
 }
 function node(args: string[], env: NodeJS.ProcessEnv = {}) {
   return new Promise<{ code: number | null; out: string; err: string }>((resolveResult, reject) => {
@@ -32,7 +32,7 @@ function node(args: string[], env: NodeJS.ProcessEnv = {}) {
   });
 }
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-project-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-project-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -247,7 +247,7 @@ it("cleans an exclusive import output when replacement fails and preserves exist
 });
 
 it("launches only after absent discovery, detaches immediately and classifies spawn failures", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-launch-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-launch-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const endpoint = join(root, "absent.json");
   // Stub only process creation: discovery, executable validation and CLI error handling are real.
@@ -260,7 +260,7 @@ it("launches only after absent discovery, detaches immediately and classifies sp
       assert.equal(executable, process.execPath);
       assert.deepEqual(args, []);
       assert.equal(options.env.ELECTRON_RUN_AS_NODE, undefined);
-      assert.equal(options.env.SIDECUT_APP_EXECUTABLE, process.execPath);
+      assert.equal(options.env.RAEE_APP_EXECUTABLE, process.execPath);
       assert.equal(options.detached, true);
       assert.equal(options.windowsHide, true);
       assert.equal(options.stdio, 'ignore');
@@ -273,12 +273,12 @@ it("launches only after absent discovery, detaches immediately and classifies sp
     };
     syncBuiltinESMExports();
     process.argv = [process.execPath, 'cli', 'app', '--json', '--endpoint-file', process.env.TEST_ENDPOINT];
-    await import('./scripts/sidecut-cli.mjs');
+    await import('./scripts/raee-cli.mjs');
   `;
   const launch = (mode: string, executable = process.execPath) =>
     node(["--input-type=module", "--eval", script], {
       TEST_ENDPOINT: endpoint,
-      SIDECUT_APP_EXECUTABLE: executable,
+      RAEE_APP_EXECUTABLE: executable,
       LAUNCH_MODE: mode,
     });
   const launched = await launch("success");

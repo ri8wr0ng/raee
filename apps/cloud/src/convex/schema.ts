@@ -16,6 +16,14 @@ export const publishPayload = v.object({
   chapters: v.array(v.object({ title: v.string(), start: v.number() })),
 });
 export const publishArtifact = v.object({ name: v.string(), type: v.string(), text: v.string() });
+export const projectResource = v.object({
+  key: v.string(),
+  name: v.string(),
+  type: v.string(),
+  bytes: v.number(),
+  mediaId: v.id("media"),
+  versionId: v.id("mediaVersions"),
+});
 
 export default defineSchema({
   serviceAccounts: defineTable({
@@ -119,6 +127,7 @@ export default defineSchema({
     nextVersion: v.number(),
     readyVersionId: v.optional(v.id("mediaVersions")),
     createRequestId: v.optional(v.string()),
+    hidden: v.optional(v.boolean()),
   })
     .index("by_team", ["teamId"])
     .index("by_team_request", ["teamId", "createRequestId"])
@@ -162,6 +171,17 @@ export default defineSchema({
     .index("by_media", ["mediaId"])
     .index("by_request", ["mediaId", "requestId"])
     .index("by_status", ["status"]),
+  projects: defineTable({
+    teamId: v.id("teams"),
+    name: v.string(),
+    archived: v.boolean(),
+    revision: v.number(),
+    updatedAt: v.number(),
+    updatedBy: v.string(),
+    updatedByName: v.string(),
+    document: v.object({ mediaId: v.id("media"), versionId: v.id("mediaVersions") }),
+    resources: v.array(projectResource),
+  }).index("by_team_archived_updated", ["teamId", "archived", "updatedAt"]),
   uploadParts: defineTable({
     versionId: v.id("mediaVersions"),
     part: v.number(),

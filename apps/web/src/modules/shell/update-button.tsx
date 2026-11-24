@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { RiDownloadLine, RiErrorWarningLine, RiRestartLine } from "@remixicon/react";
 import { Progress } from "@ui-sdk/react/progress";
-import type { UpdateState } from "@sidecut/contracts/desktop";
+import type { UpdateState } from "@raee/contracts/desktop";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
 
 const RADIUS = 17;

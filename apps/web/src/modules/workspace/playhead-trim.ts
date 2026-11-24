@@ -1,6 +1,6 @@
-import type { Project } from "@sidecut/contracts/project";
-import type { EditCommandInput } from "@sidecut/contracts/commands";
-import type { Time } from "@sidecut/contracts/time";
+import type { Project } from "@raee/contracts/project";
+import type { EditCommandInput } from "@raee/contracts/commands";
+import type { Time } from "@raee/contracts/time";
 
 // TimelineEdits.clipForPlayheadTrim/rippleTrimToPlayhead at the pinned reference.
 export function playheadTrim({

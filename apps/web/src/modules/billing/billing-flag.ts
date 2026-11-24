@@ -7,7 +7,7 @@ export function parseBillingFlag(value: string | undefined): boolean {
 
 export function billingEnabledAtBuild(): boolean {
   try {
-    return parseBillingFlag(import.meta.env.VITE_SIDECUT_BILLING_ENABLED);
+    return parseBillingFlag(import.meta.env.VITE_RAEE_BILLING_ENABLED);
   } catch {
     return false;
   }

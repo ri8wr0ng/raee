@@ -31,7 +31,7 @@ it("maps positional render inputs, native options and default names", () => {
     "frames-every-0.5s-00.01.000-end.png",
   );
   expect(prepareRenderCommand(parseArguments(["screenshot"]))?.prepare({}).output).toBe(
-    "sidecut-window.png",
+    "raee-window.png",
   );
   const clip = prepareRenderCommand(
     parseArguments(["clip", "1", "2", "--audio-only", "--tracks", "Voice, Music"]),
@@ -83,7 +83,7 @@ it("bounds readable curves and peak runs without truncating JSON data", () => {
   );
 });
 it("rejects unavailable rendering and invalid command forms without mutating the owner", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-render-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-render-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -98,13 +98,13 @@ it("rejects unavailable rendering and invalid command forms without mutating the
     new Promise<{ code: number | null; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
           },
           windowsHide: true,

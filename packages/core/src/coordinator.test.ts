@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import empty from "../../../tests/fixtures/tandem/empty.json";
 import mini from "../../../tests/fixtures/tandem/mini.json";
 import { ProjectCoordinator } from "./coordinator";

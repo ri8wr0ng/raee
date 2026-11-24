@@ -1,5 +1,5 @@
 {
-  "name": "@sidecut/env",
+  "name": "@raee/env",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@sidecut/config": "workspace:*",
+    "@raee/config": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   }

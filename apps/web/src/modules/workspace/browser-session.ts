@@ -2,13 +2,13 @@ import {
   DurableStorage,
   nativeFile,
   discardNativeFile,
-} from "@sidecut/platform-browser/sqlite-client";
-import { DeliveryStore } from "@sidecut/core/delivery-store";
-import type { Delivery } from "@sidecut/contracts/delivery";
-import { decodeNativeRecording } from "@sidecut/contracts/native-recording";
-import type { FolderMedia } from "@sidecut/contracts/desktop";
-import { createArchive, openArchive, type ArchiveResource } from "@sidecut/core/archive";
-import { importEDL, importFilmora, object } from "@sidecut/core/interchange";
+} from "@raee/platform-browser/sqlite-client";
+import { DeliveryStore } from "@raee/core/delivery-store";
+import type { Delivery } from "@raee/contracts/delivery";
+import { decodeNativeRecording } from "@raee/contracts/native-recording";
+import type { FolderMedia } from "@raee/contracts/desktop";
+import { createArchive, openArchive, type ArchiveResource } from "@raee/core/archive";
+import { importEDL, importFilmora, object } from "@raee/core/interchange";
 import { HostCoordinator, nativeBridge } from "./host-coordinator";
 import {
   captureTransition,
@@ -24,39 +24,35 @@ import {
   type SessionState,
   type SessionStep,
 } from "./project-session-state";
-import { parseCube } from "@sidecut/core/cube-lut";
-import { validateProject } from "@sidecut/core/validation";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
-import { QueryError } from "@sidecut/core/project-queries";
-import type { SessionSnapshot, CommitResult } from "@sidecut/core/coordinator";
-import {
-  decodeProjectFile,
-  encodeProjectFile,
-  inspectProjectFile,
-} from "@sidecut/contracts/project";
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { BrowserProjectStore } from "@sidecut/platform-browser/storage";
-import { acquireProjectWriter } from "@sidecut/platform-browser/writer-lock";
-import { SaveQueue } from "@sidecut/platform-browser/save-queue";
-import type { HostSnapshot } from "@sidecut/contracts/desktop";
-import { BrowserJobs } from "@sidecut/platform-browser/jobs";
-import { BrowserRecording, type RecordingRequest } from "@sidecut/platform-browser/recording";
-import { releaseExport } from "@sidecut/platform-browser/export-output";
-import { ExportQueue } from "@sidecut/platform-browser/export-queue";
-import { exportPresetPlan, type ExportPreset } from "@sidecut/core/export-presets";
-import { projectDuration } from "@sidecut/core/render-plan";
-import { probeLocalFile, mediaIdentity } from "@sidecut/platform-browser/media";
+import { parseCube } from "@raee/core/cube-lut";
+import { validateProject } from "@raee/core/validation";
+import { ProjectCoordinator } from "@raee/core/coordinator";
+import { QueryError } from "@raee/core/project-queries";
+import type { SessionSnapshot, CommitResult } from "@raee/core/coordinator";
+import { decodeProjectFile, encodeProjectFile, inspectProjectFile } from "@raee/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
+import { BrowserProjectStore } from "@raee/platform-browser/storage";
+import { acquireProjectWriter } from "@raee/platform-browser/writer-lock";
+import { SaveQueue } from "@raee/platform-browser/save-queue";
+import type { HostSnapshot } from "@raee/contracts/desktop";
+import { BrowserJobs } from "@raee/platform-browser/jobs";
+import { BrowserRecording, type RecordingRequest } from "@raee/platform-browser/recording";
+import { releaseExport } from "@raee/platform-browser/export-output";
+import { ExportQueue } from "@raee/platform-browser/export-queue";
+import { exportPresetPlan, type ExportPreset } from "@raee/core/export-presets";
+import { projectDuration } from "@raee/core/render-plan";
+import { probeLocalFile, mediaIdentity } from "@raee/platform-browser/media";
 import { MediaAnalysis } from "./media-analysis";
-import { assetUsePlan, assetUses, recordAssetUse } from "@sidecut/core/asset-use";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { assetUsePlan, assetUses, recordAssetUse } from "@raee/core/asset-use";
+import { decodeAsset } from "@raee/contracts/assets";
 import {
   makeSegment,
   insertableSegment,
   segmentPrefix,
   type SegmentField,
-} from "@sidecut/core/segments";
-import { SegmentLibrary, type SegmentEntry } from "@sidecut/platform-browser/segments";
-import type { LibraryEntry } from "@sidecut/platform-browser/asset-library";
+} from "@raee/core/segments";
+import { SegmentLibrary, type SegmentEntry } from "@raee/platform-browser/segments";
+import type { LibraryEntry } from "@raee/platform-browser/asset-library";
 
 export interface MediaAvailability {
   state: "available" | "missing" | "unsupported";
@@ -145,7 +141,7 @@ export class BrowserProjectSession {
         bounds.to > projectDuration(project).seconds)
     )
       throw new Error("Choose a non-empty export range inside the sequence.");
-    const name = `${project.name.replace(/[\\/:*?"<>|]/g, "_") || "SideCut"}${format ? ` ${format}` : ""}${preset === "webm" ? "" : ` ${preset}`}${bounds ? ` ${bounds.from.toFixed(3)}-${bounds.to.toFixed(3)}s` : ""}.${preset === "wav" ? "wav" : encoding === "webm" ? "webm" : "mp4"}`;
+    const name = `${project.name.replace(/[\\/:*?"<>|]/g, "_") || "raE.E"}${format ? ` ${format}` : ""}${preset === "webm" ? "" : ` ${preset}`}${bounds ? ` ${bounds.from.toFixed(3)}-${bounds.to.toFixed(3)}s` : ""}.${preset === "wav" ? "wav" : encoding === "webm" ? "webm" : "mp4"}`;
     return this.exports.enqueue(
       name,
       async (signal, progress) =>
@@ -259,7 +255,7 @@ export class BrowserProjectSession {
             codec: encoding,
             videoBitrate: settings.videoBitrate,
             audioBitrate: 192000,
-            name: `${project.name.replace(/[\\/:*?"<>|]/g, "_") || "SideCut"}.mp4`,
+            name: `${project.name.replace(/[\\/:*?"<>|]/g, "_") || "raE.E"}.mp4`,
           });
           signal.throwIfAborted();
           const file = await nativeFile(output);
@@ -1070,7 +1066,7 @@ export class BrowserProjectSession {
     const store = this.store;
     const operation = this.begin("export");
     try {
-      const { renderWAV } = await import("@sidecut/platform-browser/wav-export");
+      const { renderWAV } = await import("@raee/platform-browser/wav-export");
       return await this.jobs.run("export", "Export audio", 10, signal, (jobSignal) =>
         renderWAV(
           project,
@@ -1103,7 +1099,7 @@ export class BrowserProjectSession {
       controller = new AbortController();
     const operation = this.begin("export", { controller });
     try {
-      const { renderWebM } = await import("@sidecut/platform-browser/export");
+      const { renderWebM } = await import("@raee/platform-browser/export");
       return await this.jobs.run(
         "export",
         "Export video",
@@ -1212,7 +1208,8 @@ export class BrowserProjectSession {
     );
   }
 
-  async openProject(file: File) {
+  /** Opens a project file. `staged` carries resource files from a cloud project. */
+  async openProject(file: File, staged?: readonly { key: string; file: File }[]) {
     if (!this.store || this.state.busy || this.state.saveState === "loading")
       throw new Error("Wait for browser storage to finish opening.");
     this.jobs.cancelAll();
@@ -1229,12 +1226,17 @@ export class BrowserProjectSession {
             : "Project JSON exceeds the 20 MB import limit. Select a .tandem project, not a media file.",
         );
       let original: string;
-      let resources: ArchiveResource[] = [];
+      let archiveResources: ArchiveResource[] = [];
+      let resources: { key: string; file: File }[] = staged ? [...staged] : [];
       let warnings: string[] = [];
       if (archive) {
         const opened = openArchive(new Uint8Array(await file.arrayBuffer()));
         original = encodeProjectFile(opened.file);
-        resources = opened.resources;
+        resources = opened.resources.map((entry) => ({
+          key: entry.key,
+          file: new File([entry.bytes.slice().buffer], entry.name, { type: entry.type }),
+        }));
+        archiveResources = opened.resources;
       } else if (filmora) {
         const imported = importFilmora(new Uint8Array(await file.arrayBuffer()));
         original = encodeProjectFile(imported.file);
@@ -1268,27 +1270,25 @@ export class BrowserProjectSession {
       const projectID = resources.length ? decodeProjectFile(JSON.parse(original)).project.id : "";
       if (archive) {
         const { restoreArchiveCaches } = await import("./service-archive-cache");
-        await restoreArchiveCaches(resources);
+        await restoreArchiveCaches(archiveResources);
       }
       // Stage copies before publishing a project that references them.
       for (const entry of resources) {
         if (entry.key.startsWith("cache:")) continue;
         await this.store.putResource(projectID, entry.key, {
-          file: new File([entry.bytes.slice().buffer], entry.name, { type: entry.type }),
+          file: entry.file,
           state: "available",
-          detail: "Restored from portable archive",
+          detail: archive ? "Restored from portable archive" : "Downloaded from the cloud",
         });
         this.assertOpen(epoch);
       }
-      if (archive)
+      if (archive || staged)
         for (const use of assetUses(decodeProjectFile(JSON.parse(original)).project)) {
           if (use.asset.kind !== "font") continue;
           const resource = resources.find((entry) => entry.key === `asset-file:${use.asset.id}`);
           if (!resource) throw new Error(`Archived font is missing: ${use.asset.name}`);
-          const { importFont } = await import("@sidecut/platform-browser/text");
-          await importFont(
-            new File([resource.bytes.slice().buffer], resource.name, { type: resource.type }),
-          );
+          const { importFont } = await import("@raee/platform-browser/text");
+          await importFont(resource.file);
           this.assertOpen(epoch);
         }
       const host = this.host;
@@ -1462,6 +1462,53 @@ export class BrowserProjectSession {
     } finally {
       this.finish(operation);
     }
+  }
+
+  /** The saved project and its stored files, ready to upload to the cloud. */
+  async cloudProject() {
+    this.assertWritable();
+    if (!this.store) throw new Error("Storage is closed.");
+    await this.queue?.flush();
+    await this.native?.projectFlush();
+    const epoch = this.epoch,
+      file = this.projectFile();
+    if (file.project.id === "prj_loading")
+      throw new Error("Wait for a project to open before saving it.");
+    const stored = (await this.store.resources(file.project.id)).filter(
+      ({ key }) => !key.startsWith("cache:"),
+    );
+    this.assertOpen(epoch);
+    if (this.state.revision !== file.revision)
+      throw new Error("The project changed while getting ready to save. Try again.");
+    const keys = new Set(stored.map(({ key }) => key));
+    const missing = file.project.media.find((media) => !keys.has(media.id));
+    if (missing)
+      throw new Error(`${missing.path} isn't stored on this device. Relink it, then save again.`);
+    return {
+      projectID: file.project.id,
+      name: file.project.name,
+      json: encodeProjectFile(file),
+      mediaIDs: file.project.media.map((media) => media.id),
+      resources: stored.map(({ key, resource }) => ({ key, file: resource.file })),
+    };
+  }
+
+  /** Opens a project downloaded from the cloud as a new local project and returns its ID. */
+  async openCloudProject(json: string, resources: readonly { key: string; file: File }[]) {
+    this.assertWritable();
+    const decoded = decodeProjectFile(JSON.parse(json));
+    const file = decodeProjectFile({
+      revision: 0,
+      project: {
+        ...JSON.parse(encodeProjectFile(decoded)).project,
+        id: `prj_${crypto.randomUUID()}`,
+      },
+    });
+    await this.openProject(
+      new File([encodeProjectFile(file)], "cloud.tandem", { type: "application/json" }),
+      resources,
+    );
+    return file.project.id;
   }
 
   async relinkMedia(mediaID: string, file: File) {
@@ -1651,7 +1698,7 @@ export class BrowserProjectSession {
     let font: string | undefined, lut: string | undefined;
     const fonts: string[] = [];
     if (asset.kind === "font") {
-      const { importFont } = await import("@sidecut/platform-browser/text");
+      const { importFont } = await import("@raee/platform-browser/text");
       font = await importFont(entry.normalised);
       fonts.push(font);
       for (const extra of entry.extras ?? []) fonts.push(await importFont(extra));
@@ -1819,7 +1866,7 @@ export class BrowserProjectSession {
             (a) => a.asset.id === item.key.slice(11) && a.asset.kind === "font",
           )
         ) {
-          const { importFont } = await import("@sidecut/platform-browser/text");
+          const { importFont } = await import("@raee/platform-browser/text");
           await importFont(entry.resources[item.path]!.file);
         }
       }

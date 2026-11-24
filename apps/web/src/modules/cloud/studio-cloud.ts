@@ -1,6 +1,7 @@
 import { useAction, useMutation } from "convex/react";
-import { api } from "@sidecut/cloud/api";
+import { api } from "@raee/cloud/api";
 import { useActiveTeam } from "./active-team";
+import { useCloudAuth } from "./cloud-auth";
 import { recordingSnapshot } from "./recording-metadata";
 import { RecordingUpload, putPart, type UploadProgress } from "@/modules/studio/cloud-upload";
 import type { TakeMark } from "@/modules/studio/take-store";
@@ -9,7 +10,12 @@ export type CloudRecording = { upload: RecordingUpload; mediaId: Promise<string>
 
 /** Where Studio can save. Cloud is offered only to signed-in members who can add files. */
 export type StudioCloud =
-  | { state: "unavailable"; reason: string }
+  | {
+      state: "unavailable";
+      reason: string;
+      /** Offered when one step makes cloud saving possible, such as signing in. */
+      action?: { label: string; run: () => void };
+    }
   | {
       state: "ready";
       teamName: string;
@@ -35,9 +41,14 @@ export function useStudioCloud(): StudioCloud {
   const start = useAction(api.storage.start);
   const partUrl = useAction(api.storage.partUrl);
   const complete = useAction(api.storage.complete);
+  const { signIn } = useCloudAuth();
   if (isLoading) return { state: "unavailable", reason: "Connecting to the cloud…" };
   if (!isAuthenticated)
-    return { state: "unavailable", reason: "Sign in on Team to save takes to the cloud." };
+    return {
+      state: "unavailable",
+      reason: "Sign in to save takes to your team's cloud.",
+      action: { label: "Sign in", run: () => void signIn({ returnTo: "/studio" }).catch(() => {}) },
+    };
   if (!teams) return { state: "unavailable", reason: "Loading your teams…" };
   if (!current) return { state: "unavailable", reason: "Create or join a team on Team first." };
   if (current.role === "viewer")

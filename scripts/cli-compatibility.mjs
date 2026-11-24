@@ -9,7 +9,7 @@ export async function installCompatibilityLauncher(binDir) {
   const windows = process.platform === "win32",
     folder = resolve(binDir),
     destination = join(folder, windows ? "tandem.cmd" : "tandem"),
-    entry = fileURLToPath(new URL("./sidecut-cli.mjs", import.meta.url)),
+    entry = fileURLToPath(new URL("./raee-cli.mjs", import.meta.url)),
     batch = (value) => `"${value.replaceAll("%", "%%")}"`,
     shell = (value) => "'" + value.replaceAll("'", "'\\''") + "'",
     content = windows

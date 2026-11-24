@@ -7,15 +7,15 @@ import {
   RiRobot2Line,
   RiUser3Line,
 } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Button } from "@raee/ui/components/button";
+import { Tip } from "@raee/ui/components/tooltip";
 import {
   Empty,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
-} from "@sidecut/ui/components/empty";
+} from "@raee/ui/components/empty";
 import { useEditorSession } from "./editor-session";
 import type { HistoryEntry } from "./browser-session";
 

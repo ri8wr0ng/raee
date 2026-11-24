@@ -12,7 +12,7 @@ afterEach(async () => {
   for (const task of clean.reverse().splice(0)) await task();
 });
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-operations-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-operations-"));
   clean.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -244,7 +244,7 @@ describe("agent edits and renderer service boundary", () => {
     ).rejects.toThrow(/filenames/);
     await rm(join(root, "exports"), { recursive: true });
     // The exports directory is confined to the project, including after symlink resolution.
-    const other = await mkdtemp(join(tmpdir(), "sidecut-outside-"));
+    const other = await mkdtemp(join(tmpdir(), "raee-outside-"));
     clean.push(() => rm(other, { recursive: true, force: true }));
     await symlink(other, join(root, "exports"), process.platform === "win32" ? "junction" : "dir");
     await expect(

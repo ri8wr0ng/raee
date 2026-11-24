@@ -5,14 +5,14 @@ import { tmpdir } from "node:os";
 import { HostProjectService } from "./project-service.ts";
 import { NativeProjectStore } from "./project-store.ts";
 import { ProjectAPI } from "./project-api.ts";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 
 const cleanup: (() => Promise<unknown>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-queries-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-queries-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const path = join(root, "current.tandem"),
     host = new HostProjectService(new NativeProjectStore(path));

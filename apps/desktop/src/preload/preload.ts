@@ -10,6 +10,8 @@ const bridge: DesktopBridge = {
   nativeRecordingStart: (request) =>
     ipcRenderer.invoke(bridgeChannels.nativeRecordingStart, request),
   nativeRecordingStop: () => ipcRenderer.invoke(bridgeChannels.nativeRecordingStop),
+  nativeRecordingWrite: (id, bytes) =>
+    ipcRenderer.invoke(bridgeChannels.nativeRecordingWrite, id, bytes),
   nativeRecordingList: () => ipcRenderer.invoke(bridgeChannels.nativeRecordingList),
   nativeRecordingStreamStatus: () => ipcRenderer.invoke(bridgeChannels.nativeRecordingStreamStatus),
   nativeRecordingRetry: (id) => ipcRenderer.invoke(bridgeChannels.nativeRecordingRetry, id),
@@ -117,6 +119,17 @@ const bridge: DesktopBridge = {
   updateCheck: () => ipcRenderer.invoke(bridgeChannels.updateCheck),
   updateDownload: () => ipcRenderer.invoke(bridgeChannels.updateDownload),
   updateInstall: () => ipcRenderer.invoke(bridgeChannels.updateInstall),
+  cloudAuthConfigure: (config) => ipcRenderer.invoke(bridgeChannels.cloudAuthConfigure, config),
+  cloudAuthState: () => ipcRenderer.invoke(bridgeChannels.cloudAuthState),
+  cloudAuthSubscribe: (listener) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: Parameters<typeof listener>[0]) =>
+      listener(state);
+    ipcRenderer.on(bridgeChannels.cloudAuthChanged, handler);
+    return () => ipcRenderer.removeListener(bridgeChannels.cloudAuthChanged, handler);
+  },
+  cloudAuthSignIn: (config) => ipcRenderer.invoke(bridgeChannels.cloudAuthSignIn, config),
+  cloudAuthSignOut: () => ipcRenderer.invoke(bridgeChannels.cloudAuthSignOut),
+  cloudAuthToken: (forceRefresh) => ipcRenderer.invoke(bridgeChannels.cloudAuthToken, forceRefresh),
 };
 
-contextBridge.exposeInMainWorld("sidecutDesktop", bridge);
+contextBridge.exposeInMainWorld("raeeDesktop", bridge);

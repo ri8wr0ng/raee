@@ -1,29 +1,29 @@
 import { RiArrowLeftRightLine } from "@remixicon/react";
 import { Fragment, useState, useRef, type ReactNode } from "react";
-import { transitionTypes } from "@sidecut/contracts/project";
-import type { Clip, Track } from "@sidecut/contracts/project";
-import { transitionWindow } from "@sidecut/core/transitions";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import { transitionTypes } from "@raee/contracts/project";
+import type { Clip, Track } from "@raee/contracts/project";
+import { transitionWindow } from "@raee/core/transitions";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldDescription,
   FieldError,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import { useEditorSession } from "./editor-session";
 import { defaultTransitionSound, TransitionSoundControls } from "./transition-sound-controls";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 // The dialog keeps stacked fields; the inspector uses compact property rows.
 function DialogRow({

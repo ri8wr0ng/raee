@@ -1,9 +1,9 @@
 import type { BrowserProjectSession } from "./browser-session";
-import { resolveServiceMedia } from "@sidecut/core/service-sync";
-import { clipMediaID, QueryError } from "@sidecut/core/project-queries";
-import { speechTracks } from "@sidecut/core/speech";
-import { object } from "@sidecut/core/interchange";
-import { cachedMatte } from "@sidecut/platform-browser/cutout";
+import { resolveServiceMedia } from "@raee/core/service-sync";
+import { clipMediaID, QueryError } from "@raee/core/project-queries";
+import { speechTracks } from "@raee/core/speech";
+import { object } from "@raee/core/interchange";
+import { cachedMatte } from "@raee/platform-browser/cutout";
 
 type WaitItem = {
   kind: string;

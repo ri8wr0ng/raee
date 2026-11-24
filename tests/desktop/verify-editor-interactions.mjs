@@ -7,10 +7,10 @@ import { join, resolve } from "node:path";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-editor-interactions-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-editor-interactions-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 const pause = (ms = 80) => new Promise((done) => setTimeout(done, ms));
 async function wait(predicate) {

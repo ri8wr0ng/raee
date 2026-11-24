@@ -1,5 +1,5 @@
 // Renders the raster brand assets from the SVG sources in public/brand.
-// Run after changing a mark: `vp run --filter @sidecut/landing brand-assets`.
+// Run after changing a mark: `vp run --filter @raee/landing brand-assets`.
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";

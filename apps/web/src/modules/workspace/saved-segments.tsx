@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { RiScissorsCutLine } from "@remixicon/react";
 import { MediaSection } from "./media-section";
-import { SegmentLibrary, type SegmentEntry } from "@sidecut/platform-browser/segments";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldLabel, FieldDescription, FieldError } from "@sidecut/ui/components/field";
+import { SegmentLibrary, type SegmentEntry } from "@raee/platform-browser/segments";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@raee/ui/components/field";
 import { useEditorSession, useEditorView } from "./editor-session";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 export function SavedSegments() {
   const { session, snapshot, editor } = useEditorSession(),
     selected = useEditorView((s) => s.selected);

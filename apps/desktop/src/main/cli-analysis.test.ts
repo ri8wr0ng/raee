@@ -61,7 +61,7 @@ it("maps native sync/wait/transcription/diff selectors and preview defaults", ()
     expect(() => prepareAnalysisCommand(parseArguments(args))).toThrow();
 });
 it("resolves comments, changes picture delay and previews/restores clips through the shared host", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-analysis-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-analysis-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -76,15 +76,15 @@ it("resolves comments, changes picture delay and previews/restores clips through
     new Promise<{ code: number | null; out: string; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
-            SIDECUT_AUTHOR: "cli-analysis",
+            RAEE_AUTHOR: "cli-analysis",
           },
           windowsHide: true,
         },

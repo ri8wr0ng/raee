@@ -1,24 +1,18 @@
-import type { PictureLayer, PictureNode } from "@sidecut/core/render-plan";
+import type { PictureLayer, PictureNode } from "@raee/core/render-plan";
 import { surface, renderTransition } from "./transitions";
-import type { Project } from "@sidecut/contracts/project";
-import { framePlan, layerGeometry, sourceCrop } from "@sidecut/core/render-plan";
-import type { ClipEffect } from "@sidecut/contracts/project";
-import type { CubeLUT } from "@sidecut/core/cube-lut";
-import { effectsOf } from "@sidecut/core/effect-editing";
-import { pixelScale, layerStyles } from "@sidecut/core/layer-styles";
+import type { Project } from "@raee/contracts/project";
+import { framePlan, layerGeometry, sourceCrop } from "@raee/core/render-plan";
+import type { ClipEffect } from "@raee/contracts/project";
+import type { CubeLUT } from "@raee/core/cube-lut";
+import { effectsOf } from "@raee/core/effect-editing";
+import { pixelScale, layerStyles } from "@raee/core/layer-styles";
 import { paintStyledLayer } from "./layer-styles";
 import { processPicture } from "./color-processing";
 import type { LocalMediaReader } from "./preview";
-import {
-  animationState,
-  currentWord,
-  resolveText,
-  textContent,
-  wordRange,
-} from "@sidecut/core/text";
+import { animationState, currentWord, resolveText, textContent, wordRange } from "@raee/core/text";
 import { drawText, ensureFont } from "./text";
-import { cardOf } from "@sidecut/core/section-cards";
-import { cutoutOf } from "@sidecut/core/cutout";
+import { cardOf } from "@raee/core/section-cards";
+import { cutoutOf } from "@raee/core/cutout";
 import { drawSectionCard, ensureCardFonts } from "./section-card";
 
 // Text draws at the clip's own scale so a big title stays sharp; animation scales from there.

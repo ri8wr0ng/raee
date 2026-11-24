@@ -1,4 +1,4 @@
-import { ReviewStore as CoreReviewStore } from "@sidecut/core/review-library";
+import { ReviewStore as CoreReviewStore } from "@raee/core/review-library";
 import { DurableStorage } from "./sqlite-client";
 
 export class ReviewStore extends CoreReviewStore {

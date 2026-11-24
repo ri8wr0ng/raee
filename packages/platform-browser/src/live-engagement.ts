@@ -1,7 +1,7 @@
-import type { LiveChat } from "@sidecut/core/live-chat";
-import type { LiveCaptions, CaptionTarget } from "@sidecut/core/live-captions";
-import type { LiveCompanion } from "@sidecut/core/live-companion";
-import { DEFAULT_LIVE_ASSETS } from "@sidecut/core/live-assets";
+import type { LiveChat } from "@raee/core/live-chat";
+import type { LiveCaptions, CaptionTarget } from "@raee/core/live-captions";
+import type { LiveCompanion } from "@raee/core/live-companion";
+import { DEFAULT_LIVE_ASSETS } from "@raee/core/live-assets";
 import { paintLiveOverlays } from "./live-assets";
 
 export type LiveEngagement = {

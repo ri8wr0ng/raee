@@ -6,7 +6,7 @@ commit `735a9b8e162c1f951044baa892d94993869f2e77`. The capture script checks the
 checkout revision before extraction. Inventory coverage does not establish
 semantic parity; see [the final audit](../../../docs/verification/phases-136-140.md).
 
-These synthetic JSON files were authored for SideCut from the wire format and
+These synthetic JSON files were authored for raE.E from the wire format and
 defaults in `Sources/TandemCore/Model.swift`, `Persistence.swift`, and `Time.swift`
 at [Tandem revision 735a9b8](https://github.com/mikecann/tandem/tree/735a9b8e162c1f951044baa892d94993869f2e77).
 They contain no private footage, credentials, or copied user projects. Source
@@ -55,8 +55,8 @@ variants must reject rather than disappear.
 
 # Review and library adapters
 
-`review-library.json` pins 20 SideCut baseline requests derived from the reference
+`review-library.json` pins 20 raE.E baseline requests derived from the reference
 revision `735a9b8e162c1f951044baa892d94993869f2e77`, plus a synthetic comment/subframe
 project. Its results are tested locally rather than recorded from upstream.
-Archive/relink and offline/paid gates have explicit SideCut transport differences.
+Archive/relink and offline/paid gates have explicit raE.E transport differences.
 See [phases 126–130](../../../docs/verification/phases-126-130.md) for acceptance limits.

@@ -6,14 +6,14 @@ import { HostProjectService } from "../../../apps/desktop/src/main/project-servi
 import { NativeProjectStore } from "../../../apps/desktop/src/main/project-store";
 import { ProjectAPI } from "../../../apps/desktop/src/main/project-api";
 import { LocalHTTPService } from "../../../apps/desktop/src/main/http-service";
-import { SideCutClient, cmd } from "./index";
+import { RaeeClient, cmd } from "./index";
 import { openProjectClient } from "./node";
 const cleanup: (() => Promise<unknown>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-sdk-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-sdk-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const path = join(root, "current.tandem"),
     host = new HostProjectService(new NativeProjectStore(path));
@@ -29,7 +29,7 @@ async function fixture() {
 it("reads project helpers and dry-runs guarded batches before one atomic edit", async () => {
   const { host, endpoint } = await fixture(),
     requests: { operation: string; body: unknown }[] = [];
-  const client = new SideCutClient(
+  const client = new RaeeClient(
     endpoint,
     async (input, init) => {
       requests.push({
@@ -81,7 +81,7 @@ it("reads project helpers and dry-runs guarded batches before one atomic edit", 
     ]),
   ).rejects.toThrow();
   expect(host.snapshot().json).toBe(before);
-  const competitor = new SideCutClient(endpoint);
+  const competitor = new RaeeClient(endpoint);
   await competitor.apply([cmd.updateProject({ patch: { name: "Concurrent edit" } })], {
     expectedRevision: 1,
     idempotencyKey: "competing",
@@ -99,7 +99,7 @@ it("reads project helpers and dry-runs guarded batches before one atomic edit", 
 it("retries an edit after a lost commit reply using the retained revision and key", async () => {
   const { host, endpoint } = await fixture();
   let lose = true;
-  const client = new SideCutClient(endpoint, async (input, init) => {
+  const client = new RaeeClient(endpoint, async (input, init) => {
     const response = await fetch(input, init);
     const body = JSON.parse(String(init?.body));
     if (String(input).endsWith("/apply") && body.dryRun !== true && lose) {
@@ -142,7 +142,7 @@ it("uses CLI discovery and rejects mismatched ownership and malformed discovery 
 
 it("resets stateful regexes, validates responses, and forwards cancellation", async () => {
   const endpoint = { port: 1, token: "a".repeat(64) };
-  const client = new SideCutClient(endpoint, async () =>
+  const client = new RaeeClient(endpoint, async () =>
     Response.json({
       revision: 4,
       scope: "timeline",
@@ -162,17 +162,17 @@ it("resets stateful regexes, validates responses, and forwards cancellation", as
   expect(pattern.lastIndex).toBe(4);
   await expect(client.findWords(pattern, { context: -1 })).rejects.toThrow("nonnegative");
   await expect(
-    new SideCutClient(endpoint, async () => Response.json({ revision: 1 })).status(),
+    new RaeeClient(endpoint, async () => Response.json({ revision: 1 })).status(),
   ).rejects.toThrow("Invalid status response");
   await expect(
-    new SideCutClient(endpoint, async () => new Response("invalid")).status(),
+    new RaeeClient(endpoint, async () => new Response("invalid")).status(),
   ).rejects.toMatchObject({
     code: "unavailable",
     message: "Host returned an invalid JSON response.",
   });
   const controller = new AbortController();
   let observed: AbortSignal | null | undefined;
-  const cancel = new SideCutClient(endpoint, async (_input, init) => {
+  const cancel = new RaeeClient(endpoint, async (_input, init) => {
     observed = init?.signal;
     init?.signal?.throwIfAborted();
     return Response.json({});
@@ -183,7 +183,7 @@ it("resets stateful regexes, validates responses, and forwards cancellation", as
 });
 it("keeps legacy explicit relink requests separate from folder author options", async () => {
   const { endpoint } = await fixture();
-  const client = new SideCutClient(endpoint, fetch, "sdk-author");
+  const client = new RaeeClient(endpoint, fetch, "sdk-author");
   await expect(
     client.call("relink", { mediaID: "source", path: "source.wav" }),
   ).rejects.toMatchObject({

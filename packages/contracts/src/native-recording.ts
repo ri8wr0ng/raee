@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 export type NativeRecordingRequest = {
   projectID: string;
-  source: "screen" | "camera" | "microphone";
+  source: "screen" | "camera" | "microphone" | "program";
   deviceID?: string;
   microphoneID?: string;
   encoder: "auto" | "software";
@@ -50,7 +50,7 @@ const NativeRecordingSchema = Schema.Struct({
     Schema.isPattern(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i),
   ),
   projectID: Schema.String,
-  source: Schema.Literals(["screen", "camera", "microphone"]),
+  source: Schema.Literals(["screen", "camera", "microphone", "program"]),
   createdAt: Schema.String,
   status: Schema.Literals(["recording", "stopping", "ready", "interrupted", "error"]),
   encoder: Schema.Literals(["aac", "libx264", "h264_nvenc", "h264_qsv", "h264_amf"]),

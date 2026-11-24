@@ -17,7 +17,7 @@ const execute = promisify(execFile);
 const evidence: Record<string, unknown> = {};
 async function recordEvidence(name: string, result: unknown) {
   evidence[name] = result;
-  if (process.env["SIDECUT_STREAM_EVIDENCE"] === "1")
+  if (process.env["RAEE_STREAM_EVIDENCE"] === "1")
     await writeFile(
       resolve("docs/verification/lawn-videorc-single-stream.json"),
       JSON.stringify(
@@ -125,7 +125,7 @@ describe("single streaming destination", () => {
   });
 
   it("sends real RTMP while retaining and decoding local H.264/AAC recording", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-stream-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-stream-"));
     const { ffmpeg, ffprobe } = mediaBinaries();
     const recorder = new NativeRecorder(ffmpeg, ffprobe, root, { inputProvider: synthetic });
     const url = `rtmp://127.0.0.1:${await port()}/live/fixture-key`;
@@ -182,13 +182,13 @@ describe("single streaming destination", () => {
       await recorder.close();
       listener.kill();
       await ended;
-      assert.ok(root.startsWith(join(tmpdir(), "sidecut-stream-")));
+      assert.ok(root.startsWith(join(tmpdir(), "raee-stream-")));
       await rm(root, { recursive: true, force: true, maxRetries: 3 });
     }
   }, 30000);
 
   it("retains local recording when the destination refuses connection", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-stream-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-stream-"));
     const { ffmpeg, ffprobe } = mediaBinaries();
     const recorder = new NativeRecorder(ffmpeg, ffprobe, root, { inputProvider: synthetic });
     try {
@@ -206,7 +206,7 @@ describe("single streaming destination", () => {
       expect(JSON.stringify(await recorder.list())).not.toContain("rejected-key");
     } finally {
       await recorder.close();
-      assert.ok(root.startsWith(join(tmpdir(), "sidecut-stream-")));
+      assert.ok(root.startsWith(join(tmpdir(), "raee-stream-")));
       await rm(root, { recursive: true, force: true, maxRetries: 3 });
     }
   }, 30000);
@@ -216,7 +216,7 @@ describe("single streaming destination", () => {
     async (mode) => {
       const trusted = mode !== "untrusted";
       const hostname = mode === "hostname-mismatch" ? "127.0.0.2" : "127.0.0.1";
-      const root = await mkdtemp(join(tmpdir(), "sidecut-stream-"));
+      const root = await mkdtemp(join(tmpdir(), "raee-stream-"));
       const { ffmpeg, ffprobe } = mediaBinaries();
       const { stdout: version } = await execute(ffmpeg, ["-version"], { windowsHide: true });
       if (!version.includes("--enable-gnutls")) {
@@ -229,7 +229,7 @@ describe("single streaming destination", () => {
           expect(recorder.streamStatus().state).toBe("off");
         } finally {
           await recorder.close();
-          assert.ok(root.startsWith(join(tmpdir(), "sidecut-stream-")));
+          assert.ok(root.startsWith(join(tmpdir(), "raee-stream-")));
           await rm(root, { recursive: true, force: true, maxRetries: 3 });
         }
         return;
@@ -310,7 +310,7 @@ describe("single streaming destination", () => {
         await ended;
         for (const socket of sockets) socket.destroy();
         await new Promise<void>((done) => proxy.close(() => done()));
-        assert.ok(root.startsWith(join(tmpdir(), "sidecut-stream-")));
+        assert.ok(root.startsWith(join(tmpdir(), "raee-stream-")));
         await rm(root, { recursive: true, force: true, maxRetries: 3 });
       }
     },

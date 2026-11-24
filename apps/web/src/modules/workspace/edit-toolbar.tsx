@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import { Toggle } from "@ui-sdk/react/toggle";
-import { Input } from "@sidecut/ui/components/input";
-import { FieldLabel } from "@sidecut/ui/components/field";
+import { Input } from "@raee/ui/components/input";
+import { FieldLabel } from "@raee/ui/components/field";
 import {
   RiArrowRightLine,
   RiDeleteBack2Line,
@@ -23,7 +23,7 @@ import { SpeechToolsDialog } from "./speech-tools";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 import { MOD, ToolTip } from "./tool-tip";
 import "./toolbar.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 export function EditToolbar({
   run,

@@ -1,4 +1,4 @@
-import { validateTranscript, type Transcript } from "@sidecut/core/transcript";
+import { validateTranscript, type Transcript } from "@raee/core/transcript";
 import { audioIdentity } from "./audio-analysis";
 import { derivedCache } from "./derived-cache";
 

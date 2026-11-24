@@ -2,7 +2,7 @@ import { describe, it, expect } from "vite-plus/test";
 import refusal from "../../../tests/fixtures/tandem/providers/elevenlabs_missing_permission.json";
 import { mockEnvironment } from "./test-support.ts";
 import { elevenlabsProvider } from "./elevenlabs.ts";
-import { decodeGeneration } from "@sidecut/contracts/providers";
+import { decodeGeneration } from "@raee/contracts/providers";
 describe("108.10 ElevenLabs and 109 generation", () => {
   it("matches sound request defaults, wraps PCM and preserves completed paid takes on failure", async () => {
     const { env } = mockEnvironment();

@@ -1,8 +1,8 @@
 import { lstat, open, realpath, readdir, stat } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { createHash } from "node:crypto";
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { QueryError, clipMediaID } from "@sidecut/core/project-queries";
+import type { ProjectFile } from "@raee/contracts/project";
+import { QueryError, clipMediaID } from "@raee/core/project-queries";
 
 const contentID = (value: string) => value.replace(/^(\d+)-\d+-/, "$1-");
 export async function fileFingerprint(path: string, signal: AbortSignal) {

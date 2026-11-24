@@ -7,12 +7,12 @@ import { createHash, randomUUID } from "node:crypto";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../..");
-const profile = process.env.SIDECUT_RECOVERY_PROFILE;
+const profile = process.env.RAEE_RECOVERY_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
-const phase = Number(process.env.SIDECUT_RECOVERY_PHASE ?? 0);
+delete process.env.RAEE_RENDERER_URL;
+const phase = Number(process.env.RAEE_RECOVERY_PHASE ?? 0);
 const restart = phase > 0;
 const statePath = join(profile, "recovery-fixture.json");
 const reportPath = join(root, "docs/verification/lawn-videorc-delivery-recovery.json");
@@ -98,14 +98,14 @@ async function verify() {
     };
     await until(
       () =>
-        evalJS(
-          "Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)",
-        ).catch(() => false),
+        evalJS("Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)").catch(
+          () => false,
+        ),
       "editor",
     );
     const rows = () =>
       evalJS(
-        "window.sidecutDesktop.storageRequest({type:'read',collection:'deliveries'}).then(rows=>rows.map(r=>JSON.parse(r.value)))",
+        "window.raeeDesktop.storageRequest({type:'read',collection:'deliveries'}).then(rows=>rows.map(r=>JSON.parse(r.value)))",
       );
     const button = (label) =>
       `[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(label)})`;
@@ -203,12 +203,12 @@ async function verify() {
       );
       assert.deepEqual(done.recipe, before.recipe);
       const bytes = await evalJS(
-        `window.sidecutDesktop.storageGetFile(${JSON.stringify(done.outputFileID)})`,
+        `window.raeeDesktop.storageGetFile(${JSON.stringify(done.outputFileID)})`,
       );
       const buffer = Buffer.from(Object.values(bytes));
       assert.ok(buffer.length > 0);
       const decoded = await evalJS(
-        `(async()=>{const b=await window.sidecutDesktop.storageGetFile(${JSON.stringify(done.outputFileID)}); const u=URL.createObjectURL(new Blob([b],{type:${JSON.stringify(done.outputType)}})); const v=document.createElement('video'); v.src=u; await new Promise((ok,fail)=>{v.onloadeddata=ok;v.onerror=()=>fail(Error('video decode failed'));setTimeout(()=>fail(Error('video timeout')),10000)}); await v.play(); await new Promise((ok,fail)=>{const t=setTimeout(()=>fail(Error('playback timeout')),10000);v.ontimeupdate=()=>{if(v.currentTime>0.1){clearTimeout(t);ok()}}}); const result={time:v.currentTime,width:v.videoWidth,height:v.videoHeight};v.pause();URL.revokeObjectURL(u);return result})()`,
+        `(async()=>{const b=await window.raeeDesktop.storageGetFile(${JSON.stringify(done.outputFileID)}); const u=URL.createObjectURL(new Blob([b],{type:${JSON.stringify(done.outputType)}})); const v=document.createElement('video'); v.src=u; await new Promise((ok,fail)=>{v.onloadeddata=ok;v.onerror=()=>fail(Error('video decode failed'));setTimeout(()=>fail(Error('video timeout')),10000)}); await v.play(); await new Promise((ok,fail)=>{const t=setTimeout(()=>fail(Error('playback timeout')),10000);v.ontimeupdate=()=>{if(v.currentTime>0.1){clearTimeout(t);ok()}}}); const result={time:v.currentTime,width:v.videoWidth,height:v.videoHeight};v.pause();URL.revokeObjectURL(u);return result})()`,
       );
       assert.ok(decoded.time > 0.1 && decoded.width && decoded.height);
       report.checks.rendering = {
@@ -232,7 +232,7 @@ async function verify() {
       const inputID = done.outputFileID;
       const jobID = randomUUID();
       await evalJS(
-        `window.sidecutDesktop.deliveryEncode(${JSON.stringify(jobID)}, ${JSON.stringify(inputID)}, ${JSON.stringify(request)}).catch(() => {}); true`,
+        `window.raeeDesktop.deliveryEncode(${JSON.stringify(jobID)}, ${JSON.stringify(inputID)}, ${JSON.stringify(request)}).catch(() => {}); true`,
       );
       const journal = await until(
         async () => {
@@ -276,20 +276,20 @@ async function verify() {
       const readyBytes = Buffer.from(
         Object.values(
           await evalJS(
-            `window.sidecutDesktop.storageGetFile(${JSON.stringify(saved.journal.inputID)})`,
+            `window.raeeDesktop.storageGetFile(${JSON.stringify(saved.journal.inputID)})`,
           ),
         ),
       );
       assert.equal(createHash("sha256").update(readyBytes).digest("hex"), saved.inputHash);
-      const badID = await evalJS("window.sidecutDesktop.storagePutFile(new Uint8Array([1,2,3,4]))");
+      const badID = await evalJS("window.raeeDesktop.storagePutFile(new Uint8Array([1,2,3,4]))");
       const failure = await evalJS(
-        `window.sidecutDesktop.deliveryEncode(${JSON.stringify(randomUUID())}, ${JSON.stringify(badID)}, ${JSON.stringify(saved.journal.request)}).then(() => false, () => true)`,
+        `window.raeeDesktop.deliveryEncode(${JSON.stringify(randomUUID())}, ${JSON.stringify(badID)}, ${JSON.stringify(saved.journal.request)}).then(() => false, () => true)`,
       );
       assert.equal(failure, true);
       const after = Buffer.from(
         Object.values(
           await evalJS(
-            `window.sidecutDesktop.storageGetFile(${JSON.stringify(saved.journal.inputID)})`,
+            `window.raeeDesktop.storageGetFile(${JSON.stringify(saved.journal.inputID)})`,
           ),
         ),
       );
@@ -305,7 +305,7 @@ async function verify() {
         readyOutputUnchangedAfterRestartAndFailure: true,
       };
       await evalJS(
-        `window.sidecutDesktop.deliveryEncode(${JSON.stringify(randomUUID())}, ${JSON.stringify(saved.journal.inputID)}, {codec:'h264',videoBitrate:1000000,audioBitrate:64000,name:'recovered.mp4'})`,
+        `window.raeeDesktop.deliveryEncode(${JSON.stringify(randomUUID())}, ${JSON.stringify(saved.journal.inputID)}, {codec:'h264',videoBitrate:1000000,audioBitrate:64000,name:'recovered.mp4'})`,
       );
       throw new Error("Publication fault barrier did not intercept the output link.");
     } else {
@@ -329,12 +329,12 @@ async function verify() {
       await assert.rejects(stat(finalPath + ".partial"), { code: "ENOENT" });
       assert.equal(
         await evalJS(
-          `window.sidecutDesktop.storageFileDigest(${JSON.stringify(report.savedNative.journal.inputID)})`,
+          `window.raeeDesktop.storageFileDigest(${JSON.stringify(report.savedNative.journal.inputID)})`,
         ),
         report.savedNative.inputHash,
       );
       const decoded = await evalJS(
-        `(async()=>{const bytes=await window.sidecutDesktop.storageGetFile(${JSON.stringify(recovered.outputID)});const url=URL.createObjectURL(new Blob([bytes],{type:'video/mp4'}));const video=document.createElement('video');video.muted=true;video.src=url;try{await new Promise((ok,fail)=>{video.onloadeddata=ok;video.onerror=()=>fail(Error('Reconciled MP4 decode failed'));setTimeout(()=>fail(Error('MP4 timeout')),10000)});await video.play();await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(Error('MP4 playback timeout')),10000);video.ontimeupdate=()=>{if(video.currentTime>0.1){clearTimeout(timer);ok()}}});return {time:video.currentTime,width:video.videoWidth,height:video.videoHeight}}finally{video.pause();URL.revokeObjectURL(url)}})()`,
+        `(async()=>{const bytes=await window.raeeDesktop.storageGetFile(${JSON.stringify(recovered.outputID)});const url=URL.createObjectURL(new Blob([bytes],{type:'video/mp4'}));const video=document.createElement('video');video.muted=true;video.src=url;try{await new Promise((ok,fail)=>{video.onloadeddata=ok;video.onerror=()=>fail(Error('Reconciled MP4 decode failed'));setTimeout(()=>fail(Error('MP4 timeout')),10000)});await video.play();await new Promise((ok,fail)=>{const timer=setTimeout(()=>fail(Error('MP4 playback timeout')),10000);video.ontimeupdate=()=>{if(video.currentTime>0.1){clearTimeout(timer);ok()}}});return {time:video.currentTime,width:video.videoWidth,height:video.videoHeight}}finally{video.pause();URL.revokeObjectURL(url)}})()`,
       );
       assert.ok(decoded.time > 0.1 && decoded.width > 0 && decoded.height > 0);
       report.checks.nativeEncoding.subsequentOutputID = recovered.outputID;

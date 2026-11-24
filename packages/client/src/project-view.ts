@@ -6,9 +6,9 @@ import {
   type Clip,
   type Track,
   type Transition,
-} from "@sidecut/contracts/project";
+} from "@raee/contracts/project";
 import { Schema } from "effect";
-import type { Time } from "@sidecut/contracts/time";
+import type { Time } from "@raee/contracts/time";
 
 /** Wire values derive from the decoded project model, with exact times encoded as seconds. */
 export type Wire<T> = T extends Time

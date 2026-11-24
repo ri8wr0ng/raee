@@ -8,10 +8,10 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-export-presets-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-export-presets-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let code = 0;
 async function wait(predicate) {
   const end = Date.now() + 60000;

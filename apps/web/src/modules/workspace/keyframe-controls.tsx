@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import type { Clip } from "@sidecut/contracts/project";
-import { effectDefinition, resolvedParams } from "@sidecut/core/effects";
-import type { ClipEffect } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
-import { fixedParameters, resolveClip } from "@sidecut/core/keyframes";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { FieldError } from "@sidecut/ui/components/field";
+import type { Clip } from "@raee/contracts/project";
+import { effectDefinition, resolvedParams } from "@raee/core/effects";
+import type { ClipEffect } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
+import { fixedParameters, resolveClip } from "@raee/core/keyframes";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { FieldError } from "@raee/ui/components/field";
 import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 export function KeyframeControls({ clips }: { clips: readonly Clip[] }) {
   const { session, snapshot, editor } = useEditorSession();

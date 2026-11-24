@@ -16,17 +16,17 @@ import {
   RiUploadCloud2Line,
   RiVolumeUpLine,
 } from "@remixicon/react";
-import type { MediaItem } from "@sidecut/contracts/project";
-import { Button } from "@sidecut/ui/components/button";
+import type { MediaItem } from "@raee/contracts/project";
+import { Button } from "@raee/ui/components/button";
 import {
   Empty,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
   EmptyDescription,
-} from "@sidecut/ui/components/empty";
-import { Input } from "@sidecut/ui/components/input";
-import { Tip } from "@sidecut/ui/components/tooltip";
+} from "@raee/ui/components/empty";
+import { Input } from "@raee/ui/components/input";
+import { Tip } from "@raee/ui/components/tooltip";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 import { SegmentedControl, SegmentedControlItem } from "@ui-sdk/react/segmented-control";
 import { UploadToCloudButton } from "../cloud/upload-button-lazy";

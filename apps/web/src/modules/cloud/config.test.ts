@@ -2,7 +2,7 @@ import { it, expect } from "vite-plus/test";
 import { cloudConfig } from "./config";
 
 it("keeps unconfigured and desktop origins local", () => {
-  expect(cloudConfig({}, "https://sidecut.example")).toBeNull();
+  expect(cloudConfig({}, "https://raee.example")).toBeNull();
   expect(
     cloudConfig({ url: "https://example.convex.cloud", clientId: "client_test" }, "null"),
   ).toBeNull();
@@ -14,10 +14,10 @@ it("requires a production auth domain and disables local token storage in produc
     clientId: "client_test",
     devMode: "true",
   };
-  expect(cloudConfig(env, "https://sidecut.example")).toBeNull();
+  expect(cloudConfig(env, "https://raee.example")).toBeNull();
   expect(
-    cloudConfig({ ...env, apiHostname: "auth.sidecut.example" }, "https://sidecut.example"),
-  ).toMatchObject({ devMode: false, redirectUri: "https://sidecut.example/team" });
+    cloudConfig({ ...env, apiHostname: "auth.raee.example" }, "https://raee.example"),
+  ).toMatchObject({ devMode: false, redirectUri: "https://raee.example/team" });
 });
 
 it("passes Convex a backend URL without a trailing slash", () => {
@@ -53,4 +53,15 @@ it("permits explicit local development and rejects insecure remote backends", ()
   expect(
     cloudConfig({ url: "http://remote.example", clientId: "client_test" }, "http://localhost:3000"),
   ).toBeNull();
+});
+
+it("lets the desktop app use cloud through its main-process sign-in", () => {
+  const env = { url: "https://example.convex.cloud", clientId: "client_test" };
+  expect(cloudConfig(env, "sidecut://app")).toBeNull();
+  expect(cloudConfig(env, "sidecut://app", true)).toMatchObject({
+    url: "https://example.convex.cloud",
+    clientId: "client_test",
+    devMode: false,
+    desktop: true,
+  });
 });

@@ -1,16 +1,16 @@
 import { useState } from "react";
-import type { Clip } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
-import { markerKind } from "@sidecut/contracts/project";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import type { Clip } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
+import { markerKind } from "@raee/contracts/project";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import {
   CONVEX,
   cardOf,
@@ -28,15 +28,15 @@ import {
   hexString,
   parseHex,
   type CardProps,
-} from "@sidecut/core/section-cards";
+} from "@raee/core/section-cards";
 import { CommitInput } from "./commit-input";
 import { RiPresentationLine } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
 import { useEditorCommand } from "./use-editor-command";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function SectionCardsDialog() {
   const { session, snapshot } = useEditorSession();

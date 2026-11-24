@@ -2,9 +2,9 @@ import { afterEach, it, expect } from "vite-plus/test";
 import { mkdtemp, mkdir, readFile, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
-import { createArchive, openArchive } from "@sidecut/core/archive";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { ProjectCoordinator } from "@raee/core/coordinator";
+import { createArchive, openArchive } from "@raee/core/archive";
 import { folderArchive } from "./service-archive.ts";
 
 const roots: string[] = [];
@@ -12,7 +12,7 @@ afterEach(async () => {
   for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true });
 });
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-folder-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-folder-"));
   roots.push(root);
   const projectPath = join(root, "managed", "current.tandem");
   await mkdir(join(root, "managed"));

@@ -1,6 +1,6 @@
 // Ported from TandemCore/SyncedPlacement.swift. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project, Clip } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import type { Project, Clip } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import type { EditContext } from "./timeline-editing";
 import { requireTrack, unlocked, end, editTimeline } from "./timeline-editing";
 

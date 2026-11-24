@@ -1,25 +1,25 @@
 import type { BrowserProjectSession } from "./browser-session";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { paintPicture } from "@sidecut/platform-browser/picture";
-import { createLUTLoader } from "@sidecut/platform-browser/lut";
-import { formatProject } from "@sidecut/core/formats";
-import { projectDuration, previewIssue, framePlan, exportPlan } from "@sidecut/core/render-plan";
-import { cutoutOf } from "@sidecut/core/cutout";
-import { QueryError, queryTracks } from "@sidecut/core/project-queries";
-import { LoudnessMeter } from "@sidecut/core/loudness";
-import { mixTimelineAudio } from "@sidecut/platform-browser/audio";
-import { measureSource } from "@sidecut/platform-browser/audio-analysis";
-import { fontAvailable } from "@sidecut/platform-browser/text";
-import { resolveText, textContent } from "@sidecut/core/text";
-import { cachedMatte } from "@sidecut/platform-browser/cutout";
-import { normalizeGain } from "@sidecut/core/audio-processing";
-import { speechLevel, speechMediaID } from "@sidecut/core/audio-editing";
-import { effectsOf } from "@sidecut/core/effect-editing";
-import { resolvedParams } from "@sidecut/core/effects";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
+import { paintPicture } from "@raee/platform-browser/picture";
+import { createLUTLoader } from "@raee/platform-browser/lut";
+import { formatProject } from "@raee/core/formats";
+import { projectDuration, previewIssue, framePlan, exportPlan } from "@raee/core/render-plan";
+import { cutoutOf } from "@raee/core/cutout";
+import { QueryError, queryTracks } from "@raee/core/project-queries";
+import { LoudnessMeter } from "@raee/core/loudness";
+import { mixTimelineAudio } from "@raee/platform-browser/audio";
+import { measureSource } from "@raee/platform-browser/audio-analysis";
+import { fontAvailable } from "@raee/platform-browser/text";
+import { resolveText, textContent } from "@raee/core/text";
+import { cachedMatte } from "@raee/platform-browser/cutout";
+import { normalizeGain } from "@raee/core/audio-processing";
+import { speechLevel, speechMediaID } from "@raee/core/audio-editing";
+import { effectsOf } from "@raee/core/effect-editing";
+import { resolvedParams } from "@raee/core/effects";
 import { verifyGainLanes } from "./service-gains";
-import { serviceExportPlan, serviceFormat } from "@sidecut/core/service-export";
-import { inspectionTimes } from "@sidecut/core/service-requests";
-import { releaseExport } from "@sidecut/platform-browser/export-output";
+import { serviceExportPlan, serviceFormat } from "@raee/core/service-export";
+import { inspectionTimes } from "@raee/core/service-requests";
+import { releaseExport } from "@raee/platform-browser/export-output";
 const png = (canvas: HTMLCanvasElement) =>
   new Promise<Blob>((resolve, reject) =>
     canvas.toBlob(
@@ -468,7 +468,7 @@ export async function renderService(
         ...(request.tracks ? { tracks: request.tracks } : {}),
       };
     }
-    const { renderWebM } = await import("@sidecut/platform-browser/export"),
+    const { renderWebM } = await import("@raee/platform-browser/export"),
       began = performance.now();
     let finalLevels: ReturnType<LoudnessMeter["result"]> | undefined;
     const blob = await renderWebM(project, resource, signal, progress, {

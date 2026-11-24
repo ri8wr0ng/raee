@@ -26,18 +26,18 @@ const booleanFlagSchema = z
   .union([z.literal(true), z.enum(["true", "false"])])
   .transform((value) => value !== "false");
 
-const help = `Usage: node scripts/sidecut-cli.mjs [project|assets|segments] COMMAND [options]
+const help = `Usage: node scripts/raee-cli.mjs [project|assets|segments] COMMAND [options]
 
 Connects to the running desktop host; query output is readable by default.
 Use --json for machine-readable service results.
-  --project PATH         File/folder, SIDECUT_PROJECT/TANDEM_PROJECT, or nearest parent
+  --project PATH         File/folder, RAEE_PROJECT/TANDEM_PROJECT, or nearest parent
   -h, --help             Help (also: help segments)
   -v, --version          Version
   -o PATH                Alias for --output; --expect aliases --expected-revision
   --                     End options
 Project discovery excludes render snapshots and rejects ambiguous folders.
 Closed projects can use a hidden desktop host. An installed or built raE.E is required.
-  --endpoint-file PATH    Discovery file (or SIDECUT_API_FILE)
+  --endpoint-file PATH    Discovery file (or RAEE_API_FILE)
   --input PATH           Read request JSON from a file
   --request JSON         Request object as JSON
   --field-name VALUE     Schema field; kebab-case becomes camelCase
@@ -61,14 +61,14 @@ Exit codes: 0 success, 2 invalid request, 3 unavailable, 4 stale revision,
 let readableQueryErrors = false;
 async function main(args) {
   if (args[0] === "run") {
-    const { runScript } = await import("./sidecut-run.mjs");
+    const { runScript } = await import("./raee-run.mjs");
     return runScript(args.slice(1));
   }
   let { flags, words } = parseArguments(args);
   readableQueryErrors =
     !flags.has("json") && queryHelp(words[0] === "project" ? words[1] : words[0]) != null;
   if (flags.has("version") && !words.length) {
-    process.stdout.write("sidecut 0.0.1\n");
+    process.stdout.write("raee 0.0.1\n");
     return;
   }
   if (words[0] === "serve" && !flags.has("help")) {

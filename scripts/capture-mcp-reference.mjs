@@ -175,7 +175,7 @@ assert.equal(new Set(tools.map((t) => t.name)).size, 43);
 const catalogue = {
   revision,
   notice:
-    "Tool properties/defaults/annotations extracted from pinned Swift. Apply command properties/definitions use the current portable SideCut command schema, not native model definitions. Project field help shortened. TANDEM-LICENSE applies.",
+    "Tool properties/defaults/annotations extracted from pinned Swift. Apply command properties/definitions use the current portable raE.E command schema, not native model definitions. Project field help shortened. TANDEM-LICENSE applies.",
   tools,
 };
 await writeFile(

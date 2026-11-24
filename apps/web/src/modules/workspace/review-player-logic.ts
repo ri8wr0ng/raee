@@ -1,4 +1,4 @@
-import { Time, type FrameRate } from "@sidecut/contracts/time";
+import { Time, type FrameRate } from "@raee/contracts/time";
 
 export function reviewFrameTime(seconds: number, delta: -1 | 1, duration: number, rate: FrameRate) {
   const frame =

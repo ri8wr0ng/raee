@@ -4,7 +4,9 @@ raE.E is an open-source video editor and recording studio for the browser and
 desktop. Edit local media on a multitrack timeline, record screens and cameras,
 and control the desktop editor through a CLI, MCP server, or TypeScript SDK.
 
-The repository and internal package names still use `sidecut` for compatibility.
+Internal packages use the `@raee/*` scope. A few stored names keep `sidecut` so existing
+projects, settings and archives keep opening: the `.sidecut` archive extension, browser
+storage keys, the desktop data folder and the desktop window's `sidecut://app` address.
 The entire project is licensed under the [GNU AGPL v3](LICENSE).
 
 ## Get started
@@ -35,7 +37,7 @@ To run the landing page:
 vp run dev:landing
 ```
 
-The landing app uses Portless at `sidecut-landing.localhost`. Set
+The landing app uses Portless at `raee-landing.localhost`. Set
 `VITE_EDITOR_URL` in `apps/landing/.env.local` to link it to your editor deployment, and
 `VITE_SITE_URL` to the site's public origin for canonical URLs, social cards and
 `sitemap.xml`. On Vercel, `VITE_SITE_URL` defaults to the production domain.
@@ -80,7 +82,7 @@ launching. FFmpeg and FFprobe are installed with the workspace dependencies;
 no system installation is required.
 
 For renderer development, start `vp run dev`, then export
-`SIDECUT_RENDERER_URL` as the direct `http://127.0.0.1:<port>` URL before launching
+`RAEE_RENDERER_URL` as the direct `http://127.0.0.1:<port>` URL before launching
 the desktop app. Electron does not load `.env` files automatically. If the app
 fails to open a window, check that `ELECTRON_RUN_AS_NODE` is unset.
 
@@ -160,7 +162,7 @@ vp run mcp --endpoint-file <discovery-file>
 
 The running desktop writes its local API endpoint and bearer token to
 `current.tandem.api.json` in its profile. Select it with `--endpoint-file` or the
-`SIDECUT_API_FILE` environment variable. Keep the discovery file private.
+`RAEE_API_FILE` environment variable. Keep the discovery file private.
 
 Helpers preview edits by default and require `--apply` to commit. The `apply`
 command commits by default and supports `--dry-run`. Use revision guards when

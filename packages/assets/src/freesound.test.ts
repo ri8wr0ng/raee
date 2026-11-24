@@ -2,7 +2,7 @@ import { describe, it, expect } from "vite-plus/test";
 import data from "../../../tests/fixtures/tandem/providers/freesound_search.json";
 import { mockEnvironment } from "./test-support.ts";
 import { freesoundProvider } from "./freesound.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 describe("108.05 Freesound", () => {
   it("keeps CC0/BY results and filters noncommercial recordings", async () => {
     const { env, requests } = mockEnvironment(data);

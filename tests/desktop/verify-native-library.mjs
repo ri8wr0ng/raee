@@ -8,11 +8,11 @@ import { join, resolve, relative, isAbsolute } from "node:path";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../..");
-const profile = process.env.SIDECUT_NATIVE_LIBRARY_PROFILE;
+const profile = process.env.RAEE_NATIVE_LIBRARY_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
+delete process.env.RAEE_RENDERER_URL;
 const require = createRequire(join(root, "apps/desktop/package.json"));
 const ffmpeg = require("ffmpeg-static"),
   ffprobe = require("ffprobe-static").path;
@@ -138,7 +138,7 @@ async function verify() {
       until(async () => {
         try {
           return await evaluate(
-            "Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)",
+            "Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)",
           );
         } catch {
           return false;
@@ -147,7 +147,7 @@ async function verify() {
     await ready();
     const snapshot = () =>
       evaluate(
-        "JSON.parse(window.sidecutDesktop.projectRequest(JSON.stringify({type:'snapshot'})).snapshot.json)",
+        "JSON.parse(window.raeeDesktop.projectRequest(JSON.stringify({type:'snapshot'})).snapshot.json)",
       );
     const section = `[...document.querySelectorAll('details')].find(s => s.querySelector('summary')?.textContent.includes('Native recording library'))`;
     const row = `[...(${section}).querySelectorAll('li')].find(li => li.textContent.includes('camera ·'))`;
@@ -172,19 +172,17 @@ async function verify() {
       );
     }
     stage = "bridge and poster";
-    const listed = await evaluate("window.sidecutDesktop.nativeRecordingList()");
+    const listed = await evaluate("window.raeeDesktop.nativeRecordingList()");
     assert.deepEqual(
       listed.find((item) => item.id === id),
       recording,
     );
-    const asset = await evaluate(
-      `window.sidecutDesktop.nativeRecordingRead(${JSON.stringify(id)})`,
-    );
+    const asset = await evaluate(`window.raeeDesktop.nativeRecordingRead(${JSON.stringify(id)})`);
     assert.equal(asset.bytes.length, bytes);
     assert.equal(asset.type, "video/mp4");
     assert.deepEqual(Buffer.from(asset.bytes), await readFile(path));
     const poster = await evaluate(
-      `window.sidecutDesktop.nativeRecordingPoster(${JSON.stringify(id)})`,
+      `window.raeeDesktop.nativeRecordingPoster(${JSON.stringify(id)})`,
     );
     assert.match(poster, /^data:image\/jpeg;base64,/);
     const jpeg = Buffer.from(poster.split(",")[1], "base64");
@@ -231,12 +229,12 @@ async function verify() {
     assert.deepEqual(media.nativeRecording.tracks, tracks);
     const resource = async (projectID, mediaID) =>
       evaluate(`(async () => {
-      const row = (await window.sidecutDesktop.storageRequest({type:'read',collection:'resources',key:JSON.stringify(${JSON.stringify([projectID, mediaID])})}))[0];
+      const row = (await window.raeeDesktop.storageRequest({type:'read',collection:'resources',key:JSON.stringify(${JSON.stringify([projectID, mediaID])})}))[0];
       if (!row) return null;
       const parsed = JSON.parse(row.value); const pair = parsed[1].find(entry => entry[0] === 'file');
       const state = parsed[1].find(entry => entry[0] === 'state')?.[1];
       const file = pair?.[1]; if (!file || file[0] !== 'file') return null;
-      const bytes = await window.sidecutDesktop.storageGetFile(file[1]);
+      const bytes = await window.raeeDesktop.storageGetFile(file[1]);
       const blob = new Blob([bytes], {type:file[2]}); const url = URL.createObjectURL(blob);
       try { const video = document.createElement('video'); video.src = url; video.muted = true;
         const result = await new Promise(resolve => { const timer = setTimeout(() => resolve({error:'playback timed out'}), 8000); video.onloadeddata = () => {clearTimeout(timer); resolve({width:video.videoWidth,height:video.videoHeight,duration:video.duration});}; video.onerror = () => {clearTimeout(timer); resolve({error:video.error?.message || 'decode error'});}; video.load(); });
@@ -247,7 +245,7 @@ async function verify() {
     assert.equal(playable?.state, "available", JSON.stringify(playable));
     assert.equal(playable.bytes, bytes);
     assert.ok(playable.width > 0 && playable.duration > 1, JSON.stringify(playable));
-    await evaluate("window.sidecutDesktop.projectFlush()");
+    await evaluate("window.raeeDesktop.projectFlush()");
     const reload = async () => {
       const accept = (event) => event.preventDefault();
       window.webContents.once("will-prevent-unload", accept);
@@ -299,7 +297,7 @@ async function verify() {
       assert.ok(Math.abs(clip.duration - duration) < 0.001);
     }
     report.checks.newProjectOffsets = true;
-    await evaluate("window.sidecutDesktop.projectFlush()");
+    await evaluate("window.raeeDesktop.projectFlush()");
     await reload();
     assert.equal((await snapshot()).project.id, created.project.id);
     playable = await resource(created.project.id, newMedia.id);
@@ -318,7 +316,7 @@ async function verify() {
     await click("Delete recording");
     await until(
       async () =>
-        !(await evaluate(`window.sidecutDesktop.nativeRecordingList()`)).some((r) => r.id === id),
+        !(await evaluate(`window.raeeDesktop.nativeRecordingList()`)).some((r) => r.id === id),
       "deleted recording",
     );
     await assert.rejects(stat(folder), { code: "ENOENT" });

@@ -1,6 +1,6 @@
-import type { ProjectFile } from "@sidecut/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
 import type { BrowserProjectSession } from "./browser-session";
-import { QueryError, clipMediaID } from "@sidecut/core/project-queries";
+import { QueryError, clipMediaID } from "@raee/core/project-queries";
 
 type Analysis = Pick<
   BrowserProjectSession["analysis"],

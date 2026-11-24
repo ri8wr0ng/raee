@@ -19,7 +19,7 @@ import { ProviderCredentials } from "./provider-credentials.ts";
 describe("provider credential boundary", () => {
   let folder: string;
   beforeEach(async () => {
-    folder = await mkdtemp(join(tmpdir(), "sidecut-provider-test-"));
+    folder = await mkdtemp(join(tmpdir(), "raee-provider-test-"));
     encryption.available = true;
     vi.clearAllMocks();
   });

@@ -1,6 +1,6 @@
 import { TransitionInspector } from "./transition-controls";
 import { AudioControls } from "./audio-controls";
-import type { Clip } from "@sidecut/contracts/project";
+import type { Clip } from "@raee/contracts/project";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { ClipTrimForm } from "./clip-trim-form";
 import { ClipEditForm } from "./clip-edit-form";
@@ -11,10 +11,10 @@ import { KeyframeControls } from "./keyframe-controls";
 import { ProjectSettings } from "./project-settings";
 import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Tip } from "@raee/ui/components/tooltip";
 import { TextInspector } from "./text-inspector";
 import { CardInspector } from "./section-cards";
-import { cardOf } from "@sidecut/core/section-cards";
+import { cardOf } from "@raee/core/section-cards";
 import "./inspector.css";
 
 const KIND_LABELS = {

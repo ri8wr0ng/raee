@@ -65,7 +65,7 @@ it("maps native helper flags and protects preview defaults", () => {
     expect(() => prepareQueryCommand(parseArguments(args))).toThrow();
 });
 it("runs editing helpers and cards through the authoritative host", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-cli-helpers-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-helpers-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();
@@ -115,13 +115,13 @@ it("runs editing helpers and cards through the authoritative host", async () => 
     new Promise<{ code: number | null; out: string; err: string }>((done, reject) => {
       const child = spawn(
         process.execPath,
-        [resolve("scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", discovery],
+        [resolve("scripts/raee-cli.mjs"), ...args, "--endpoint-file", discovery],
         {
           cwd: root,
           env: {
             ...process.env,
             ELECTRON_RUN_AS_NODE: "1",
-            SIDECUT_PROJECT: "",
+            RAEE_PROJECT: "",
             TANDEM_PROJECT: "",
           },
           windowsHide: true,

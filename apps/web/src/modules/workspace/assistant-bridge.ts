@@ -20,8 +20,7 @@ export type AssistantBridge = {
 /** The Assistant tab exists only in the desktop app, where the agent runs beside the host. */
 export function assistantBridge(): AssistantBridge | undefined {
   if (typeof window === "undefined") return undefined;
-  const bridge = (window as unknown as { sidecutDesktop?: Partial<AssistantBridge> })
-    .sidecutDesktop;
+  const bridge = (window as unknown as { raeeDesktop?: Partial<AssistantBridge> }).raeeDesktop;
   return bridge?.assistantConnect &&
     bridge.assistantSettings &&
     bridge.assistantConfigure &&

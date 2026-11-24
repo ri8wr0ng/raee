@@ -8,7 +8,7 @@ import { NativeProjectStore } from "./project-store.ts";
 import { createHash } from "node:crypto";
 import { mediaBinaries } from "./media-binaries.ts";
 import { NativeRecorder } from "./native-recorder.ts";
-import type { NativeRecording } from "@sidecut/contracts/native-recording";
+import type { NativeRecording } from "@raee/contracts/native-recording";
 import { DatabaseSync } from "node:sqlite";
 import { NativeStorage, openSQLite } from "./sqlite-storage.ts";
 
@@ -67,12 +67,12 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
   try {
     await phase("initial-ready", async () => {
       await wait(
-        `Boolean(window.sidecutDesktop && document.querySelector('[data-testid="project-name"]') && document.querySelector('button[aria-label="Import media"]')?.disabled === false)`,
+        `Boolean(window.raeeDesktop && document.querySelector('[data-testid="project-name"]') && document.querySelector('button[aria-label="Import media"]')?.disabled === false)`,
       );
     });
     const isolation = await phase("isolation", async () => {
       const iso = await evaluate(
-        `({ node: typeof process, require: typeof require, bridge: typeof window.sidecutDesktop.projectRequest })`,
+        `({ node: typeof process, require: typeof require, bridge: typeof window.raeeDesktop.projectRequest })`,
       );
       assert.equal(iso.node, "undefined");
       assert.equal(iso.require, "undefined");
@@ -106,7 +106,7 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
     if (app.commandLine.hasSwitch("smoke-reopen")) {
       return await phase("reopen-verify", async () => {
         const reopened = await evaluate(
-          `JSON.parse(window.sidecutDesktop.projectRequest('{"type":"snapshot"}').snapshot.json)`,
+          `JSON.parse(window.raeeDesktop.projectRequest('{"type":"snapshot"}').snapshot.json)`,
         );
         assert.equal(reopened.project.name, "Packaged smoke fixture");
         assert.equal(reopened.project.media.length, 1);
@@ -126,7 +126,7 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
     }
     await phase("migrated-snapshot", async () => {
       const mig = await evaluate(
-        `JSON.parse(window.sidecutDesktop.projectRequest('{"type":"snapshot"}').snapshot.json)`,
+        `JSON.parse(window.raeeDesktop.projectRequest('{"type":"snapshot"}').snapshot.json)`,
       );
       assert.equal(mig.project.id, "packaged-legacy");
       assert.equal(mig.project.name, "Legacy packaged project");
@@ -134,12 +134,12 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
     const credentialStorage = await phase("credential-storage", async () => {
       let storage = "encrypted round-trip";
       try {
-        await credentials.set("pixabay", "sidecut-synthetic-smoke-secret");
-        assert.equal(await credentials.read("pixabay"), "sidecut-synthetic-smoke-secret");
+        await credentials.set("pixabay", "raee-synthetic-smoke-secret");
+        assert.equal(await credentials.read("pixabay"), "raee-synthetic-smoke-secret");
         const disk = await readFile(
           join(app.getPath("userData"), "assets/credentials/pixabay.enc"),
         );
-        assert.ok(!disk.includes(Buffer.from("sidecut-synthetic-smoke-secret")));
+        assert.ok(!disk.includes(Buffer.from("raee-synthetic-smoke-secret")));
       } catch (error) {
         if (
           process.platform !== "linux" ||
@@ -177,12 +177,12 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
         }
       })()`);
       await wait(
-        `JSON.parse(window.sidecutDesktop.projectRequest('{"type":"snapshot"}').snapshot.json).project.media.length === 1 && !document.querySelector('button[aria-label="Import media"]').disabled`,
+        `JSON.parse(window.raeeDesktop.projectRequest('{"type":"snapshot"}').snapshot.json).project.media.length === 1 && !document.querySelector('button[aria-label="Import media"]').disabled`,
       );
     });
     await phase("project-edit", async () => {
       await evaluate(`(() => {
-        const bridge = window.sidecutDesktop, state = bridge.projectRequest(JSON.stringify({ type: 'snapshot' })).snapshot, file = JSON.parse(state.json);
+        const bridge = window.raeeDesktop, state = bridge.projectRequest(JSON.stringify({ type: 'snapshot' })).snapshot, file = JSON.parse(state.json);
         bridge.projectRequest(JSON.stringify({ type: 'apply', projectID: file.project.id, generation: state.generation, batch: {
           label: 'Packaged smoke edit', expectedRevision: file.revision, commands: [
             { updateProject: { patch: { name: 'Packaged smoke fixture' } } },
@@ -191,7 +191,7 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
           ]
         } }));
       })()`);
-      await evaluate(`window.sidecutDesktop.projectFlush()`);
+      await evaluate(`window.raeeDesktop.projectFlush()`);
     });
     const media = await phase("export-media", async () => {
       const exportButton = `[...document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Export')`;
@@ -204,7 +204,7 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
       const mediaResult = await evaluate(`(async () => {
         const link = document.querySelector('a[download$=".webm"]');
         const blob = await (await fetch(link.href)).arrayBuffer();
-        const bridge = window.sidecutDesktop;
+        const bridge = window.raeeDesktop;
         const probe = JSON.parse(new TextDecoder().decode(await bridge.nativeMedia('smoke-probe', 'probe', new Uint8Array(blob))));
         const decoded = await bridge.nativeMedia('smoke-decode', 'decode', new Uint8Array(blob));
         return { bytes: blob.byteLength, codecs: probe.streams.map(stream => stream.codec_name), duration: Number(probe.format.duration), decoded: new TextDecoder().decode(decoded.slice(0, 4)) };
@@ -229,7 +229,7 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
         "utf8",
       );
       const rep = JSON.parse(supportText);
-      assert.equal(rep.format, "sidecut-support");
+      assert.equal(rep.format, "raee-support");
       assert.equal(rep.version, 1);
       assert.equal(rep.project.mediaCount, 1);
       for (const privateValue of [
@@ -246,13 +246,13 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
     });
     const supportUI = await phase("support-ui", async () => {
       const beforeSupportUI = await evaluate(
-        `window.sidecutDesktop.projectRequest('{"type":"snapshot"}').snapshot.json`,
+        `window.raeeDesktop.projectRequest('{"type":"snapshot"}').snapshot.json`,
       );
       const diagnosticsLink = `document.querySelector('a[href="/diagnostics"]')`;
       await wait(`Boolean(${diagnosticsLink})`);
       await evaluate(`${diagnosticsLink}.click()`);
       const createReport = `[...document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Create support report')`;
-      const reportLink = `document.querySelector('a[download="sidecut-support.json"]')`;
+      const reportLink = `document.querySelector('a[download="raee-support.json"]')`;
       await wait(`Boolean(${createReport} && !${createReport}.disabled)`);
       await evaluate(`${createReport}.click()`);
       await wait(`Boolean(${reportLink} && ${reportLink}.href)`);
@@ -262,7 +262,7 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
       })()`);
       assert.equal(supportDownload.type, "application/json");
       const uiReport = JSON.parse(supportDownload.text);
-      assert.equal(uiReport.format, "sidecut-support");
+      assert.equal(uiReport.format, "raee-support");
       assert.equal(uiReport.version, 1);
       assert.equal(uiReport.project.mediaCount, 1);
       for (const privateValue of [
@@ -291,14 +291,14 @@ export async function verifyPackaged(window: BrowserWindow, credentials: Provide
       await wait(`Boolean(${backToEditor})`);
       await evaluate(`${backToEditor}.click()`);
       await wait(
-        `Boolean(window.sidecutDesktop && document.querySelector('[data-testid="project-name"]') && document.querySelector('button[aria-label="Import media"]')?.disabled === false)`,
+        `Boolean(window.raeeDesktop && document.querySelector('[data-testid="project-name"]') && document.querySelector('button[aria-label="Import media"]')?.disabled === false)`,
       );
       assert.equal(
         await evaluate(`fetch(${JSON.stringify(secondURL)}).then(() => false, () => true)`),
         true,
       );
       assert.equal(
-        await evaluate(`window.sidecutDesktop.projectRequest('{"type":"snapshot"}').snapshot.json`),
+        await evaluate(`window.raeeDesktop.projectRequest('{"type":"snapshot"}').snapshot.json`),
         beforeSupportUI,
       );
       return {
@@ -414,7 +414,7 @@ async function verifyPanelPreferences(
 ) {
   const evaluate = (source: string) => window.webContents.executeJavaScript(source);
   const key = "sidecut.panel-sizes.v1";
-  const read = `window.sidecutDesktop.storageRequest({ type: 'read', collection: 'preferences', key: '${key}' })`;
+  const read = `window.raeeDesktop.storageRequest({ type: 'read', collection: 'preferences', key: '${key}' })`;
   const reset = `[...document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Reset layout')`;
   const protectedLayout = `[...document.querySelectorAll('[role="status"]')].some(element => element.textContent.includes('Temporary layout'))`;
   const divider = `document.querySelector('[role="separator"][aria-label="Media panel width"]')`;
@@ -450,7 +450,7 @@ async function verifyPanelPreferences(
     const step = async () => {
       await reload();
       await evaluate(
-        `window.sidecutDesktop.storageRequest(${JSON.stringify({ type: "commit", checks: [], writes: [{ collection: "preferences", key, value: raw }] })})`,
+        `window.raeeDesktop.storageRequest(${JSON.stringify({ type: "commit", checks: [], writes: [{ collection: "preferences", key, value: raw }] })})`,
       );
       await reload();
       await wait(protectedLayout);
@@ -594,7 +594,7 @@ async function verifyNativeRecording(window: BrowserWindow) {
 
 async function decodeRecording(window: BrowserWindow, bytes: Uint8Array) {
   const decoded = await window.webContents.executeJavaScript(`(async () => {
-      const bridge = window.sidecutDesktop, bytes = new Uint8Array(${JSON.stringify([...bytes])});
+      const bridge = window.raeeDesktop, bytes = new Uint8Array(${JSON.stringify([...bytes])});
       const probe = JSON.parse(new TextDecoder().decode(await bridge.nativeMedia('recording-probe', 'probe', bytes)));
       const output = await bridge.nativeMedia('recording-decode', 'export', bytes);
       const decoded = JSON.parse(new TextDecoder().decode(await bridge.nativeMedia('recording-decoded-probe', 'probe', output)));

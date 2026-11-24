@@ -1,4 +1,4 @@
-import type { Project } from "@sidecut/contracts/project";
+import type { Project } from "@raee/contracts/project";
 import { serviceExportPlan } from "./service-export";
 export type ExportPreset = "webm" | "review" | "youtube1080" | "short";
 export function exportPresetPlan(

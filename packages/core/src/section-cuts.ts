@@ -1,6 +1,6 @@
 // Ported from TandemAPI/TranscriptTools.swift at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Project } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 import { speechMap, speechTracks, mediaIDOf, type Transcripts } from "./speech";
 import type { CardPlacement } from "./section-cards";
 export function sectionCuts(

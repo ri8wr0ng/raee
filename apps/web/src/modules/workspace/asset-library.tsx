@@ -1,23 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import type { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { assetKinds, licenceClasses } from "@sidecut/contracts/assets";
+import type { LocalMediaReader } from "@raee/platform-browser/preview";
+import { assetKinds, licenceClasses } from "@raee/contracts/assets";
 import {
   AssetLibrary,
   normalizeAsset,
   libraryState,
   type LibraryEntry,
-} from "@sidecut/platform-browser/asset-library";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldLabel, FieldDescription, FieldError } from "@sidecut/ui/components/field";
+} from "@raee/platform-browser/asset-library";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
-import { projectCredits, creditsText } from "@sidecut/core/asset-use";
+import { projectCredits, creditsText } from "@raee/core/asset-use";
 import { RiFolderImageLine } from "@remixicon/react";
 import { ProviderBrowser } from "./provider-browser";
 import { MediaSection } from "./media-section";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
+import { Textarea } from "@raee/ui/components/textarea";
 
 export function LocalAssetLibrary() {
   const { session, snapshot } = useEditorSession();
@@ -85,7 +85,7 @@ export function LocalAssetLibrary() {
       selected?.normalised &&
       ["image", "icon", "logo", "sticker", "overlay"].includes(selected.asset.kind)
     )
-      void import("@sidecut/platform-browser/preview")
+      void import("@raee/platform-browser/preview")
         .then(async ({ LocalMediaReader }) => {
           reader = await LocalMediaReader.open(selected.normalised!, "image");
           if (!active) {
@@ -175,7 +175,7 @@ export function LocalAssetLibrary() {
           disabled={disabled || !library}
           onClick={() =>
             void run(async () => {
-              const { starterAssets } = await import("@sidecut/platform-browser/starter");
+              const { starterAssets } = await import("@raee/platform-browser/starter");
               await library!.mergeRemote(starterAssets());
               setVersion((v) => v + 1);
               setNotice("Starter catalogue installed. Existing assets and files were kept.");

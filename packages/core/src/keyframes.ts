@@ -1,6 +1,6 @@
 // Ported from TandemCore/Keyframes.swift. Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, ParamValue } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Clip, ParamValue } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 
 export const fixedParameters = [
   "video.transform.position",

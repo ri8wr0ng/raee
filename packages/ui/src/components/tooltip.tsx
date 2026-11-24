@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
-import { cn } from "@sidecut/ui/lib/utils";
+import { cn } from "@raee/ui/lib/utils";
 
 // One provider per surface: after the first tooltip opens, neighbours open instantly with no animation.
 function TooltipProvider({

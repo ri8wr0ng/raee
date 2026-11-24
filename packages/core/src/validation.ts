@@ -1,11 +1,11 @@
-import { TransitionSchema } from "@sidecut/contracts/project";
+import { TransitionSchema } from "@raee/contracts/project";
 import { cutoutSettings } from "./cutout";
 import { effectDefinition, renderedEffects } from "./effects";
-import { ParamValueSchema } from "@sidecut/contracts/project";
-import { KeyframeSchema } from "@sidecut/contracts/project";
+import { ParamValueSchema } from "@raee/contracts/project";
+import { KeyframeSchema } from "@raee/contracts/project";
 import { Schema } from "effect";
-import type { Project, Track, Clip } from "@sidecut/contracts/project";
-import { Time, flicksPerFrame } from "@sidecut/contracts/time";
+import type { Project, Track, Clip } from "@raee/contracts/project";
+import { Time, flicksPerFrame } from "@raee/contracts/time";
 
 export interface ValidationIssue {
   readonly severity: "error" | "warning";

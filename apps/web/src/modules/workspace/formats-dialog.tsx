@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
-import { formatOf, isHiddenIn, PORTRAIT, type PortraitSlot } from "@sidecut/core/formats";
-import { planShort, type ShortPlan } from "@sidecut/core/short";
+} from "@raee/ui/components/dialog";
+import { formatOf, isHiddenIn, PORTRAIT, type PortraitSlot } from "@raee/core/formats";
+import { planShort, type ShortPlan } from "@raee/core/short";
 import { useEditorSession, useEditorView } from "./editor-session";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 const PRESETS = [PORTRAIT, { id: "square", name: "Square (1:1)", width: 1080, height: 1080 }];
 

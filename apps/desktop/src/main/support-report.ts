@@ -1,6 +1,6 @@
-import type { HostSnapshot } from "@sidecut/contracts/desktop";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { validateProject } from "@sidecut/core/validation";
+import type { HostSnapshot } from "@raee/contracts/desktop";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { validateProject } from "@raee/core/validation";
 import type { StudioRecorder } from "./studio-automation.ts";
 
 // Construct from approved scalar fields; never redact a serialized project or raw log.
@@ -29,7 +29,7 @@ export async function supportReport(
   }
   signal.throwIfAborted();
   return {
-    format: "sidecut-support",
+    format: "raee-support",
     version: 1,
     createdAt: new Date().toISOString(),
     runtime: {

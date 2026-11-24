@@ -203,7 +203,7 @@ export function importOBS(
         throw new Error("Selected OBS scene uses unsupported scene filters or a custom canvas.");
       continue;
     }
-    // Both OBS scene items and SideCut video tracks paint from bottom to top.
+    // Both OBS scene items and raE.E video tracks paint from bottom to top.
     for (const [index, item] of items.entries()) {
       if (item.group_item_backup) continue;
       const source = item.source_uuid

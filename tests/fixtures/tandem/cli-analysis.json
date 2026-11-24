@@ -19,7 +19,7 @@
         "files": [{ "id": "cam", "path": "camera.mp4", "role": "camera", "pictureDelay": 0.08 }],
         "defaultDelay": 0
       },
-      "text": "How late each file's picture is against its sound (each clip shows its picture that much later, so lips match the voice):\n  cam  camera.mp4  camera  80 ms\nNew camera takes keep their picture as recorded (sidecut sync <seconds> --default sets a delay for them)."
+      "text": "How late each file's picture is against its sound (each clip shows its picture that much later, so lips match the voice):\n  cam  camera.mp4  camera  80 ms\nNew camera takes keep their picture as recorded (raee sync <seconds> --default sets a delay for them)."
     },
     {
       "operation": "wait",
@@ -33,14 +33,14 @@
           { "kind": "transcript", "path": "voice.wav", "state": "running", "progress": 0.25 }
         ]
       },
-      "text": "Still going after 0.1 s, when the wait timed out:\n  voice.wav: running 25%\nRun the same `sidecut wait` again to keep waiting."
+      "text": "Still going after 0.1 s, when the wait timed out:\n  voice.wav: running 25%\nRun the same `raee wait` again to keep waiting."
     },
     {
       "operation": "transcribe",
       "result": {
         "files": [{ "mediaID": "voice", "path": "voice.wav", "state": "ready", "words": 2 }]
       },
-      "text": "Asked for transcripts of:\n  voice.wav (voice): ready, 2 words\n`sidecut transcript voice` reads it."
+      "text": "Asked for transcripts of:\n  voice.wav (voice): ready, 2 words\n`raee transcript voice` reads it."
     },
     {
       "operation": "diff",
@@ -59,7 +59,7 @@
           }
         ]
       },
-      "text": "Since revision 2 (now revision 3): 1 added.\n  added  c  V1 Camera  00:00.000-00:01.000  Camera\nFull detail (each clip before and after) with --json. Put clips back with sidecut restore --from <revision or file> --clips <ids>."
+      "text": "Since revision 2 (now revision 3): 1 added.\n  added  c  V1 Camera  00:00.000-00:01.000  Camera\nFull detail (each clip before and after) with --json. Put clips back with raee restore --from <revision or file> --clips <ids>."
     },
     {
       "operation": "restore",
@@ -98,5 +98,5 @@
       "text": "1 clip (revision 2):\n  c  V1 Camera  00:00.000-00:01.000  Camera  off"
     }
   ],
-  "notice": "Synthetic pinned contracts adapted to SideCut UI names and supported transport. Native progress streaming and headless routing remain separate. TANDEM-LICENSE applies."
+  "notice": "Synthetic pinned contracts adapted to raE.E UI names and supported transport. Native progress streaming and headless routing remain separate. TANDEM-LICENSE applies."
 }

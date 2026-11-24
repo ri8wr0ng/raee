@@ -74,6 +74,7 @@ export type UploadClient = {
     snapshot: string;
     expectedBytes: number;
     partCount: number;
+    hidden?: boolean;
   }): Promise<{ mediaId: string; versionId: string }>;
   start(args: { versionId: string }): Promise<unknown>;
   uploadedParts(args: { versionId: string }): Promise<{ parts: number[] }>;
@@ -111,6 +112,8 @@ export type UploadInput = {
   putPart?: PutPart;
   // Resume records. Defaults to localStorage; null disables resume.
   storage?: UploadStorage | null;
+  // Hides the media item from the cloud library listing.
+  hidden?: boolean;
 };
 
 export type UploadResult = { mediaId: string; versionId: string };
@@ -187,6 +190,7 @@ export async function uploadToCloud(input: UploadInput): Promise<UploadResult> {
       snapshot,
       expectedBytes: total,
       partCount: plan.partCount,
+      ...(input.hidden ? { hidden: true } : {}),
     };
     let begun: UploadResult;
     try {

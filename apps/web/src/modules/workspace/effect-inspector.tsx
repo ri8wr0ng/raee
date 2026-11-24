@@ -1,16 +1,16 @@
 import { useState } from "react";
-import type { Clip, ClipEffect } from "@sidecut/contracts/project";
+import type { Clip, ClipEffect } from "@raee/contracts/project";
 import {
   effectRegistry,
   effectDefinition,
   resolvedParams,
   renderedEffects,
   styleEffects,
-} from "@sidecut/core/effects";
-import { effectsOf } from "@sidecut/core/effect-editing";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { FieldError } from "@sidecut/ui/components/field";
+} from "@raee/core/effects";
+import { effectsOf } from "@raee/core/effect-editing";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { FieldError } from "@raee/ui/components/field";
 import {
   RiAddLine,
   RiArrowDownLine,
@@ -18,11 +18,11 @@ import {
   RiDeleteBinLine,
   RiResetLeftLine,
 } from "@remixicon/react";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Tip } from "@raee/ui/components/tooltip";
 import { useEditorSession } from "./editor-session";
 import { ActionRow, Hint, InspectorSection, PropertyRow } from "./inspector-layout";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function EffectInspector({ clips }: { clips: readonly Clip[] }) {
   const [clipID, setClipID] = useState(clips[0]!.id);

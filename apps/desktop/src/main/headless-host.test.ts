@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { NativeProjectStore } from "./project-store.ts";
 import { HostProjectService } from "./project-service.ts";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { ProjectCoordinator } from "@raee/core/coordinator";
 
 it("hosts portable projects without rewriting reads, saves shared edits, and retains undo on reopen", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-portable-host-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-portable-host-"));
   const path = join(root, "Edit 项目.tandem");
   const initial = JSON.stringify({ revision: 0, project: { id: "portable", name: "Original" } });
   await writeFile(path, initial);

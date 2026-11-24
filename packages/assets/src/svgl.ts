@@ -1,4 +1,4 @@
-import { decodeAsset, type Asset } from "@sidecut/contracts/assets";
+import { decodeAsset, type Asset } from "@raee/contracts/assets";
 import {
   ProviderHTTP,
   providerInfo,

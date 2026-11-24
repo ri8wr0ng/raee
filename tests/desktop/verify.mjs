@@ -1,5 +1,5 @@
 // Run from the repository root after build:desktop:
-// vp exec --filter @sidecut/desktop electron ../../tests/desktop/verify.mjs
+// vp exec --filter @raee/desktop electron ../../tests/desktop/verify.mjs
 import { app, BrowserWindow, dialog } from "electron";
 import { mkdtempSync } from "node:fs";
 import { readFile, writeFile, rm, mkdir } from "node:fs/promises";
@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const profile = mkdtempSync(join(tmpdir(), "sidecut-electron-verify-"));
+const profile = mkdtempSync(join(tmpdir(), "raee-electron-verify-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
 const findings = {};
@@ -35,7 +35,7 @@ const request = async (window, value) => {
   }
   return evaluate(
     window,
-    `window.sidecutDesktop.projectRequest(${JSON.stringify(JSON.stringify(value))})`,
+    `window.raeeDesktop.projectRequest(${JSON.stringify(JSON.stringify(value))})`,
   );
 };
 
@@ -47,12 +47,12 @@ async function verify() {
     await wait(() =>
       evaluate(
         first,
-        `Boolean(window.sidecutDesktop && document.querySelector('[data-testid="project-name"]'))`,
+        `Boolean(window.raeeDesktop && document.querySelector('[data-testid="project-name"]'))`,
       ).catch(() => false),
     );
     findings.isolation = await evaluate(
       first,
-      `({ node: typeof process, require: typeof require, bridge: Object.keys(window.sidecutDesktop).sort() })`,
+      `({ node: typeof process, require: typeof require, bridge: Object.keys(window.raeeDesktop).sort() })`,
     );
     assert.equal(findings.isolation.node, "undefined");
     assert.equal(findings.isolation.require, "undefined");
@@ -69,7 +69,7 @@ async function verify() {
     await wait(() =>
       evaluate(
         second,
-        `Boolean(window.sidecutDesktop && document.querySelector('[data-testid="project-name"]'))`,
+        `Boolean(window.raeeDesktop && document.querySelector('[data-testid="project-name"]'))`,
       ).catch(() => false),
     );
     const initial = await request(first, { type: "snapshot" });
@@ -94,12 +94,12 @@ async function verify() {
     assert.equal(findings.sharedWindow, revision + 1);
     findings.staleRejected = await evaluate(
       second,
-      `(() => { try { window.sidecutDesktop.projectRequest(${JSON.stringify(JSON.stringify({ type: "undo", revision }))}); return false; } catch { return true; } })()`,
+      `(() => { try { window.raeeDesktop.projectRequest(${JSON.stringify(JSON.stringify({ type: "undo", revision }))}); return false; } catch { return true; } })()`,
     );
     assert.equal(findings.staleRejected, true);
     await request(second, { type: "undo", revision: revision + 1 });
     await request(first, { type: "redo", revision: revision + 2 });
-    await evaluate(first, `window.sidecutDesktop.projectFlush()`);
+    await evaluate(first, `window.raeeDesktop.projectFlush()`);
     const saved = JSON.parse(await readFile(join(profile, "current.tandem"), "utf8"));
     assert.equal(saved.project.name, "Desktop runtime fixture");
     findings.diskRevision = saved.revision;
@@ -128,7 +128,7 @@ async function verify() {
     const originalDialog = dialog.showOpenDialog;
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [mediaRoot] });
     try {
-      await evaluate(first, `window.sidecutDesktop.folderSelect()`);
+      await evaluate(first, `window.raeeDesktop.folderSelect()`);
     } finally {
       dialog.showOpenDialog = originalDialog;
     }
@@ -196,7 +196,7 @@ async function verify() {
       first,
       `(async () => {
       const blob = await (await fetch(document.querySelector('a[download$=".webm"]').href)).arrayBuffer();
-      const probe = JSON.parse(new TextDecoder().decode(await window.sidecutDesktop.nativeMedia('timeline-probe', 'probe', new Uint8Array(blob))));
+      const probe = JSON.parse(new TextDecoder().decode(await window.raeeDesktop.nativeMedia('timeline-probe', 'probe', new Uint8Array(blob))));
       return { bytes: blob.byteLength, codecs: probe.streams.map(s => s.codec_name), duration: Number(probe.format.duration) };
     })()`,
     );
@@ -205,7 +205,7 @@ async function verify() {
     findings.nativeExport = await evaluate(
       first,
       `(async () => {
-    const bridge = window.sidecutDesktop;
+    const bridge = window.raeeDesktop;
     const source = new Uint8Array(${JSON.stringify([...bytes])});
     const result = await bridge.nativeMedia('runtime-export', 'export', source, .1, .2);
     const probe = JSON.parse(new TextDecoder().decode(await bridge.nativeMedia('runtime-probe', 'probe', result)));

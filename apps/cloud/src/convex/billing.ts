@@ -5,7 +5,8 @@ import { membership } from "./access";
 
 // Billing enforcement is hosted-only and off by default. Self-hosted deployments leave the flag unset.
 export function billingEnabled() {
-  const value = process.env.SIDECUT_BILLING_ENABLED;
+  // SIDECUT_BILLING_ENABLED is the name deployments set before the rename.
+  const value = process.env.RAEE_BILLING_ENABLED ?? process.env.SIDECUT_BILLING_ENABLED;
   return value === "true" || value === "1";
 }
 

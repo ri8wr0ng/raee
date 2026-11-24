@@ -11,7 +11,7 @@ afterEach(async () => {
 });
 it("requires explicit opt-in and refuses existing or PATH-colliding commands", async () => {
   await expect(installCompatibilityLauncher(undefined)).rejects.toThrow("explicit destination");
-  const root = await mkdtemp(join(tmpdir(), "sidecut-compat-collision-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-compat-collision-"));
   roots.push(root);
   const existing = join(root, "existing");
   await mkdir(existing);
@@ -26,7 +26,7 @@ it("requires explicit opt-in and refuses existing or PATH-colliding commands", a
   await expect(installCompatibilityLauncher(existing)).rejects.toThrow("Refusing to replace");
 });
 it("creates an idempotent launcher that runs the CLI with unchanged PATH", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-compat-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-compat-"));
   roots.push(root);
   const bin = join(root, "bin");
   vi.stubEnv("PATH", "");
@@ -51,6 +51,6 @@ it("creates an idempotent launcher that runs the CLI with unchanged PATH", async
     },
   );
   expect(run.code, run.err).toBe(0);
-  expect(run.out).toBe("sidecut 0.0.1\n");
+  expect(run.out).toBe("raee 0.0.1\n");
   expect(process.env.PATH).toBe(bin + delimiter + join(root, "empty"));
 });

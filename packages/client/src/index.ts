@@ -1,8 +1,8 @@
-import { serviceDefinitions, type requiredServiceFields } from "@sidecut/core/service-requests";
-import type { EditCommandInput } from "@sidecut/contracts/commands";
-import type { queryDefinitions } from "@sidecut/core/project-queries";
-import type { SegmentField } from "@sidecut/core/segments";
-export type { EditCommand, EditBatch } from "@sidecut/contracts/commands";
+import { serviceDefinitions, type requiredServiceFields } from "@raee/core/service-requests";
+import type { EditCommandInput } from "@raee/contracts/commands";
+import type { queryDefinitions } from "@raee/core/project-queries";
+import type { SegmentField } from "@raee/core/segments";
+export type { EditCommand, EditBatch } from "@raee/contracts/commands";
 export { cmd, type Command, type CommandName, type CommandArgs } from "./commands";
 export { ProjectView, type ClipOn, type TransitionOn } from "./project-view";
 export { fixCaptionWords } from "./captions";
@@ -65,7 +65,7 @@ export class ServiceError extends Error {
     this.revision = revision;
   }
 }
-export class SideCutClient {
+export class RaeeClient {
   revision: number | undefined;
   private readonly endpoint: { port: number; token: string };
   private readonly transport: typeof fetch;

@@ -117,13 +117,13 @@ jobs:
         include:
           - name: Windows x64
             os: windows-latest
-            artifact: sidecut-windows-x64
+            artifact: raee-windows-x64
           - name: Linux x64
             os: ubuntu-24.04
-            artifact: sidecut-linux-x64
+            artifact: raee-linux-x64
           - name: macOS Apple Silicon
             os: macos-15
-            artifact: sidecut-macos-arm64
+            artifact: raee-macos-arm64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     env:

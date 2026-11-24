@@ -5,8 +5,8 @@ import { MarkerStrips } from "./marker-strip";
 import { SectionCardsDialog } from "./section-cards";
 import { TemplateDialog } from "./template-dialog";
 import { useCallback, useRef, useState, useEffect, useMemo, useSyncExternalStore } from "react";
-import { placeWords } from "@sidecut/core/transcript";
-import { Time } from "@sidecut/contracts/time";
+import { placeWords } from "@raee/core/transcript";
+import { Time } from "@raee/contracts/time";
 import {
   RiArrowUpSLine,
   RiArrowDownSLine,
@@ -17,10 +17,10 @@ import {
   RiFileMusicLine,
   RiCloseCircleLine,
 } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 import { TrackControls } from "./track-controls";
-import { Input } from "@sidecut/ui/components/input";
+import { Input } from "@raee/ui/components/input";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { projectDuration, atFrame, stepFrame, timecode } from "./timeline-model";
 import { ClipBlock } from "./clip-block";

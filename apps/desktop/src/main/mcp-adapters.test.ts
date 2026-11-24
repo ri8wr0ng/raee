@@ -28,7 +28,7 @@ it("pins all 43 native tool contracts and documents the portable apply schema", 
     [...inventory.tools, "studio"].sort(),
   );
   expect(reference.tools.map((tool) => tool.name).sort()).toEqual([...inventory.tools].sort());
-  expect(reference.notice).toContain("portable SideCut");
+  expect(reference.notice).toContain("portable raE.E");
   for (const tool of reference.tools) {
     const captured = contract.tools.find((item) => item.name === tool.name)!;
     expect(Object.keys(tool.inputSchema.properties)).toEqual(captured.properties);
@@ -64,7 +64,7 @@ it("validates metadata and native argument types before dispatch, without mutati
   ).toMatchObject({ confirmedPaid: false });
   expect(clientAuthor("Claude Desktop", {})).toBe("claude");
   expect(clientAuthor("Acceptance", {})).toBe("Acceptance");
-  expect(clientAuthor("Codex", { SIDECUT_AUTHOR: "owner", TANDEM_AUTHOR: "old" })).toBe("owner");
+  expect(clientAuthor("Codex", { RAEE_AUTHOR: "owner", TANDEM_AUTHOR: "old" })).toBe("owner");
 });
 
 it("reuses the pinned readable formatters and returns image blocks before metadata", () => {

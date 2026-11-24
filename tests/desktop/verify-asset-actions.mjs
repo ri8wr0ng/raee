@@ -6,10 +6,10 @@ import { join, resolve, dirname, basename } from "node:path";
 import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-asset-actions-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-asset-actions-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let resultCode = 0;
 const evidence = { platform: process.platform };
 async function wait(predicate) {
@@ -248,7 +248,7 @@ async function verify() {
       const target = resolve(profile);
       if (
         dirname(target) !== resolve(tmpdir()) ||
-        !basename(target).startsWith("sidecut-asset-actions-")
+        !basename(target).startsWith("raee-asset-actions-")
       ) {
         app.exit(1);
         return;

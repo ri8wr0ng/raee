@@ -2,8 +2,8 @@ import { describe, it, expect } from "vite-plus/test";
 import { raster, gaussian, blur, sharpen, pixelate } from "./spatial-processing";
 import { layerStyles, pixelScale } from "./layer-styles";
 import { effectIssue } from "./color-processing";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import type { ClipEffect } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
+import type { ClipEffect } from "@raee/contracts/project";
 import { framePlan, exportPlan } from "./render-plan";
 const fx = (type: string, params: ClipEffect["params"] = {}, enabled = true): ClipEffect => ({
   id: type,

@@ -1,5 +1,5 @@
-import type { LiveStudio } from "@sidecut/core/live-studio";
-import type { LiveAssets } from "@sidecut/core/live-assets";
+import type { LiveStudio } from "@raee/core/live-studio";
+import type { LiveAssets } from "@raee/core/live-assets";
 import { paintLiveEngagement, type LiveEngagement } from "./live-engagement";
 import { paintPicture } from "./picture";
 import { paintLiveBackground, paintLiveOverlays } from "./live-assets";

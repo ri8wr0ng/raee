@@ -3,7 +3,7 @@ import families from "../../../tests/fixtures/tandem/providers/fontsource_fonts.
 import detail from "../../../tests/fixtures/tandem/providers/fontsource_inter.json";
 import { mockEnvironment } from "./test-support.ts";
 import { fontsourceProvider } from "./fontsource.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 describe("108.09 Fontsource", () => {
   it("maps families and fetches regular font first while retaining other variants", async () => {
     const { env } = mockEnvironment(families, "browser"),

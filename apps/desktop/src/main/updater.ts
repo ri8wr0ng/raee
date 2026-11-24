@@ -1,4 +1,4 @@
-import type { UpdateState } from "@sidecut/contracts/desktop";
+import type { UpdateState } from "@raee/contracts/desktop";
 
 type Info = { version: string };
 

@@ -4,12 +4,12 @@ import { audioEffectIssue } from "./audio-processing";
 import { transitionWindow } from "./transitions";
 import { effectIssue } from "./color-processing";
 import { effectsOf } from "./effect-editing";
-import type { ClipEffect } from "@sidecut/contracts/project";
+import type { ClipEffect } from "@raee/contracts/project";
 import { resolveClip } from "./keyframes";
 import { textIssue } from "./text";
 import { SECTION_CARD } from "./section-cards";
-import type { Project, Clip, Track } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Project, Clip, Track } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 export function projectDuration(project: Project): Time {
   return new Time(
     [...project.videoTracks, ...project.audioTracks]
@@ -290,7 +290,7 @@ export function graphicIssue(clip: Clip): string | null {
   const template = object(clip.content.graphic).template;
   return template === SECTION_CARD
     ? null
-    : `Graphic template "${String(template)}" isn't drawn by SideCut; its data is kept.`;
+    : `Graphic template "${String(template)}" isn't drawn by raE.E; its data is kept.`;
 }
 
 export interface PictureLayer {

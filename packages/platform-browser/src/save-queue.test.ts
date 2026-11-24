@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { SaveQueue } from "./save-queue";
 
 const file = (revision: number) => decodeProjectFile({ revision, project: { id: "prj_queue" } });

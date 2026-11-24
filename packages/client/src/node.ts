@@ -1,4 +1,4 @@
-import { SideCutClient } from "./index";
+import { RaeeClient } from "./index";
 import { verifyProjectOwner } from "../../../scripts/cli-foundation.mjs";
 import { acquireProjectHost } from "../../../scripts/headless-host.mjs";
 import { watchHost } from "../../../scripts/host-client.mjs";
@@ -13,10 +13,10 @@ export async function openProjectClient(
   if (project != null) flags.set("project", project);
   if (options.endpointFile != null) flags.set("endpoint-file", options.endpointFile);
   const found = await acquireProjectHost(flags, options.signal ? { signal: options.signal } : {});
-  const client = new SideCutClient(
+  const client = new RaeeClient(
     found.endpoint,
     fetch,
-    options.author ?? process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "sdk",
+    options.author ?? process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "sdk",
   );
   try {
     await verifyProjectOwner(found.project, await client.status(options.signal));

@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { RiPlayFill, RiPauseFill, RiSkipBackLine, RiSkipForwardLine } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
-import { Time } from "@sidecut/contracts/time";
+import { Button } from "@raee/ui/components/button";
+import { Time } from "@raee/contracts/time";
 import { useEditorSession, useEditorView } from "./editor-session";
 import { SourcePreview } from "./source-preview";
 import { JobStatus } from "./job-status";
 import { timecode, stepFrame, projectDuration } from "./timeline-model";
-import { formatOf, formatProject } from "@sidecut/core/formats";
+import { formatOf, formatProject } from "@raee/core/formats";
 import { FormatsDialog } from "./formats-dialog";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 export function Viewer() {
   const { session, snapshot, editor } = useEditorSession();

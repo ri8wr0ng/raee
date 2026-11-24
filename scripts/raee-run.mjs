@@ -11,7 +11,7 @@ export async function runScript(args) {
     extra.length ||
     (script === "-e" ? code === undefined : code !== undefined)
   )
-    throw new Error("Usage: sidecut run <project.tandem | folder> <script.ts | -e CODE | ->");
+    throw new Error("Usage: raee run <project.tandem | folder> <script.ts | -e CODE | ->");
   let moduleURL = new URL("./sdk/node.mjs", import.meta.url);
   try {
     await access(moduleURL);

@@ -1,8 +1,8 @@
-import { ProjectCoordinator, EditError } from "@sidecut/core/coordinator";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { HostReply, HostSnapshot } from "@sidecut/contracts/desktop";
+import { ProjectCoordinator, EditError } from "@raee/core/coordinator";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { HostReply, HostSnapshot } from "@raee/contracts/desktop";
 import type { NativeProjectStore } from "./project-store.ts";
-import { clipChanges } from "@sidecut/core/service-edits";
+import { clipChanges } from "@raee/core/service-edits";
 
 export const freshProject = () =>
   decodeProjectFile({

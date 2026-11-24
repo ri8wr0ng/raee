@@ -1,6 +1,6 @@
 // Formula ports from TandemRender/Kernels.swift and ColourWheelGrade.swift.
 // Upstream notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { ClipEffect } from "@sidecut/contracts/project";
+import type { ClipEffect } from "@raee/contracts/project";
 import type { CubeLUT } from "./cube-lut";
 import { sampleCube } from "./cube-lut";
 import { resolvedParams, renderedEffects, effectDefinition } from "./effects";

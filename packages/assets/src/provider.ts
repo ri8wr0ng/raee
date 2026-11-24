@@ -1,10 +1,10 @@
-import type { Asset } from "@sidecut/contracts/assets";
+import type { Asset } from "@raee/contracts/assets";
 import type {
   ProviderInfo,
   ProviderQuery,
   GenerationRequest,
   ProviderFile,
-} from "@sidecut/contracts/providers";
+} from "@raee/contracts/providers";
 export type { ProviderInfo, ProviderQuery, GenerationRequest, ProviderFile };
 export class ProviderError extends Error {
   permission?: string;

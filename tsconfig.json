@@ -1,4 +1,4 @@
 {
-  "extends": "@sidecut/config/typescript/desktop.json",
+  "extends": "@raee/config/typescript/desktop.json",
   "include": ["vite.config.ts"]
 }

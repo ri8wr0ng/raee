@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
 import { RiArrowDownSLine } from "@remixicon/react";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { Tip } from "@raee/ui/components/tooltip";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 
 // Collapsed sections stay collapsed while switching tabs or clips, but not across reloads.

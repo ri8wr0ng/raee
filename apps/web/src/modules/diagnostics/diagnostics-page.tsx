@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import { runContractProbe } from "./contract-probe";
 import { runMediaProbe } from "./media-probe";
 import type { MediaProbeResult } from "./media-probe";
@@ -130,7 +130,7 @@ export function DiagnosticsPage() {
               <a
                 className="inline-block text-sm underline"
                 href={reportDownload}
-                download="sidecut-support.json"
+                download="raee-support.json"
               >
                 Download support report
               </a>
@@ -267,7 +267,7 @@ export function DiagnosticsPage() {
             <a
               className="inline-block text-sm underline"
               href={download}
-              download={`sidecut-media-probe.${media?.recording?.mimeType.includes("mp4") ? "mp4" : "webm"}`}
+              download={`raee-media-probe.${media?.recording?.mimeType.includes("mp4") ? "mp4" : "webm"}`}
             >
               Download synthetic video
             </a>

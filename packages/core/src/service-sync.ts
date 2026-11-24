@@ -1,5 +1,5 @@
 // Adapted from TandemAPI/Sync.swift. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project, MediaItem, ProjectFile } from "@sidecut/contracts/project";
+import type { Project, MediaItem, ProjectFile } from "@raee/contracts/project";
 import { clipMediaID, QueryError } from "./project-queries";
 import { ProjectCoordinator } from "./coordinator";
 import type { SoundMatch } from "./sound-sync";

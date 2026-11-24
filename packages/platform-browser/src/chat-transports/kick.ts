@@ -1,4 +1,4 @@
-import type { ChatMessage } from "@sidecut/core/live-chat";
+import type { ChatMessage } from "@raee/core/live-chat";
 import type { ChatStatusListener, ChatTransport, ChatTransportListener, KickConfig } from "./types";
 
 /**

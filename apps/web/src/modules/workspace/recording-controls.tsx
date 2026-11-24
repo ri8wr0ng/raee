@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { RiRecordCircleLine } from "@remixicon/react";
-import { recordingSupport, type RecordingSource } from "@sidecut/platform-browser/recording";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@sidecut/ui/components/field";
+import { recordingSupport, type RecordingSource } from "@raee/platform-browser/recording";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@raee/ui/components/field";
 import { MediaSection } from "./media-section";
 import { useEditorSession } from "./editor-session";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function RecordingControls() {
   const { session, snapshot } = useEditorSession();

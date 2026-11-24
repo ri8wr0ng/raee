@@ -1,8 +1,8 @@
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { LiveStudio } from "@sidecut/core/live-studio";
-import { object } from "@sidecut/core/interchange";
-import { ProjectCoordinator, EditError } from "@sidecut/core/coordinator";
-import { QueryError } from "@sidecut/core/project-queries";
+import type { ProjectFile } from "@raee/contracts/project";
+import { LiveStudio } from "@raee/core/live-studio";
+import { object } from "@raee/core/interchange";
+import { ProjectCoordinator, EditError } from "@raee/core/coordinator";
+import { QueryError } from "@raee/core/project-queries";
 import type { NativeRecorder } from "./native-recorder.ts";
 
 const stateKey = "sidecut.liveStudio";

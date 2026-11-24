@@ -1,11 +1,11 @@
-import { assetKinds, type Asset } from "@sidecut/contracts/assets";
-import type { AssetLibrary } from "@sidecut/platform-browser/asset-library";
-import type { BrowserAssetProviders } from "@sidecut/platform-browser/asset-providers";
-import { QueryError } from "@sidecut/core/project-queries";
-import { assetLicence } from "@sidecut/platform-browser/asset-providers";
-import type { LibraryEntry } from "@sidecut/platform-browser/asset-library";
-import { object } from "@sidecut/core/interchange";
-import { decodeGeneration } from "@sidecut/contracts/providers";
+import { assetKinds, type Asset } from "@raee/contracts/assets";
+import type { AssetLibrary } from "@raee/platform-browser/asset-library";
+import type { BrowserAssetProviders } from "@raee/platform-browser/asset-providers";
+import { QueryError } from "@raee/core/project-queries";
+import { assetLicence } from "@raee/platform-browser/asset-providers";
+import type { LibraryEntry } from "@raee/platform-browser/asset-library";
+import { object } from "@raee/core/interchange";
+import { decodeGeneration } from "@raee/contracts/providers";
 
 export async function libraryLicence(entry: LibraryEntry): Promise<Record<string, unknown>> {
   if (entry.licence) {

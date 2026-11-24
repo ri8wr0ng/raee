@@ -1,9 +1,9 @@
 import type { BrowserProjectSession } from "./browser-session";
-import { AssetLibrary } from "@sidecut/platform-browser/asset-library";
-import { helperPlan } from "@sidecut/core/service-speech";
-import { speechLevel } from "@sidecut/core/audio-editing";
-import { recordAssetUse } from "@sidecut/core/asset-use";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
+import { AssetLibrary } from "@raee/platform-browser/asset-library";
+import { helperPlan } from "@raee/core/service-speech";
+import { speechLevel } from "@raee/core/audio-editing";
+import { recordAssetUse } from "@raee/core/asset-use";
+import { ProjectCoordinator } from "@raee/core/coordinator";
 
 export async function cardsService(
   session: BrowserProjectSession,

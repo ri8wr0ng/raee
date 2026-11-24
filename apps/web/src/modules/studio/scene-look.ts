@@ -1,4 +1,4 @@
-import type { LiveAssets } from "@sidecut/core/live-assets";
+import type { LiveAssets } from "@raee/core/live-assets";
 
 export type LookDraft = { sceneId: string | null; assets: LiveAssets };
 

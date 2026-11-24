@@ -7,7 +7,7 @@ import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 
 const root = resolve(import.meta.dirname, "..");
-const durationSeconds = Number.parseInt(process.env.SIDECUT_LONG_RUN_SECONDS ?? "3600", 10);
+const durationSeconds = Number.parseInt(process.env.RAEE_LONG_RUN_SECONDS ?? "3600", 10);
 assert.ok(Number.isSafeInteger(durationSeconds) && durationSeconds >= 60);
 // Inputs can buffer ahead, so a media-time cutoff alone cannot guarantee elapsed wall time.
 const targetMediaSeconds = durationSeconds + 5;
@@ -21,7 +21,7 @@ const require = createRequire(join(root, "apps", "desktop", "package.json"));
 const ffmpeg = require("ffmpeg-static");
 const ffprobe = require("ffprobe-static").path;
 const exec = promisify(execFile);
-const runRoot = await mkdtemp(join(tmpdir(), "sidecut-native-long-run-"));
+const runRoot = await mkdtemp(join(tmpdir(), "raee-native-long-run-"));
 const output = join(runRoot, "recording.mkv");
 const remuxed = join(runRoot, "recording.mp4");
 const startedAt = new Date().toISOString();
@@ -307,7 +307,7 @@ try {
   report.errors.push(error instanceof Error ? (error.stack ?? error.message) : String(error));
 } finally {
   await save();
-  assert.ok(runRoot.startsWith(join(tmpdir(), "sidecut-native-long-run-")));
+  assert.ok(runRoot.startsWith(join(tmpdir(), "raee-native-long-run-")));
   await rm(runRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
 process.exitCode = report.accepted ? 0 : 1;

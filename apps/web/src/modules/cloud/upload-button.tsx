@@ -3,10 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { useAction, useConvexAuth, useMutation } from "convex/react";
 import type { FunctionArgs } from "convex/server";
 import { RiUploadCloud2Line } from "@remixicon/react";
-import { api } from "@sidecut/cloud/api";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { Progress } from "@sidecut/ui/components/progress";
-import { Tip } from "@sidecut/ui/components/tooltip";
+import { api } from "@raee/cloud/api";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { Progress } from "@raee/ui/components/progress";
+import { Tip } from "@raee/ui/components/tooltip";
 import { useCloud } from "./cloud-provider";
 import { cloudErrorMessage } from "./subscription-error";
 import { discardPendingUpload, hasPendingUpload, uploadToCloud, type UploadClient } from "./upload";
@@ -59,7 +59,7 @@ function UploadGate({
 
 function SignInLink({ compact }: { compact: boolean }) {
   return (
-    <Link to="/cloud/team" className={linkClass(compact)}>
+    <Link to="/team" className={linkClass(compact)}>
       Sign in to upload
     </Link>
   );
@@ -67,7 +67,7 @@ function SignInLink({ compact }: { compact: boolean }) {
 
 function ChooseTeamLink({ compact }: { compact: boolean }) {
   return (
-    <Link to="/cloud/team" className={linkClass(compact)}>
+    <Link to="/team" className={linkClass(compact)}>
       Choose a cloud team
     </Link>
   );
@@ -206,7 +206,7 @@ function UploadControl({
           Uploaded to cloud.
         </span>
         <Link
-          to="/cloud/library"
+          to="/library"
           className={buttonVariants({ variant: "outline", size: compact ? "xs" : "sm" })}
         >
           View in cloud library

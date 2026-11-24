@@ -6,9 +6,9 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { request as httpsRequest } from "node:https";
 import { generateKeyPairSync, sign } from "node:crypto";
-import type { NativeRecording } from "@sidecut/contracts/native-recording";
-import { SideCutClient } from "../../../../packages/client/src/index";
-import { signedIntent, type RemoteIntent, type remoteState } from "@sidecut/core/remote-control";
+import type { NativeRecording } from "@raee/contracts/native-recording";
+import { RaeeClient } from "../../../../packages/client/src/index";
+import { signedIntent, type RemoteIntent, type remoteState } from "@raee/core/remote-control";
 import { HostProjectService } from "./project-service.ts";
 import { NativeProjectStore } from "./project-store.ts";
 import { ProjectAPI } from "./project-api.ts";
@@ -22,7 +22,7 @@ afterEach(async () => {
   for (const cleanup of cleanups.reverse().splice(0)) await cleanup();
 });
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-studio-control-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-studio-control-"));
   cleanups.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "project.tandem")));
   await host.start();
@@ -31,7 +31,7 @@ async function setup() {
   const server = new LocalHTTPService(api);
   const address = await server.start();
   cleanups.push(() => server.close());
-  const client = new SideCutClient(address, fetch, "studio-test");
+  const client = new RaeeClient(address, fetch, "studio-test");
   const revision = JSON.parse(host.snapshot().json).revision;
   return { root, host, api, address, client, revision };
 }
@@ -65,7 +65,7 @@ describe("studio automation through host adapters", () => {
     const { stdout } = await promisify(execFile)(
       process.execPath,
       [
-        resolvePath("scripts/sidecut-cli.mjs"),
+        resolvePath("scripts/raee-cli.mjs"),
         "studio",
         "--action",
         "status",

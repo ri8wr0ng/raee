@@ -1,10 +1,10 @@
-import { replayJournal } from "@sidecut/core/coordinator";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { ProjectFile } from "@sidecut/contracts/project";
+import { replayJournal } from "@raee/core/coordinator";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
 import type { DurableStorage } from "./sqlite-client";
 import { encodeStored, decodeStored } from "./storage-codec";
 import { migrateLegacy, readLegacy } from "./legacy-storage";
-import type { StorageRequest } from "@sidecut/contracts/storage";
+import type { StorageRequest } from "@raee/contracts/storage";
 
 export interface LocalResource {
   file: File;

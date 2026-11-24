@@ -1,15 +1,15 @@
 import type { BrowserProjectSession } from "./browser-session";
-import { AssetLibrary } from "@sidecut/platform-browser/asset-library";
-import { BrowserAssetProviders } from "@sidecut/platform-browser/asset-providers";
-import { SegmentLibrary } from "@sidecut/platform-browser/segments";
-import { decodeAsset, licenceClasses } from "@sidecut/contracts/assets";
+import { AssetLibrary } from "@raee/platform-browser/asset-library";
+import { BrowserAssetProviders } from "@raee/platform-browser/asset-providers";
+import { SegmentLibrary } from "@raee/platform-browser/segments";
+import { decodeAsset, licenceClasses } from "@raee/contracts/assets";
 import { libraryLicence, libraryAssetDetails, generationServiceRequest } from "./service-assets";
-import { starterAssets } from "@sidecut/platform-browser/starter";
-import { projectCredits, creditsText } from "@sidecut/core/asset-use";
-import { QueryError } from "@sidecut/core/project-queries";
-import { readZip } from "@sidecut/core/archive";
-import { segmentSummary, type SegmentField } from "@sidecut/core/segments";
-import { object } from "@sidecut/core/interchange";
+import { starterAssets } from "@raee/platform-browser/starter";
+import { projectCredits, creditsText } from "@raee/core/asset-use";
+import { QueryError } from "@raee/core/project-queries";
+import { readZip } from "@raee/core/archive";
+import { segmentSummary, type SegmentField } from "@raee/core/segments";
+import { object } from "@raee/core/interchange";
 
 export async function libraryOperation(
   session: BrowserProjectSession,

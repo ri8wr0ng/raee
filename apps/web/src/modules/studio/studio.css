@@ -7,6 +7,10 @@
   min-width: 0;
   align-content: start;
 }
+/* Grid items default to their content's width; let the panels shrink to the column instead. */
+.studio-layout > * > * {
+  min-width: 0;
+}
 @media (min-width: 1024px) {
   .studio-layout {
     grid-template-columns: minmax(0, 1fr) minmax(320px, clamp(340px, 26vw, 420px));

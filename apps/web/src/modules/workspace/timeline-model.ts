@@ -1,8 +1,8 @@
-import type { Project } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Project } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 
-export { projectDuration, activeClips, previewIssue, sourceTime } from "@sidecut/core/render-plan";
-import { projectDuration } from "@sidecut/core/render-plan";
+export { projectDuration, activeClips, previewIssue, sourceTime } from "@raee/core/render-plan";
+import { projectDuration } from "@raee/core/render-plan";
 export function atFrame(seconds: number, project: Project): Time {
   return Time.fromSeconds(Math.max(0, seconds)).roundedToFrame(project.settings.frameRate);
 }

@@ -1,9 +1,9 @@
 import { it, expect } from "vite-plus/test";
-import { editCommandJsonSchema } from "@sidecut/contracts/commands";
-import { transitionTypes } from "@sidecut/contracts/project";
-import { serviceDefinitions } from "@sidecut/core/service-requests";
-import { queryDefinitions } from "@sidecut/core/project-queries";
-import { effectRegistry, renderedEffects } from "@sidecut/core/effects";
+import { editCommandJsonSchema } from "@raee/contracts/commands";
+import { transitionTypes } from "@raee/contracts/project";
+import { serviceDefinitions } from "@raee/core/service-requests";
+import { queryDefinitions } from "@raee/core/project-queries";
+import { effectRegistry, renderedEffects } from "@raee/core/effects";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import inventory from "../../../../tests/fixtures/tandem/pinned-inventory.json";
@@ -41,7 +41,7 @@ it("accounts for every pinned edit command, service, asset operation and MCP too
   expect(mcpTools.map((tool) => tool.name).sort()).toEqual([...inventory.tools, "studio"].sort());
   expect(effectRegistry.map((e) => e.type).sort()).toEqual([...inventory.effects].sort());
   expect([...transitionTypes].sort()).toEqual([...inventory.transitions].sort());
-  if (process.env.SIDECUT_WRITE_PARITY_AUDIT === "1")
+  if (process.env.RAEE_WRITE_PARITY_AUDIT === "1")
     await writeFile(
       resolve("docs/verification/phase-140-inventory.json"),
       JSON.stringify(

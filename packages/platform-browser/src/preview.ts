@@ -1,5 +1,5 @@
 import type { Input, CanvasSink, AudioBufferSink } from "mediabunny";
-import type { Cutout } from "@sidecut/core/cutout";
+import type { Cutout } from "@raee/core/cutout";
 import type { PictureProxy } from "./proxy";
 import { proxyFrameIndex } from "./proxy";
 import { readFrame } from "./frame-store";

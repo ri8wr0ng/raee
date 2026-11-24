@@ -80,9 +80,9 @@ it("retries failed work from the beginning and exposes its frozen context and ou
   expect(queue.getContext(id)).toBeUndefined();
   expect(queue.getOutput(id)).toBeUndefined();
 });
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import { DeliveryStore } from "@sidecut/core/delivery-store";
-import type { StorageRequest } from "@sidecut/contracts/storage";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import { DeliveryStore } from "@raee/core/delivery-store";
+import type { StorageRequest } from "@raee/contracts/storage";
 
 it("recovers interrupted recipes and completed output from a shared journal", async () => {
   const rows = new Map<string, string>(),

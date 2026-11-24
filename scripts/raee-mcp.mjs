@@ -24,7 +24,7 @@ async function main() {
     options.set(key, process.argv[i + 1]);
   }
   const server = new Server(
-    { name: "sidecut", version: "0.1.0" },
+    { name: "raee", version: "0.1.0" },
     { capabilities: { tools: {} }, instructions },
   );
   const hosts = new Map();
@@ -61,7 +61,7 @@ async function main() {
       const selected = tool.usesProject
         ? (project ??
           options.get("--project") ??
-          process.env.SIDECUT_PROJECT ??
+          process.env.RAEE_PROJECT ??
           process.env.TANDEM_PROJECT)
         : undefined;
       const owner = selected == null ? undefined : await findProject(selected);

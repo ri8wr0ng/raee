@@ -1,7 +1,7 @@
 import { readFile, realpath, stat } from "node:fs/promises";
 import { resolve, relative, isAbsolute } from "node:path";
-import { importFilmora, object } from "@sidecut/core/interchange";
-import { safeArchivePath } from "@sidecut/core/archive";
+import { importFilmora, object } from "@raee/core/interchange";
+import { safeArchivePath } from "@raee/core/archive";
 
 export async function readFilmoraSource(path: string, keepLevels: boolean, signal: AbortSignal) {
   const root = await realpath(path);

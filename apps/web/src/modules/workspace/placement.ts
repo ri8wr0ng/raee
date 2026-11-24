@@ -1,7 +1,7 @@
 import type { BrowserProjectSession } from "./browser-session";
-import type { Time } from "@sidecut/contracts/time";
-import { assetSuggestions } from "@sidecut/core/asset-use";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import type { Time } from "@raee/contracts/time";
+import { assetSuggestions } from "@raee/core/asset-use";
+import { decodeAsset } from "@raee/contracts/assets";
 export const MEDIA_DRAG_TYPE = "application/x-sidecut-media";
 
 export function placeSource(

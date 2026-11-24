@@ -1,4 +1,4 @@
 {
-  "extends": "@sidecut/config/typescript/web.json",
+  "extends": "@raee/config/typescript/web.json",
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

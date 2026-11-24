@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import type { MediaItem } from "@sidecut/contracts/project";
+import type { MediaItem } from "@raee/contracts/project";
 
 const optionalText = Schema.optionalKey(Schema.String);
 const state = Schema.Literals(["none", "queued", "running", "ready", "failed", "cancelled"]);

@@ -11,8 +11,8 @@ import {
 // without loading the dashboard. Each section is its own page under /cloud.
 export const cloudSections = [
   { id: "overview", to: "/cloud", label: "Overview", icon: RiDashboardLine },
-  { id: "library", to: "/cloud/library", label: "Library", icon: RiFolderVideoLine },
-  { id: "team", to: "/cloud/team", label: "Team", icon: RiGroupLine },
+  { id: "library", to: "/library", label: "Library", icon: RiFolderVideoLine },
+  { id: "team", to: "/team", label: "Team", icon: RiGroupLine },
   { id: "reviews", to: "/cloud/reviews", label: "Reviews", icon: RiChatCheckLine },
   { id: "publishing", to: "/cloud/publishing", label: "Publishing", icon: RiSendPlaneLine },
   { id: "usage", to: "/cloud/usage", label: "Usage", icon: RiPieChartLine },

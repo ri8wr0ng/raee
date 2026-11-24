@@ -1,6 +1,6 @@
-import type { LayerStyles } from "@sidecut/core/layer-styles";
-import type { LayerGeometry } from "@sidecut/core/render-plan";
-import { gaussian, raster } from "@sidecut/core/spatial-processing";
+import type { LayerStyles } from "@raee/core/layer-styles";
+import type { LayerGeometry } from "@raee/core/render-plan";
+import { gaussian, raster } from "@raee/core/spatial-processing";
 const canvas = (width: number, height: number) => {
   const value = document.createElement("canvas");
   value.width = width;

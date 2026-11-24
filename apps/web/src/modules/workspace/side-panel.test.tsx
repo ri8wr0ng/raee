@@ -105,7 +105,7 @@ describe("side panel tabs", () => {
   });
 
   it("selects the desktop Assistant tab with the keyboard", async () => {
-    vi.stubGlobal("sidecutDesktop", {
+    vi.stubGlobal("raeeDesktop", {
       assistantConnect: vi.fn(),
       assistantSettings: vi.fn(),
       assistantConfigure: vi.fn(),

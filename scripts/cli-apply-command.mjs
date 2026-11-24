@@ -84,7 +84,7 @@ export async function prepareApplyCommand(parsed) {
     words: parsed.words.slice(0, offset + 1),
     prepare(input) {
       if (input.author == null)
-        input.author = process.env.SIDECUT_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
+        input.author = process.env.RAEE_AUTHOR ?? process.env.TANDEM_AUTHOR ?? "cli";
       return input;
     },
     text: flags.has("json") ? undefined : applyText,

@@ -1,5 +1,5 @@
 {
-  "name": "@sidecut/desktop",
+  "name": "@raee/desktop",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -14,11 +14,11 @@
     "ffprobe-static": "3.1.0"
   },
   "devDependencies": {
-    "@sidecut/assets": "workspace:*",
-    "@sidecut/config": "workspace:*",
-    "@sidecut/contracts": "workspace:*",
-    "@sidecut/core": "workspace:*",
-    "@sidecut/env": "workspace:*",
+    "@raee/assets": "workspace:*",
+    "@raee/config": "workspace:*",
+    "@raee/contracts": "workspace:*",
+    "@raee/core": "workspace:*",
+    "@raee/env": "workspace:*",
     "@types/node": "catalog:",
     "electron": "catalog:",
     "electron-builder": "26.18.0",

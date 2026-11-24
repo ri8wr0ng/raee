@@ -1,8 +1,8 @@
 {
   "revision": "735a9b8e162c1f951044baa892d94993869f2e77",
   "sources": ["Sources/TandemAPI/MCPServer.swift", "Sources/TandemAPI/CommandSchema.swift"],
-  "sha256": "8af317f1c464ed838c09e8814545bb64a65e9fff717d79a3c3e516edf066d6d9",
-  "notice": "Tool properties/defaults/annotations extracted from pinned Swift. Apply command properties/definitions use the current portable SideCut command schema, not native model definitions. Project field help shortened. TANDEM-LICENSE applies.",
+  "sha256": "1ac49a4f51020dd2bbc0cf9d9821fa2383604177a4dd1da2a75a4131bd09790e",
+  "notice": "Tool properties/defaults/annotations extracted from pinned Swift. Apply command properties/definitions use the current portable raE.E command schema, not native model definitions. Project field help shortened. TANDEM-LICENSE applies.",
   "tools": [
     {
       "name": "status",

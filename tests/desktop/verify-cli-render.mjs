@@ -9,10 +9,10 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-cli-render-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-cli-render-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 async function wait(predicate) {
   const deadline = Date.now() + 30000;
@@ -43,7 +43,7 @@ async function verify() {
         const child = spawn(
           process.execPath,
           [
-            join(root, "scripts/sidecut-cli.mjs"),
+            join(root, "scripts/raee-cli.mjs"),
             ...args,
             "--endpoint-file",
             join(profile, "current.tandem.api.json"),
@@ -53,9 +53,9 @@ async function verify() {
             env: {
               ...process.env,
               ELECTRON_RUN_AS_NODE: "1",
-              SIDECUT_PROJECT: "",
+              RAEE_PROJECT: "",
               TANDEM_PROJECT: "",
-              SIDECUT_AUTHOR: "runtime-cli",
+              RAEE_AUTHOR: "runtime-cli",
             },
             windowsHide: true,
           },
@@ -172,7 +172,7 @@ async function verify() {
       /1 frame, at 00:00.000/,
     );
     const screenshot = await json("screenshot");
-    assert.ok(screenshot.path.endsWith("sidecut-window.png"));
+    assert.ok(screenshot.path.endsWith("raee-window.png"));
     const captured = await png(screenshot.path);
     assert.ok(captured.width > 320 && captured.height > 180);
     assert.match(
@@ -330,7 +330,7 @@ async function verify() {
       limits: [
         "Windows development Electron runtime",
         "Short local sine/solid fixture; no long or 4K encoder stress test",
-        "Managed exclusive output names and SideCut transport codes retained",
+        "Managed exclusive output names and raE.E transport codes retained",
         "Native macOS/Linux and upstream rendering comparison unverified",
       ],
     };

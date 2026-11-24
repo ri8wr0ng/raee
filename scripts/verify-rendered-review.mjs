@@ -7,22 +7,22 @@ import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "..");
 const tempRoot = await realpath(tmpdir());
-const profile = await mkdtemp(join(tempRoot, "sidecut-rendered-review-"));
+const profile = await mkdtemp(join(tempRoot, "raee-rendered-review-"));
 const relativeProfile = relative(tempRoot, profile);
 assert.ok(
-  relativeProfile.startsWith("sidecut-rendered-review-") &&
+  relativeProfile.startsWith("raee-rendered-review-") &&
     !relativeProfile.includes("..") &&
     !isAbsolute(relativeProfile),
 );
 const binary = createRequire(join(root, "apps/desktop/package.json"))("electron");
-const environment = { ...process.env, SIDECUT_RENDERED_REVIEW_PROFILE: profile };
+const environment = { ...process.env, RAEE_RENDERED_REVIEW_PROFILE: profile };
 delete environment.ELECTRON_RUN_AS_NODE;
-delete environment.SIDECUT_RENDERER_URL;
+delete environment.RAEE_RENDERER_URL;
 try {
   const run = (restart) =>
     new Promise((done, reject) => {
       const child = spawn(binary, [join(root, "tests/desktop/verify-rendered-review.mjs")], {
-        env: { ...environment, SIDECUT_REVIEW_RESTART: restart ? "1" : "0" },
+        env: { ...environment, RAEE_REVIEW_RESTART: restart ? "1" : "0" },
         windowsHide: true,
         stdio: "inherit",
         detached: process.platform !== "win32",

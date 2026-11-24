@@ -1,8 +1,8 @@
 import type { BrowserProjectSession } from "./browser-session";
-import { soundTargets, soundSyncPlan } from "@sidecut/core/service-sync";
-import { QueryError } from "@sidecut/core/project-queries";
-import { readMono } from "@sidecut/platform-browser/source-analysis";
-import { syncSound } from "@sidecut/platform-browser/sound-sync";
+import { soundTargets, soundSyncPlan } from "@raee/core/service-sync";
+import { QueryError } from "@raee/core/project-queries";
+import { readMono } from "@raee/platform-browser/source-analysis";
+import { syncSound } from "@raee/platform-browser/sound-sync";
 
 export async function syncService(
   session: BrowserProjectSession,

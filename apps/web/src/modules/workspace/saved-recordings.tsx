@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { RiFolderVideoLine } from "@remixicon/react";
-import type { RecordingEntry } from "@sidecut/contracts/recordings";
+import type { RecordingEntry } from "@raee/contracts/recordings";
 import {
   savedRecordings,
   savedRecordingFile,
   saveRecordingToDirectory,
   withSavedRecording,
-} from "@sidecut/platform-browser/recording-storage";
-import { Button } from "@sidecut/ui/components/button";
+} from "@raee/platform-browser/recording-storage";
+import { Button } from "@raee/ui/components/button";
 import { MediaSection } from "./media-section";
 import { useEditorSession } from "./editor-session";
 

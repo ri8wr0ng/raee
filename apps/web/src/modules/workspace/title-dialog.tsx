@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldDescription,
   FieldError,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
@@ -15,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
-import { TITLE_PRESETS } from "@sidecut/core/text";
+} from "@raee/ui/components/dialog";
+import { TITLE_PRESETS } from "@raee/core/text";
 import { RiHeading } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Textarea } from "@raee/ui/components/textarea";
 
 export function TitleDialog() {
   const { session, snapshot, editor } = useEditorSession();

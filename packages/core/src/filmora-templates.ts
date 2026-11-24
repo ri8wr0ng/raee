@@ -273,7 +273,7 @@ export function filmoraTitle(input: FilmoraInput, warnings: string[]) {
     if (mapped) content[entering ? "animationIn" : "animationOut"] = mapped;
     else warnings.push(`Title animation "${String(a.name)}" has no Tandem equivalent.`);
     if (mapped && !textAnimation(mapped))
-      warnings.push(`Title animation ${mapped} is retained but isn't rendered by SideCut.`);
+      warnings.push(`Title animation ${mapped} is retained but isn't rendered by raE.E.`);
     if (a.duration != null && (entering || content.animationIn == null))
       content.animationDuration = filmoraTicks(a.duration);
   }

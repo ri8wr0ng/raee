@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { cutoutSettings, matteFrameIndex } from "./cutout";
 import { ProjectCoordinator } from "./coordinator";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 
 describe("cutout edits", () => {
   const repair = {

@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { useAuth } from "@workos-inc/authkit-react";
+import { useCloudAuth } from "./cloud-auth";
 import { Link } from "@tanstack/react-router";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { OptionSelect } from "@sidecut/ui/components/option-select";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { OptionSelect } from "@raee/ui/components/option-select";
 import { AppPage } from "@/modules/shell/app-shell";
 import { useActiveTeam } from "./active-team";
 import { currentReturnTo, useCloud } from "./cloud-provider";
 import { CloudLibrary } from "./library-panel";
+import { CloudProjects } from "./cloud-projects";
 
 export function LibraryPage() {
   const { configured } = useCloud();
   return (
-    <AppPage title="Library" description="Your team's cloud files. Open any of them in the editor.">
+    <AppPage
+      title="Library"
+      description="Your team's cloud projects and files. Open any of them in the editor."
+    >
       {configured ? (
         <TeamLibrary />
       ) : (
@@ -59,17 +63,27 @@ function TeamLibrary() {
           />
         </label>
       )}
-      <CloudLibrary
-        key={current.team._id}
+      <CloudProjects
+        key={`projects-${current.team._id}`}
         teamId={current.team._id}
         readOnly={current.role === "viewer"}
       />
+      <section className="grid gap-3" aria-labelledby="cloud-files-title">
+        <h2 id="cloud-files-title" className="text-base font-semibold">
+          Files
+        </h2>
+        <CloudLibrary
+          key={current.team._id}
+          teamId={current.team._id}
+          readOnly={current.role === "viewer"}
+        />
+      </section>
     </div>
   );
 }
 
 function SignInButton() {
-  const { signIn } = useAuth();
+  const { signIn } = useCloudAuth();
   const [error, setError] = useState("");
   return (
     <>
@@ -77,7 +91,7 @@ function SignInButton() {
       <Button
         size="sm"
         onClick={() => {
-          void signIn({ state: { returnTo: currentReturnTo() } }).catch(() =>
+          void signIn({ returnTo: currentReturnTo() }).catch(() =>
             setError("Sign-in could not start. Try again."),
           );
         }}

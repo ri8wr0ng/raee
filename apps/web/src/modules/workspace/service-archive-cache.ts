@@ -1,13 +1,13 @@
-import { derivedCache } from "@sidecut/platform-browser/derived-cache";
-import { audioIdentity } from "@sidecut/platform-browser/audio-analysis";
-import { MATTE_VERSION } from "@sidecut/platform-browser/cutout";
-import { encodeStored, decodeStored } from "@sidecut/platform-browser/storage-codec";
-import type { ArchiveResource } from "@sidecut/core/archive";
-import { TRANSCRIPT_VERSION } from "@sidecut/platform-browser/transcription";
-import { portableFrameReferences } from "@sidecut/platform-browser/frame-store";
-import { RVM_MODEL } from "@sidecut/platform-browser/matting-models";
-import { transcriptVersion } from "@sidecut/platform-browser/transcription-config";
-import { readPreference } from "@sidecut/platform-browser/preferences";
+import { derivedCache } from "@raee/platform-browser/derived-cache";
+import { audioIdentity } from "@raee/platform-browser/audio-analysis";
+import { MATTE_VERSION } from "@raee/platform-browser/cutout";
+import { encodeStored, decodeStored } from "@raee/platform-browser/storage-codec";
+import type { ArchiveResource } from "@raee/core/archive";
+import { TRANSCRIPT_VERSION } from "@raee/platform-browser/transcription";
+import { portableFrameReferences } from "@raee/platform-browser/frame-store";
+import { RVM_MODEL } from "@raee/platform-browser/matting-models";
+import { transcriptVersion } from "@raee/platform-browser/transcription-config";
+import { readPreference } from "@raee/platform-browser/preferences";
 
 export async function archiveCaches(stored: { resource: { file: File } }[]) {
   const resources: ArchiveResource[] = [],

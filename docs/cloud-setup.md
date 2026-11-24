@@ -10,7 +10,7 @@ Ran `pnpx workos@latest integrate --mode agent --no-tui --no-branch --no-git-che
 
 The checked-in `authKit.dev` configuration registers `http://localhost:3000/` and writes the public `VITE_WORKOS_CLIENT_ID` into the root `.env.local`. Vite runs from `apps/web`, whose local public settings now include that client ID, `VITE_CONVEX_URL`, and `VITE_WORKOS_DEV_MODE=true`. Keep API keys under server-only names. The installer also creates a claim token; account claiming remains a separate step through `pnpx workos@latest claim` from `apps/web`, because claiming permanently associates the environment with an account.
 
-1. Run `vp run dev:cloud` from the repository root and select the SideCut Convex project. This configures `CONVEX_DEPLOYMENT` and generates API bindings for `apps/cloud/src/convex`. Keep local environment files untracked.
+1. Run `vp run dev:cloud` from the repository root and select the raE.E Convex project. This configures `CONVEX_DEPLOYMENT` and generates API bindings for `apps/cloud/src/convex`. Keep local environment files untracked.
 2. Set `WORKOS_CLIENT_ID` in the Convex deployment's environment settings. It is a public identifier. The backend verifies WorkOS JWTs using the client-specific JWKS, following the [Convex AuthKit configuration](https://docs.convex.dev/auth/authkit/add-to-app).
 3. Configure the WorkOS environment's [JWT template](https://workos.com/docs/authkit/jwt-templates) to include typed, signed email claims:
 
@@ -42,7 +42,9 @@ VITE_WORKOS_API_HOSTNAME=auth.<your-domain>
 
 Register the app origin in WorkOS CORS settings and its root URL (for example, `https://<your-domain>/`) as the redirect and sign-out URI. The dialog opens automatically on the OAuth return and AuthKit processes the code/state. For localhost development without a custom auth domain, set `VITE_WORKOS_DEV_MODE=true`; production always disables this mode. API keys must never use the `VITE_` prefix.
 
-The dialog supports team creation/selection, a verified-email invitation inbox, member role changes, removal, and sent-invitation revocation. Invitations are shown in the recipient's Teams inbox; creating one does not send email. Selecting a team does not upload a local project. Desktop custom-scheme origins and unconfigured builds show a local-only state; desktop OAuth remains separate acceptance work.
+The dialog supports team creation/selection, a verified-email invitation inbox, member role changes, removal, and sent-invitation revocation. Invitations are shown in the recipient's Teams inbox; creating one does not send email. Selecting a team does not upload a local project. Unconfigured builds show a local-only state.
+
+The desktop app signs in from its main process: it opens the system browser with a PKCE request whose redirect URI is `http://127.0.0.1:<random port>/callback`, so register `http://127.0.0.1:*/callback` as a Redirect URI in WorkOS. The refresh token is stored encrypted with the OS keychain (Electron `safeStorage`). Desktop requests come from the origin `sidecut://app`, so add it to the R2 bucket's CORS `AllowedOrigins` (PUT and GET) next to the web origin. WorkOS documents `http://127.0.0.1` for native clients in production; confirm the wildcard port is accepted in your production environment.
 
 ## Keep media private
 
@@ -62,7 +64,7 @@ Cloudflare video playback/transcoding will be assessed in LV014; this provider s
 
 `apps/cloud/src/convex/teams.test.ts` runs the real function handlers against Convex's in-memory test implementation. It covers unauthenticated calls, two-tenant isolation, verified-email binding, invitation expiry/revocation/replay, last-owner protection, administrator escalation, member removal, and inviter demotion.
 
-`vp run verify:cloud-teams` tests the unconfigured production build in Chromium, including dialog opening/reopening, Escape, focus return, mobile bounds, and page errors. Run it after `vp run build:cloudflare` without cloud variables. For a configured localhost build, set `SIDECUT_CLOUD_CONFIGURED=1`; this uses port 3000 and also verifies navigation to hosted WorkOS sign-in. Both modes passed. Configuration tests enforce HTTPS for remote backends and disable development token storage in production.
+`vp run verify:cloud-teams` tests the unconfigured production build in Chromium, including dialog opening/reopening, Escape, focus return, mobile bounds, and page errors. Run it after `vp run build:cloudflare` without cloud variables. For a configured localhost build, set `RAEE_CLOUD_CONFIGURED=1`; this uses port 3000 and also verifies navigation to hosted WorkOS sign-in. Both modes passed. Configuration tests enforce HTTPS for remote backends and disable development token storage in production.
 
 The WorkOS CLI's `verify-login` check passed real user creation, password authentication, and token checks, and removed its throwaway user. This checks the identity provider rather than completing browser OAuth. A scan of 141 public build files found none of the provisioned API key, cookie password, or claim token. Full repository checks passed with 638 tests. Local command output is retained in `logs/workos-*.log`.
 
@@ -96,3 +98,13 @@ Every Studio take streams to origin-private storage as it records, as a folder o
 The cloud library has its own `/library` page; Team keeps members and invitations.
 
 Live output stays in the desktop app, which streams through the native recorder. Studio scenes are not streamed yet.
+
+## Cloud projects
+
+Library → Projects saves the project open in the editor to the team and opens saved projects on any device. Deploy the Convex functions again after updating (`projects` table, `media.hidden`).
+
+- The project document and every stored file are uploaded through the normal multipart upload, so there is no size cap beyond the 50 GB per file limit. Footage shows in the library. The project document, LUTs, fonts and other project-only files are uploaded as hidden media and don't show in the library.
+- Saving again reuses files whose key, name, type and size are unchanged, and uploads changed ones as new versions.
+- Each device remembers which cloud project and revision it last saved or opened (`raee.cloud.project.<local project ID>` in localStorage). If someone saved a newer revision from another device, the save is refused and the user can save as a new project instead.
+- Opening downloads everything to the device and creates a new local project, so it never replays an older local journal.
+- Viewers can open projects but can't save or remove them.

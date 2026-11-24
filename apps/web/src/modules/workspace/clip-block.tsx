@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Clip, Track } from "@sidecut/contracts/project";
+import type { Clip, Track } from "@raee/contracts/project";
 import { useEditorSession } from "./editor-session";
 import { atFrame, snapEdit } from "./timeline-model";
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 import { selectionWithLinks, type EditActions } from "./edit-actions";
 import {
   ContextMenu,
@@ -11,7 +11,7 @@ import {
   ContextMenuGroup,
   ContextMenuItem,
   ContextMenuSeparator,
-} from "@sidecut/ui/components/context-menu";
+} from "@raee/ui/components/context-menu";
 import { SourceSamples } from "./source-samples";
 import { useDragAutoScroll } from "./drag-autoscroll";
 

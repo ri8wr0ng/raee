@@ -3,7 +3,7 @@ import { mkdtemp, rm, readFile, readdir, open, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { RecordingStore, type RecordingStorage } from "@sidecut/core/recordings";
+import { RecordingStore, type RecordingStorage } from "@raee/core/recordings";
 import { NativeStorage } from "./sqlite-storage";
 import { exportSavedRecording } from "./recording-output";
 
@@ -15,7 +15,7 @@ const entry = () => ({
 });
 describe("durable recording chunks", () => {
   it("survives restart with a committed prefix and removes an uncommitted chunk after a quota failure", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-recording-store-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-recording-store-"));
     let storage = new NativeStorage(root);
     try {
       const backing: RecordingStorage = {
@@ -52,12 +52,12 @@ describe("durable recording chunks", () => {
       expect(await reopened.list()).toEqual([]);
     } finally {
       storage.close();
-      expect(root.startsWith(join(tmpdir(), "sidecut-recording-store-"))).toBe(true);
+      expect(root.startsWith(join(tmpdir(), "raee-recording-store-"))).toBe(true);
       await rm(root, { recursive: true, force: true });
     }
   });
   it("streams a real 260 MiB recording through SQLite-backed chunks and refuses output overwrite", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-recording-store-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-recording-store-"));
     const storage = new NativeStorage(root),
       store = new RecordingStore(storage);
     try {
@@ -90,12 +90,12 @@ describe("durable recording chunks", () => {
       expect((await store.get(item.id)).bytes).toBe(result.bytes);
     } finally {
       storage.close();
-      expect(root.startsWith(join(tmpdir(), "sidecut-recording-store-"))).toBe(true);
+      expect(root.startsWith(join(tmpdir(), "raee-recording-store-"))).toBe(true);
       await rm(root, { recursive: true, force: true });
     }
   }, 30_000);
   it("retains source chunks on failed/cancelled output and rejects damaged chunks", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-recording-store-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-recording-store-"));
     const storage = new NativeStorage(root),
       store = new RecordingStore(storage);
     try {
@@ -120,7 +120,7 @@ describe("durable recording chunks", () => {
       expect((await readFile(join(root, "storage-files", chunk.id))).length).toBe(0);
     } finally {
       storage.close();
-      expect(root.startsWith(join(tmpdir(), "sidecut-recording-store-"))).toBe(true);
+      expect(root.startsWith(join(tmpdir(), "raee-recording-store-"))).toBe(true);
       await rm(root, { recursive: true, force: true });
     }
   });

@@ -1,7 +1,7 @@
 // StarterContent.swift at the pinned Tandem revision. See tests/fixtures/tandem/TANDEM-LICENSE.
 import data from "./starter.json";
-import { decodeAsset } from "@sidecut/contracts/assets";
-import { notoAsset } from "@sidecut/assets";
+import { decodeAsset } from "@raee/contracts/assets";
+import { notoAsset } from "@raee/assets";
 export function starterAssets() {
   return [
     ...data.noto.map((e) => {

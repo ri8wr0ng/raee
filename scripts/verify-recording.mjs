@@ -17,7 +17,7 @@ const root = resolve(import.meta.dirname, ".."),
   publicRoot = join(root, "apps/web/.output/public");
 const requireDesktop = createRequire(join(root, "apps/desktop/package.json"));
 const probePath = requireDesktop("ffprobe-static").path;
-const temporary = await mkdtemp(join(tmpdir(), "sidecut-recording-"));
+const temporary = await mkdtemp(join(tmpdir(), "raee-recording-"));
 const result = {
   testedAt: new Date().toISOString(),
   platform: process.platform,
@@ -28,7 +28,7 @@ const result = {
   errors: [],
   accepted: false,
 };
-const engineName = process.env.SIDECUT_RECORDING_ENGINE ?? "chromium";
+const engineName = process.env.RAEE_RECORDING_ENGINE ?? "chromium";
 assert.ok(["chromium", "firefox"].includes(engineName));
 result.engine = engineName;
 const mime = {
@@ -400,7 +400,7 @@ try {
     clearTimeout(shutdown);
   }
   await new Promise((done) => server.close(done));
-  assert.ok(temporary.startsWith(join(tmpdir(), "sidecut-recording-")));
+  assert.ok(temporary.startsWith(join(tmpdir(), "raee-recording-")));
   await rm(temporary, { recursive: true, force: true });
   await writeFile(
     join(

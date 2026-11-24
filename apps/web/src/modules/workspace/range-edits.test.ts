@@ -1,6 +1,6 @@
 import { it, expect } from "vite-plus/test";
-import { ProjectCoordinator } from "@sidecut/core/coordinator";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { ProjectCoordinator } from "@raee/core/coordinator";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { rangeEdit } from "./range-edits";
 import { createEditorView } from "./editor-view";
 it("lifts without shifting later clips/markers and extracts across all unlocked tracks", () => {

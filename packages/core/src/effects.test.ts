@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { ClipEffect } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { ClipEffect } from "@raee/contracts/project";
 import { ProjectCoordinator, replayJournal } from "./coordinator";
 import { effectsOf } from "./effect-editing";
 import { effectRegistry, resolvedParams } from "./effects";

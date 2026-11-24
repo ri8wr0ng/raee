@@ -1,5 +1,5 @@
 {
-  "extends": "@sidecut/config/typescript/web.json",
+  "extends": "@raee/config/typescript/web.json",
   "compilerOptions": {
     "types": ["vite/client"],
     "paths": {

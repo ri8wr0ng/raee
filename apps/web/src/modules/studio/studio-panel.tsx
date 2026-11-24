@@ -6,19 +6,19 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { DEFAULT_LIVE_ASSETS, liveAssets } from "@sidecut/core/live-assets";
-import type { LiveAssets } from "@sidecut/core/live-assets";
-import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@sidecut/core/live-audio";
-import type { LiveStudio } from "@sidecut/core/live-studio";
-import { LiveAudioMixer, type LiveAudioChannel } from "@sidecut/platform-browser/live-audio";
-import { LiveStudioOutput } from "@sidecut/platform-browser/live-studio";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { RecentClips } from "@sidecut/platform-browser/recent-clips";
-import { recordingLimits } from "@sidecut/platform-browser/recording";
+import { DEFAULT_LIVE_ASSETS, liveAssets } from "@raee/core/live-assets";
+import type { LiveAssets } from "@raee/core/live-assets";
+import { DEFAULT_LIVE_AUDIO, type LiveAudioSettings } from "@raee/core/live-audio";
+import type { LiveStudio } from "@raee/core/live-studio";
+import { LiveAudioMixer, type LiveAudioChannel } from "@raee/platform-browser/live-audio";
+import { LiveStudioOutput } from "@raee/platform-browser/live-studio";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
+import { RecentClips } from "@raee/platform-browser/recent-clips";
+import { recordingLimits } from "@raee/platform-browser/recording";
 import { useLiveChatController } from "./live-chat-controller";
 import { LiveChatPanel } from "./live-chat-panel";
-import { Button, buttonVariants } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import { Radio, RadioGroup } from "@ui-sdk/react/radio";
 import { Toggle } from "@ui-sdk/react/toggle";
 import {
@@ -30,7 +30,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@sidecut/ui/components/select";
+} from "@raee/ui/components/select";
 import { useNavigate } from "@tanstack/react-router";
 import {
   RiAddLine,
@@ -55,8 +55,8 @@ import {
 } from "@remixicon/react";
 import { useEditorSession } from "@/modules/workspace/editor-session";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
-import { NativeRecordingControls } from "@/modules/workspace/native-recording-controls";
 import { megabytes, type UploadProgress } from "./cloud-upload";
+import { StudioLive } from "./studio-live";
 import { addTakeToProject, placedMessage } from "./place-take";
 import {
   TakeWriter,
@@ -410,7 +410,8 @@ export default function StudioPanel({
   const blocked = snapshot.readOnly || snapshot.busy || snapshot.project.id !== projectID;
 
   // Takes on disk can be recovered later, so only takes held in memory keep Studio open.
-  const busy = captureNeedsResolution(program) || clipsNeedResolution(clipState);
+  const [onAir, setOnAir] = useState(false);
+  const busy = captureNeedsResolution(program) || clipsNeedResolution(clipState) || onAir;
   useEffect(() => {
     onBusy(busy);
     if (!busy) return;
@@ -420,11 +421,12 @@ export default function StudioPanel({
   }, [busy, onBusy]);
   useEffect(() => () => onBusy(false), [onBusy]);
   const uploadedId = program.kind === "uploaded" ? program.mediaId : null;
+  // While the program is still on air, opening the take waits until the stream ends.
   useEffect(() => {
-    if (!uploadedId) return;
+    if (!uploadedId || onAir) return;
     setStatus("Saved to the cloud. Opening it in the editor…");
     void navigate({ to: "/edit/$mediaId", params: { mediaId: uploadedId } });
-  }, [uploadedId, navigate]);
+  }, [uploadedId, onAir, navigate]);
   useEffect(() => {
     let alive = true;
     // Anything on disk at startup was left by an earlier visit: stopped but not added, or cut off.
@@ -687,24 +689,44 @@ export default function StudioPanel({
   /** The canvas being arranged has content, so its drag handles can show. */
   const editReady = editingProgram ? frame !== null : previewPainted;
 
-  const saveFromEditor = (existing?: { id: string; name: string }) =>
+  const saveFromEditor = (existing?: { id: string; name: string }, blank = false) =>
     attempt(() => {
       const current = studio.current;
       if (!current) return;
       const id = existing?.id ?? crypto.randomUUID();
       const look = existing ? current.project(existing.id).liveAssets : undefined;
+      const editor = session.getSnapshot().project;
+      // A blank scene keeps the project's settings and media but none of the editor's timeline,
+      // so it shows only its background, overlays and the sources added here.
+      const base = blank
+        ? {
+            ...editor,
+            videoTracks: editor.videoTracks.map((track) => ({
+              ...track,
+              clips: [],
+              transitions: [],
+            })),
+            audioTracks: editor.audioTracks.map((track) => ({
+              ...track,
+              clips: [],
+              transitions: [],
+            })),
+            markers: [],
+          }
+        : editor;
       current.save({
         id,
         name: existing?.name ?? name,
-        project: { ...session.getSnapshot().project, liveAssets: look ?? DEFAULT_LIVE_ASSETS },
+        project: { ...base, liveAssets: look ?? DEFAULT_LIVE_ASSETS },
         expectedRevision: current.currentRevision,
       });
       // A new scene starts with its own copies of the sources of the scene it was made from;
       // sources arranged before any scene existed move into the first scene.
       if (!existing) {
         const from = selectedRef.current;
-        if (from) for (const placement of arrangement.of(from)) duplicateInto(id, placement);
-        else {
+        if (from) {
+          if (!blank) for (const placement of arrangement.of(from)) duplicateInto(id, placement);
+        } else {
           arrangement.copy(PRE_SCENE, id);
           arrangement.drop(PRE_SCENE);
         }
@@ -1657,9 +1679,7 @@ export default function StudioPanel({
               {editingProgram && editStages}
               <span className="studio-canvas-tag">Program</span>
               {!active && !loading && (
-                <p className="studio-program-empty">
-                  Save a scene from the editor to put it on air.
-                </p>
+                <p className="studio-program-empty">Create a scene in Scenes to put it on air.</p>
               )}
               {recording && (
                 <span className="studio-rec-badge" aria-hidden>
@@ -1754,19 +1774,22 @@ export default function StudioPanel({
           </div>
           {mode !== "record" &&
             (canStream ? (
-              <>
-                <p className="text-muted-foreground">
-                  The desktop app streams to RTMP and keeps a recording on this computer. Studio
-                  scenes are not streamed yet: it captures the screen or camera you pick below.
-                </p>
-                <NativeRecordingControls />
-              </>
+              <StudioLive
+                projectID={projectID}
+                quality={quality}
+                disabled={!frame}
+                acquire={async () => (await latestStream.current!()).stream}
+                onLiveChange={setOnAir}
+              />
             ) : (
               <p className="text-muted-foreground">
-                Going live needs the raE.E desktop app. In the browser you can record the program.
+                Going live needs the raE.E desktop app.
+                {mode === "both"
+                  ? " Recording below still works in the browser."
+                  : " In the browser you can record the program."}
               </p>
             ))}
-          {mode === "record" && (
+          {mode !== "live" && (
             <>
               <div className="studio-go-row">
                 {recording ? (
@@ -1851,7 +1874,21 @@ export default function StudioPanel({
                 ) : !frame ? (
                   "Put a scene on air to enable recording."
                 ) : cloud.state !== "ready" ? (
-                  cloud.reason
+                  <>
+                    {cloud.reason}
+                    {cloud.action && !busy && (
+                      <>
+                        {" "}
+                        <button
+                          type="button"
+                          className="underline underline-offset-4"
+                          onClick={cloud.action.run}
+                        >
+                          {cloud.action.label}
+                        </button>
+                      </>
+                    )}
+                  </>
                 ) : toCloud ? (
                   "Uploads while you record. When you stop, the take opens in the editor."
                 ) : (
@@ -2071,21 +2108,32 @@ export default function StudioPanel({
             </RadioGroup>
           )}
           <form
-            className="flex gap-2"
+            className="flex flex-wrap gap-2"
             onSubmit={(event) => {
               event.preventDefault();
-              if (!loading && name.trim()) void saveFromEditor();
+              if (!loading && name.trim()) void saveFromEditor(undefined, true);
             }}
           >
             <Input
               aria-label="New scene name"
+              className="min-w-0 flex-1 basis-32"
               value={name}
               maxLength={100}
               onChange={(event) => setName(event.target.value)}
             />
-            <Button type="submit" size="sm" variant="outline" disabled={loading || !name.trim()}>
+            <Button type="submit" size="sm" disabled={loading || !name.trim()}>
               <RiAddLine data-icon="inline-start" />
-              Save from editor
+              New scene
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              title="Make a scene from the editor's current timeline"
+              disabled={loading || !name.trim()}
+              onClick={() => void saveFromEditor()}
+            >
+              From editor
             </Button>
           </form>
         </Section>

@@ -86,7 +86,7 @@ const fixture = (isolation, effects = []) =>
           kind: "audio",
           role: "camera",
           duration: 10,
-          attribution: "Open Speech Repository; deterministic synthetic noise added by SideCut",
+          attribution: "Open Speech Repository; deterministic synthetic noise added by raE.E",
         },
       ],
       audioTracks: [

@@ -2,8 +2,8 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdir, readFile, writeFile, unlink, open, rename, stat, copyFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID, createHash } from "node:crypto";
-import { SQLiteRepository } from "@sidecut/core/sqlite";
-import { decodeStorageRequest } from "@sidecut/contracts/storage";
+import { SQLiteRepository } from "@raee/core/sqlite";
+import { decodeStorageRequest } from "@raee/contracts/storage";
 
 export function openSQLite(path: string) {
   const database = new DatabaseSync(path);

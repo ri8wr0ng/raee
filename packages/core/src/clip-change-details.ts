@@ -1,5 +1,5 @@
 // Ported from TandemCore/EditHistory.swift at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip } from "@sidecut/contracts/project";
+import type { Clip } from "@raee/contracts/project";
 import { object as requiredObject } from "./import-builder";
 const object = (value: unknown) => (value == null ? {} : requiredObject(value));
 import { queryClock } from "./timeline-dump";

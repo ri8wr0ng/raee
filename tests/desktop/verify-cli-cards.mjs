@@ -7,10 +7,10 @@ import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-cli-cards-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-cli-cards-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 let exitCode = 0;
 async function wait(predicate) {
   const deadline = Date.now() + 30000;
@@ -151,13 +151,13 @@ async function verify() {
       new Promise((done, reject) => {
         const child = spawn(
           process.execPath,
-          [join(root, "scripts/sidecut-cli.mjs"), ...args, "--endpoint-file", endpointFile],
+          [join(root, "scripts/raee-cli.mjs"), ...args, "--endpoint-file", endpointFile],
           {
             cwd: profile,
             env: {
               ...process.env,
               ELECTRON_RUN_AS_NODE: "1",
-              SIDECUT_PROJECT: "",
+              RAEE_PROJECT: "",
               TANDEM_PROJECT: "",
             },
             windowsHide: true,

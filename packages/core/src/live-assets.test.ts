@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { LiveStudio } from "./live-studio";
 import { DEFAULT_LIVE_ASSETS, LIVE_BACKGROUNDS, liveAssets, withLiveAssets } from "./live-assets";
 import { DEFAULT_LIVE_AUDIO, liveAudioSettings, liveMeter } from "./live-audio";

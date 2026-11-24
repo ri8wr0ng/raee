@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 import { queryClips } from "./project-queries";
 import { clipChanges, diffEdits, restorePlan, wireFile } from "./service-edits";

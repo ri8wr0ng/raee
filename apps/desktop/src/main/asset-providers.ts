@@ -1,9 +1,9 @@
 import { mkdir, readFile, writeFile, rename, readdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
-import { AssetProviders, type FetchedAsset, type ProviderEnvironment } from "@sidecut/assets";
-import { authenticatedRequest, readProviderResponse } from "@sidecut/assets/transport";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { AssetProviders, type FetchedAsset, type ProviderEnvironment } from "@raee/assets";
+import { authenticatedRequest, readProviderResponse } from "@raee/assets/transport";
+import { decodeAsset } from "@raee/contracts/assets";
 import { ProviderCredentials } from "./provider-credentials.ts";
 
 export class DesktopAssetProviders {

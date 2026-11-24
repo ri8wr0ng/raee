@@ -1,6 +1,6 @@
-import { gain } from "@sidecut/core/audio-processing";
-import { DEFAULT_LIVE_AUDIO, liveAudioSettings, liveMeter } from "@sidecut/core/live-audio";
-import type { LiveAudioSettings } from "@sidecut/core/live-audio";
+import { gain } from "@raee/core/audio-processing";
+import { DEFAULT_LIVE_AUDIO, liveAudioSettings, liveMeter } from "@raee/core/live-audio";
+import type { LiveAudioSettings } from "@raee/core/live-audio";
 
 /** Each input owns only its graph edges, never the device tracks or caller's source node. */
 export class LiveAudioChannel {

@@ -1,20 +1,20 @@
 # Lawn and Videorc feature parity plan
 
-Updated: 2026-10-26 after fetching and fast-forwarding to SideCut `origin/main`. Implementation is authorized and starts with the [executable phases](lawn-videorc-phases.md). Later cloud/native choices remain subject to their recorded feasibility and service decisions.
+Updated: 2026-10-26 after fetching and fast-forwarding to raE.E `origin/main`. Implementation is authorized and starts with the [executable phases](lawn-videorc-phases.md). Later cloud/native choices remain subject to their recorded feasibility and service decisions.
 
 ## Objective
 
 The [product access policy](product-access.md), clarified on 2026-11-03, keeps the editor and live streaming studio free and open source. MCP integration, cloud uploads, team sharing and collaborative cloud comments are paid features. Pricing and complete entitlement enforcement remain implementation work.
 
-Extend SideCut to cover the user-facing features of both Lawn and Videorc, while retaining the existing browser editor and optional Electron desktop application. The user explicitly selected full parity with both repositories. Recording and review are early milestones, not a reduced final scope.
+Extend raE.E to cover the user-facing features of both Lawn and Videorc, while retaining the existing browser editor and optional Electron desktop application. The user explicitly selected full parity with both repositories. Recording and review are early milestones, not a reduced final scope.
 
-The intended workflow is: capture or go live, retain editable recordings, edit in SideCut, prepare outputs, publish a review version, collect feedback, and deliver the revision. Local editing and recording must remain usable without a cloud account. Cloud sharing, platform accounts, and hosted AI require their respective services.
+The intended workflow is: capture or go live, retain editable recordings, edit in raE.E, prepare outputs, publish a review version, collect feedback, and deliver the revision. Local editing and recording must remain usable without a cloud account. Cloud sharing, platform accounts, and hosted AI require their respective services.
 
 Parity means equivalent supported workflows, including failure handling and platform limits. It does not mean duplicating brands, pricing, internal transports, or unsupported upstream claims. Use a capability matrix per OS and provider; distinguish implemented, locally tested, externally tested, and blocked. Keep backend work for hosted features in scope even when the supplied repositories expose only a client contract.
 
 ## Inspection baseline
 
-SideCut was fetched with `git fetch origin main`. This branch was 17 commits behind with no divergent commits, so `git merge --ff-only origin/main` updated it while preserving this untracked plan. Both cached reference repositories were refreshed with `git pull --ff-only` in `C:/Users/Arafa/.explore/repos`.
+raE.E was fetched with `git fetch origin main`. This branch was 17 commits behind with no divergent commits, so `git merge --ff-only origin/main` updated it while preserving this untracked plan. Both cached reference repositories were refreshed with `git pull --ff-only` in `C:/Users/Arafa/.explore/repos`.
 
 | Repository                                                                                    | Inspected revision                         | Role                                                            |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------- |
@@ -26,11 +26,11 @@ This is a source and documentation survey, not a runtime certification of either
 
 ### What changed since the first plan
 
-The first draft used SideCut `8d6a720` and Videorc `67c12b8`. The refreshed code removes several proposed prerequisites:
+The first draft used raE.E `8d6a720` and Videorc `67c12b8`. The refreshed code removes several proposed prerequisites:
 
 - Portable archives, relink services, EDL and expanded Filmora import already exist. Extend their limits and integrate recording outputs rather than implementing them again.
 - Browser persistence now uses SQLite WASM and OPFS. Desktop projects, resources and preferences use profile-local SQLite with separate media files. Reuse the migrations and repository interfaces.
-- Authenticated local HTTP, change events, CLI, MCP, the `@sidecut/client` SDK, and headless hosting already exist. Phone control needs a restricted protocol, but the editor does not need a second general-purpose local service.
+- Authenticated local HTTP, change events, CLI, MCP, the `@raee/client` SDK, and headless hosting already exist. Phone control needs a restricted protocol, but the editor does not need a second general-purpose local service.
 - The editor now has comments/to-do search and resolution, history/activity and durable agent-review controls. These are local project workflows, not Lawn's version-bound remote threads. Resolving a project comment currently removes its marker.
 - Desktop service exports already produce H.264/AAC MP4 and 4K HEVC. UI downloads remain WebM/WAV. Existing 4K and five-minute synthetic export evidence does not establish long-form capture or a native live compositor.
 - Windows packaging and a Debian container install journey have recorded evidence. Native macOS, real Linux desktop/capture and upstream visual/audio comparisons remain separate gaps.
@@ -58,14 +58,14 @@ Videorc paths below are relative to its pinned revision:
 - `scene.rs`, `live_scene.rs`, `live_pipeline.rs`, `compositor.rs`, `recording*.rs`, `streaming.rs`, `source_iso.rs`: live production and output ownership.
 - `docs/banners.md`, `live-backgrounds.md`, `soundboard.md`, `overlays.md`: live assets, layers, audio pads and overlays.
 - `docs/replay-buffer.md`, `session-markers.md`, `remote-control.md`: recent-clip retention, markers, local controls and paired phone remote.
-- `apps/desktop/src/shared/clip-lengths.ts`, `protocol-fixtures/buddy-builtin-greetings.json`, `docs/live-backgrounds.md`: 30/60-second clip contract, default greeting behavior and ten animated background styles. `docs/releases/0.12.0.md` records upstream release claims and Windows/Linux physical-acceptance waivers; these are not SideCut acceptance evidence.
+- `apps/desktop/src/shared/clip-lengths.ts`, `protocol-fixtures/buddy-builtin-greetings.json`, `docs/live-backgrounds.md`: 30/60-second clip contract, default greeting behavior and ten animated background styles. `docs/releases/0.12.0.md` records upstream release claims and Windows/Linux physical-acceptance waivers; these are not raE.E acceptance evidence.
 - `youtube.rs`, `youtube_quota.rs`, `twitch*.rs`, `kick*.rs`, `x_*.rs`, `scheduled_*.rs`: provider lifecycle, chat, quotas and scheduled broadcasts.
 - `docs/buddy.md`, `buddy-commands*.md`, `clean-cut*.md`, `captions.rs`, `videorc_api.rs`: AI companion, speech and post-recording service contracts.
 - `apps/desktop/src/main/obs-import.ts`, renderer `components/tabs/`, and `docs/distribution.md`: import, product surfaces and release behavior.
 
 The public README and remote raw-file responses can lag the checked-out source. The local pinned revisions above govern this plan.
 
-## What SideCut already supplies
+## What raE.E already supplies
 
 The current code is substantially beyond the original scaffold described at the top of `docs/monorepo-plan.md`. Some README paragraphs also retain obsolete statements. Prefer current source and the latest verification reports below.
 
@@ -76,7 +76,7 @@ The current code is substantially beyond the original scaffold described at the 
 - `apps/web/src/modules/workspace/browser-session.ts`, `editor-session.tsx`, and `host-coordinator.ts` connect the editor to its authority. New features should not turn `browser-session.ts` into a cloud/studio monolith.
 - `apps/desktop/src/main/project-service.ts`, `project-store.ts`, `native-media.ts`, and `native-ipc.ts` provide host project authority, durable save behavior and bounded FFmpeg/FFprobe work. `src/preload/preload.ts` and `src/shared/bridge.ts` expose the narrow desktop boundary.
 - `apps/desktop/src/main/service-archive.ts`, `service-relink.ts` and `filmora-import.ts` implement resource consolidation, portable copies/relinking and interchange. Reuse the existing browser archive path too.
-- `apps/desktop/src/main/project-api.ts`, `http-service.ts`, `renderer-service.ts`, `packages/client`, and `scripts/sidecut-cli.mjs`/`sidecut-mcp.mjs` supply local service access, change events and automation. `main.ts` already supports headless project hosting with leases. Some media operations still depend on the renderer service.
+- `apps/desktop/src/main/project-api.ts`, `http-service.ts`, `renderer-service.ts`, `packages/client`, and `scripts/raee-cli.mjs`/`raee-mcp.mjs` supply local service access, change events and automation. `main.ts` already supports headless project hosting with leases. Some media operations still depend on the renderer service.
 - `apps/web/src/modules/workspace/comments-panel.tsx`, `history-panel.tsx`, and `keyboard.ts` implement current local review/navigation controls. Reuse the controls without treating marker deletion as persistent thread resolution.
 - `packages/core/src/service-export.ts` and existing native encoding supply shared sizing/preset logic, H.264/HEVC service exports and WAV/WebM output.
 
@@ -93,7 +93,7 @@ Use these current reports as historical evidence, not checks run by this plannin
 
 “Partial” means useful existing primitives, not completed parity. References are the pinned files listed above.
 
-| Feature family                                                                                   | Upstream | SideCut baseline                                                         | Planned destination / milestone                                      |
+| Feature family                                                                                   | Upstream | raE.E baseline                                                           | Planned destination / milestone                                      |
 | ------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------- |
 | Teams, invitations, roles, team switching                                                        | Lawn     | Missing remote workspace                                                 | Cloud workspace, M5                                                  |
 | Nested folders, sorting, selection, move/delete, search palette                                  | Lawn     | Local media bin and asset search only                                    | Cloud library, M5                                                    |
@@ -122,7 +122,7 @@ Use these current reports as historical evidence, not checks run by this plannin
 | AI companion profile/library, still/animated avatars, overlay reactions and onboarding           | Videorc  | Asset library only                                                       | Companion model and assets, M9                                       |
 | Questions, draft answers, flags, promises, built-in/custom greetings, banter, commands, reports  | Videorc  | Missing live producer                                                    | Explicitly controlled AI producer, M9                                |
 | Clean/condensed cuts, noise-cleaned derivatives, retained originals and retimed SRT              | Videorc  | Local tightening, cleanup and captions partially overlap                 | Derived-project jobs, M9                                             |
-| Publish-pack/transcript/AI account contracts                                                     | Videorc  | Partial local editorial tools                                            | SideCut-hosted equivalent where contracts exist, M9/M10              |
+| Publish-pack/transcript/AI account contracts                                                     | Videorc  | Partial local editorial tools                                            | raE.E-hosted equivalent where contracts exist, M9/M10                |
 | Local hotkeys/deck controls, phone pairing/revocation and reduced remote view                    | Videorc  | Expanded shortcuts, authenticated HTTP, CLI/MCP/SDK, headless hosting    | Restricted studio/remote actions, M11                                |
 | OBS settings/scene import                                                                        | Videorc  | EDL and expanded Filmora import; no OBS scene importer                   | Reuse import diagnostics and asset handling, M11                     |
 | Health diagnostics, repair, support bundles, updates, signing, consent/settings                  | Videorc  | Jobs/diagnostics; Windows packaging and Debian container evidence        | Capture/release hardening and remaining platforms, M12               |
@@ -135,7 +135,7 @@ For publish packs, separate generated metadata/assets from actually uploading a 
 
 1. **Merge/fork the external applications.** Fast access to working code, but creates competing schemas, Electron hosts, UI systems, build tools and product authorities. Videorc reuse also requires a deliberate license decision. This has the highest long-term integration cost.
 2. **Build everything in the browser.** Keeps one runtime but cannot establish the required native capture, sustained recording and direct streaming parity. A remote relay would add its own backend and privacy/cost tradeoffs.
-3. **Extend SideCut with native studio services and an optional cloud service. Recommended.** Retain portable edit semantics and one React UI, add native media only where required, and isolate cloud review from local projects.
+3. **Extend raE.E with native studio services and an optional cloud service. Recommended.** Retain portable edit semantics and one React UI, add native media only where required, and isolate cloud review from local projects.
 
 ### Runtime boundaries
 
@@ -171,7 +171,7 @@ Provider selection updated by the user on 2026-10-29: use Convex for cloud metad
 
 Use resumable multipart uploads, retry-safe finalize operations and webhook deduplication. A version is publishable only after its bytes and processing status are verified. Keep the prior ready version available during replacement. Enforce tenant access and scoped viewer grants on metadata, comments, downloads and playback authorization. Test the generated media URLs, not just the viewer route. Revoked grants stop new authorization; document the maximum lifetime of already-issued URLs.
 
-Cloud review is optional in the UI; editing and recording continue locally when it is unavailable. Upload only user-selected rendered versions/originals. Hosted AI requires separate, revocable consent for the data it sends. Build our own service integration; do not make SideCut depend on undocumented Videorc production endpoints.
+Cloud review is optional in the UI; editing and recording continue locally when it is unavailable. Upload only user-selected rendered versions/originals. Hosted AI requires separate, revocable consent for the data it sends. Build our own service integration; do not make raE.E depend on undocumented Videorc production endpoints.
 
 ## Milestones and acceptance
 
@@ -199,7 +199,7 @@ Accept when a synthetic recording saves, reopens, edits and exports within the c
 
 ### M3 — Native recorder and recording library
 
-Implement the capture boundary selected in M1, including worker supervision/protocol if a worker is needed, native device selection, system audio, live mixer and preview. Add sustained recording, MKV finalization/recovery and MP4 remux, configurable profiles, output directory, posters, library operations, and source-isolated recordings with timing metadata. Make “Edit in SideCut” create a project referencing the retained sources and offsets.
+Implement the capture boundary selected in M1, including worker supervision/protocol if a worker is needed, native device selection, system audio, live mixer and preview. Add sustained recording, MKV finalization/recovery and MP4 remux, configurable profiles, output directory, posters, library operations, and source-isolated recordings with timing metadata. Make “Edit in raE.E” create a project referencing the retained sources and offsets.
 
 Add platform backends separately: Windows first for this environment, then macOS and Linux with their actual permission/capture/encoder paths. Add hardware encoding and a documented fallback. Extend the existing H.264/HEVC render path and file-backed outputs beyond five-minute/256-MiB limits. Native 4K encode already exists; remaining work is sustained throughput, complex long-form rendering and durable output jobs. Preserve preview/export semantics and existing preset validation.
 
@@ -225,7 +225,7 @@ Accept when authorized guests can perform the exact allowed review actions, a re
 
 ### M7 — Full production studio
 
-Add saved scenes, live scene switching, snapping/transforms/masks, static backgrounds and ten animated style equivalents with saved looks/motion, banners, takeovers, overlay positioning and stacking. Preserve SideCut's theme; include functional equivalents for Videorc's optional studio appearance/meter settings without replacing the editor design. Add soundboard, monitoring, gain/mute and sync controls. Add OBS-compatible scene semantics only to the extent supported by our own compositor. Add an explicitly visible recent-clip buffer with 30- and 60-second save actions across UI, keyboard and remote commands. Map recordings/scene events and clip marks back into SideCut edits.
+Add saved scenes, live scene switching, snapping/transforms/masks, static backgrounds and ten animated style equivalents with saved looks/motion, banners, takeovers, overlay positioning and stacking. Preserve raE.E's theme; include functional equivalents for Videorc's optional studio appearance/meter settings without replacing the editor design. Add soundboard, monitoring, gain/mute and sync controls. Add OBS-compatible scene semantics only to the extent supported by our own compositor. Add an explicitly visible recent-clip buffer with 30- and 60-second save actions across UI, keyboard and remote commands. Map recordings/scene events and clip marks back into raE.E edits.
 
 Accept when the same committed scene revision appears in preview, recording and stream paths, switching never produces a stale frame/deadlock, and recent-clip capture works without creating a full recording. Test buffer rearming after errors, source-recording startup with old recovery incidents, and buffer-only sessions when separate-source recording is configured. Include 30/60-second metadata and remote parity, media source failure, output resize/orientation and sound mixing. Preserve separate source tracks so a flattened studio layout is not the only editable result.
 
@@ -241,7 +241,7 @@ Accept first against local RTMP listeners and fake provider APIs: one target off
 
 Add unified chat, emotes, highlights, moderation and audience events. Then add streaming speech with partial/final word reconciliation, independent caption burn-in targets and bounded latency. Reuse offline transcript and caption models where compatible; batch transcription is not a live speech backend.
 
-Implement the companion in small slices: profile/library and static avatars; animated avatars/reactions; questions and draft answers; flags/promises; built-in greetings with custom overrides, welcome deduplication and per-kind disable; approved posting and configurable automation; commands, clip suggestions and local reports. Model free template greetings independently from paid/cloud AI. The refreshed upstream enables greeting defaults; specify SideCut's activation/consent policy explicitly and record any intentional difference. Preserve per-platform permissions, rate limits, a kill switch and opt-in upload consent. Untrusted chat cannot execute unrestricted tools or edit timelines.
+Implement the companion in small slices: profile/library and static avatars; animated avatars/reactions; questions and draft answers; flags/promises; built-in greetings with custom overrides, welcome deduplication and per-kind disable; approved posting and configurable automation; commands, clip suggestions and local reports. Model free template greetings independently from paid/cloud AI. The refreshed upstream enables greeting defaults; specify raE.E's activation/consent policy explicitly and record any intentional difference. Preserve per-platform permissions, rate limits, a kill switch and opt-in upload consent. Untrusted chat cannot execute unrestricted tools or edit timelines.
 
 Add clean/condensed/noise-cleaned derived projects using existing edit operations, retained originals, reviewable proposals, regenerated captions/SRT and resumable jobs. Add publish-pack outputs only after specifying the external service contract and fixtures. Migrate/report failures without silently discarding completed transcript chunks or outputs.
 
@@ -249,19 +249,19 @@ Accept against recorded/synthetic speech/chat/provider fixtures, testing latency
 
 ### M10 — Hosted account, AI and commercial services
 
-Implement SideCut-owned account/entitlement services for hosted AI and publishing contracts, usage metering, quotas, subscription state, storage billing and account/team settings. Billing can ship after the corresponding free/test workflows, but stays in full parity scope. Make checkout/webhook updates retry-safe; verify entitlement changes server-side. Define retention, deletion and export behavior for cloud media and service data.
+Implement raE.E-owned account/entitlement services for hosted AI and publishing contracts, usage metering, quotas, subscription state, storage billing and account/team settings. Billing can ship after the corresponding free/test workflows, but stays in full parity scope. Make checkout/webhook updates retry-safe; verify entitlement changes server-side. Define retention, deletion and export behavior for cloud media and service data.
 
-Accept with test billing events covering duplicate/out-of-order delivery, cancellation, expired entitlements, refunds where supported, quota reservation/release and partial job completion. No provider secret reaches the client or a project archive. Hosted-service behavior that cannot be derived from supplied source remains explicitly specified and tested as a SideCut equivalent.
+Accept with test billing events covering duplicate/out-of-order delivery, cancellation, expired entitlements, refunds where supported, quota reservation/release and partial job completion. No provider secret reaches the client or a project archive. Hosted-service behavior that cannot be derived from supplied source remains explicitly specified and tested as a raE.E equivalent.
 
 ### M11 — Import and remote controls
 
-Extend the existing `ProjectAPI`, `@sidecut/client`, CLI/MCP adapters and host authority with the new studio actions. Preserve idempotency, revisions, authors, lease ownership, cancellation and change subscriptions. Add local/deck hotkeys, a reduced remote protocol, phone pairing, signed commands, per-device revoke and listener teardown. Add OBS profile/scene import using the existing import/resource diagnostics, with a visible supported-subset report and safe asset resolution. EDL and Filmora import already exist and are not prerequisites to recreate.
+Extend the existing `ProjectAPI`, `@raee/client`, CLI/MCP adapters and host authority with the new studio actions. Preserve idempotency, revisions, authors, lease ownership, cancellation and change subscriptions. Add local/deck hotkeys, a reduced remote protocol, phone pairing, signed commands, per-device revoke and listener teardown. Add OBS profile/scene import using the existing import/resource diagnostics, with a visible supported-subset report and safe asset resolution. EDL and Filmora import already exist and are not prerequisites to recreate.
 
 Accept with replayed/expired/unauthorized remote commands, secret-free reduced events, confirmed-state responses and stop-on-revoke behavior. OBS fixtures must preserve supported geometry/settings and report unsupported filters/sources without reading arbitrary referenced files.
 
 ### M12 — Distribution and parity certification
 
-Extend the existing Windows packaging and Debian container install harnesses with recording, stream lifecycle and recording-library migrations. Complete native macOS and real Linux desktop acceptance, signing/notarization, update/recovery policy, diagnostics, output repair, redacted support bundles, settings migration and accessibility/keyboard behavior. Evaluate upstream anonymous usage-stat behavior explicitly; do not silently add telemetry to local capture. Keep permission prompts and background capture status clear. An upstream owner-waived release is not evidence for SideCut's device or installer acceptance.
+Extend the existing Windows packaging and Debian container install harnesses with recording, stream lifecycle and recording-library migrations. Complete native macOS and real Linux desktop acceptance, signing/notarization, update/recovery policy, diagnostics, output repair, redacted support bundles, settings migration and accessibility/keyboard behavior. Evaluate upstream anonymous usage-stat behavior explicitly; do not silently add telemetry to local capture. Keep permission prompts and background capture status clear. An upstream owner-waived release is not evidence for raE.E's device or installer acceptance.
 
 Run complete capture → edit → stream → review → revise → deliver journeys for each claimed OS/browser/provider. Check installer first run, upgrade and uninstall, native worker crash, corrupt recordings, lost network, permission revocation and cloud outage. Publish the capability matrix with actual evidence and remaining upstream/external limitations. Only then label the chosen release as parity with the pinned revisions.
 
@@ -289,9 +289,9 @@ Use local RTMP endpoints, fake cloud/provider APIs and test billing for routine 
 
 ## Reuse and licensing boundary
 
-Lawn's inspected `LICENSE` is MIT. Videorc's manifest identifies AGPL-3.0-only and its repository includes the AGPL text. Choose a code-reuse policy before copying implementation or assets. The default proposal is SideCut-owned implementations based on observable workflows and independently specified interfaces; preserve notices for any permitted reused code. If direct Videorc reuse is desired, resolve the project's intended licensing/distribution model first. This plan does not determine legal compatibility or treat a process boundary as a license exemption.
+Lawn's inspected `LICENSE` is MIT. Videorc's manifest identifies AGPL-3.0-only and its repository includes the AGPL text. Choose a code-reuse policy before copying implementation or assets. The default proposal is raE.E-owned implementations based on observable workflows and independently specified interfaces; preserve notices for any permitted reused code. If direct Videorc reuse is desired, resolve the project's intended licensing/distribution model first. This plan does not determine legal compatibility or treat a process boundary as a license exemption.
 
-Retain SideCut's existing Tandem notices. Review bundled codec binaries, avatar/background assets and model licenses separately before distribution. Brand identities and production service access are not granted by feature parity.
+Retain raE.E's existing Tandem notices. Review bundled codec binaries, avatar/background assets and model licenses separately before distribution. Brand identities and production service access are not granted by feature parity.
 
 ## Decisions to settle before the affected milestone
 
@@ -299,6 +299,6 @@ Retain SideCut's existing Tandem notices. Review bundled codec binaries, avatar/
 - M5: authentication vendor, cloud deployment/regions, object storage and playback service, retention and operating budget.
 - M8: initial provider order and test-account availability; exact claims for custom RTMP versus native platform integration.
 - M9/M10: local versus hosted AI quality targets, publish-pack output contract, model/service budget and user data consent.
-- Before any upstream code reuse: SideCut license/distribution intent and permitted asset/code reuse.
+- Before any upstream code reuse: raE.E license/distribution intent and permitted asset/code reuse.
 
 These decisions affect later implementation milestones. Dependencies were installed from the unchanged lockfile. LV001 and LV002 implement short browser recording. LV004 now adds durable chunk storage/recovery and streamed large-file output. LV003 browser acceptance and LV005 native feasibility have advanced, with physical device/picker and A/V calibration gates still open. See the [phase checklist](lawn-videorc-phases.md) and [LV003–LV005 evidence](verification/lawn-videorc-storage-native.md) for current results. LV006 adds desktop capture permission grants and device selection, with synthetic microphone/reload acceptance and desktop video output still unverified; see [LV006 evidence](verification/lawn-videorc-native-permissions.md). LV007 adds the Windows FFmpeg recorder with MKV recovery, MP4 remux and synthetic hardware/software output acceptance; see [LV007 evidence](verification/lawn-videorc-native-recorder.md). No cloud accounts, deployments, paid resources or external publication were created.

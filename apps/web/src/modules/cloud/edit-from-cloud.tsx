@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@workos-inc/authkit-react";
+import { useCloudAuth } from "./cloud-auth";
 import { useAction, useConvexAuth } from "convex/react";
 import type { GenericId } from "convex/values";
-import { api } from "@sidecut/cloud/api";
-import { Button } from "@sidecut/ui/components/button";
-import { Progress } from "@sidecut/ui/components/progress";
+import { api } from "@raee/cloud/api";
+import { Button } from "@raee/ui/components/button";
+import { Progress } from "@raee/ui/components/progress";
 import { AppPage } from "@/modules/shell/app-shell";
 import { megabytes } from "@/modules/studio/cloud-upload";
 import { addTakeToProject } from "@/modules/studio/place-take";
 import { findCloudTake, removeTake, takeFile } from "@/modules/studio/take-store";
 import { useEditorSession } from "@/modules/workspace/editor-session";
-import { useCloud } from "./cloud-provider";
+import { currentReturnTo, useCloud } from "./cloud-provider";
 import { recordingMetadata } from "./recording-metadata";
+import { downloadToFile } from "./add-to-project";
 
 export function EditFromCloud({ mediaId }: { mediaId: string }) {
   const { configured } = useCloud();
@@ -30,6 +31,10 @@ export function EditFromCloud({ mediaId }: { mediaId: string }) {
   );
 }
 
+// One import per file at a time. The effect below can run again (StrictMode, a token refresh)
+// while an import is still writing to the project; this keeps it from adding the file twice.
+const importing = new Map<string, Promise<void>>();
+
 type Phase =
   | { name: "waiting" }
   | { name: "downloading"; received: number; total: number; fileName: string }
@@ -38,7 +43,7 @@ type Phase =
 
 function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const { signIn } = useAuth();
+  const { signIn } = useCloudAuth();
   const sourceUrl = useAction(api.storage.sourceUrl);
   const { session, snapshot } = useEditorSession();
   const navigate = useNavigate();
@@ -52,33 +57,39 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
     void (async () => {
       try {
         setPhase({ name: "waiting" });
+        // Another run is already adding this file: wait for it instead of adding it again.
+        const running = importing.get(mediaId);
+        if (running) {
+          setPhase({ name: "importing", fileName: "the file" });
+          await running;
+          if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
+          return;
+        }
         // A take recorded on this device is still on disk: open it without downloading.
         const local = await findCloudTake(mediaId).catch(() => undefined);
         if (local) {
           setPhase({ name: "importing", fileName: local.fileName });
-          await addTakeToProject(session, await takeFile(local.fileName), local.marks);
-          await removeTake(local.fileName);
+          await importOnce(mediaId, async () => {
+            await addTakeToProject(session, await takeFile(local.fileName), local.marks);
+            await removeTake(local.fileName);
+          });
           if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
           return;
         }
         const source = await sourceUrl({ mediaId });
         const { fileName, type } = recordingMetadata(source.snapshot, source.name);
-        const response = await fetch(source.url, { signal: abort.signal });
-        if (!response.ok || !response.body)
-          throw new Error(`Cloud storage refused the download (${response.status}).`);
-        const total = Number(response.headers.get("content-length")) || 0;
-        const reader = response.body.getReader();
-        const chunks: Uint8Array<ArrayBuffer>[] = [];
-        let received = 0;
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-          received += value.byteLength;
-          setPhase({ name: "downloading", received, total, fileName });
-        }
+        const file = await downloadToFile({
+          url: source.url,
+          name: source.name,
+          fileName,
+          mimeType: type,
+          signal: abort.signal,
+          onProgress: ({ loaded, total }) =>
+            setPhase({ name: "downloading", received: loaded, total: total ?? 0, fileName }),
+        });
+        if (abort.signal.aborted) return;
         setPhase({ name: "importing", fileName });
-        await addTakeToProject(session, new File(chunks, fileName, { type }), source.marks);
+        await importOnce(mediaId, () => addTakeToProject(session, file, source.marks));
         if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
       } catch (cause) {
         if (abort.signal.aborted) return;
@@ -96,7 +107,7 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
     return (
       <div className="grid justify-items-start gap-3">
         <p>Sign in to open this file from your team's library.</p>
-        <Button onClick={() => void signIn()}>Sign in</Button>
+        <Button onClick={() => void signIn({ returnTo: currentReturnTo() })}>Sign in</Button>
       </div>
     );
   if (phase.name === "failed")
@@ -119,4 +130,14 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
   if (phase.name === "importing")
     return <p role="status">Adding {phase.fileName} to the project…</p>;
   return <p role="status">Finding the file…</p>;
+}
+
+function importOnce(mediaId: string, run: () => Promise<unknown>): Promise<void> {
+  const existing = importing.get(mediaId);
+  if (existing) return existing;
+  const task = run()
+    .then(() => {})
+    .finally(() => importing.delete(mediaId));
+  importing.set(mediaId, task);
+  return task;
 }

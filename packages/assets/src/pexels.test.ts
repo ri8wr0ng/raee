@@ -3,7 +3,7 @@ import photos from "../../../tests/fixtures/tandem/providers/pexels_photos.json"
 import videos from "../../../tests/fixtures/tandem/providers/pexels_videos.json";
 import { mockEnvironment } from "./test-support.ts";
 import { pexelsProvider } from "./pexels.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 describe("108.04 Pexels", () => {
   it("matches pinned photo/video identities and optional attribution", async () => {
     const { env, requests } = mockEnvironment(photos),

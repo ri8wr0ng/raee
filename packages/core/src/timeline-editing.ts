@@ -1,8 +1,8 @@
 // Behavior ported from TandemCore/Editing.swift and TrackEditing.swift at the pinned revision.
 // Upstream notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Project, Track, Clip } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
-import { Time, FLICKS_PER_SECOND, flicksPerFrame } from "@sidecut/contracts/time";
+import type { Project, Track, Clip } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
+import { Time, FLICKS_PER_SECOND, flicksPerFrame } from "@raee/contracts/time";
 
 export const tracks = (p: Project) => [...p.videoTracks, ...p.audioTracks];
 export const end = (clip: Clip) => clip.start.add(clip.duration);

@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from "react";
 import type { FunctionArgs, FunctionReturnType } from "convex/server";
-import type { api } from "@sidecut/cloud/api";
-import { Button } from "@sidecut/ui/components/button";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
-import { Input } from "@sidecut/ui/components/input";
-import { OptionSelect } from "@sidecut/ui/components/option-select";
+import type { api } from "@raee/cloud/api";
+import { Button } from "@raee/ui/components/button";
+import { Checkbox } from "@raee/ui/components/checkbox";
+import { Input } from "@raee/ui/components/input";
+import { OptionSelect } from "@raee/ui/components/option-select";
 import { isSubscriptionRequired, subscriptionRequiredMessage } from "./subscription-error";
 
 export type LibraryFilter = Omit<FunctionArgs<typeof api.library.list>, "teamId">;

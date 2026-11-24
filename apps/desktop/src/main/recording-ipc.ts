@@ -1,6 +1,6 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
 import type { IpcMainInvokeEvent } from "electron";
-import { RecordingStore } from "@sidecut/core/recordings";
+import { RecordingStore } from "@raee/core/recordings";
 import type { NativeStorage } from "./sqlite-storage";
 import { exportSavedRecording } from "./recording-output";
 import { bridgeChannels } from "../shared/bridge";

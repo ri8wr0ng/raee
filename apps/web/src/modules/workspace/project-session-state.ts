@@ -1,6 +1,6 @@
-import type { ProjectCoordinator } from "@sidecut/core/coordinator";
-import type { BrowserProjectStore } from "@sidecut/platform-browser/storage";
-import type { SaveEvent, SaveQueue } from "@sidecut/platform-browser/save-queue";
+import type { ProjectCoordinator } from "@raee/core/coordinator";
+import type { BrowserProjectStore } from "@raee/platform-browser/storage";
+import type { SaveEvent, SaveQueue } from "@raee/platform-browser/save-queue";
 import type { HostCoordinator } from "./host-coordinator";
 
 /**

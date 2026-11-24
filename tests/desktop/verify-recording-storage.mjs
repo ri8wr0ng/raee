@@ -4,11 +4,11 @@ import { join, resolve, isAbsolute } from "node:path";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = process.env.SIDECUT_RECORDING_TEST_PROFILE;
+  profile = process.env.RAEE_RECORDING_TEST_PROFILE;
 assert.ok(profile && isAbsolute(profile));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
+delete process.env.RAEE_RENDERER_URL;
 const result = {
   testedAt: new Date().toISOString(),
   platform: process.platform,
@@ -34,14 +34,14 @@ async function verify() {
     const window = await until(() => BrowserWindow.getAllWindows()[0]);
     await until(() =>
       window.webContents.executeJavaScript(
-        "Boolean(window.sidecutDesktop && document.querySelector('.editor-workspace'))",
+        "Boolean(window.raeeDesktop && document.querySelector('.editor-workspace'))",
       ),
     );
     const output = join(profile, "output ü");
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [output] });
     const fixture = await window.webContents.executeJavaScript(
       `(async () => {
-    const bridge = window.sidecutDesktop, id = crypto.randomUUID();
+    const bridge = window.raeeDesktop, id = crypto.randomUUID();
     const chunk = await bridge.storagePutFile(new Uint8Array([11,22,33,44]));
     const entry = { id, projectID: "fixture", createdAt: new Date().toISOString(), type: "video/webm;codecs=vp8,opus", status: "ready", bytes: 4, chunks: [{ id: chunk, bytes: 4 }] };
     await bridge.storageRequest({ type: "commit", checks: [{ collection: "recordings", key: id, value: null }], writes: [{ collection: "recordings", key: id, value: JSON.stringify(entry) }] });
@@ -75,7 +75,7 @@ async function verify() {
     await foreign.loadURL("data:text/html,<p>Untrusted fixture</p>");
     assert.equal(
       await foreign.webContents.executeJavaScript(
-        `(async () => { try { await window.sidecutDesktop.recordingDirectory(); return false; } catch { return true; } })()`,
+        `(async () => { try { await window.raeeDesktop.recordingDirectory(); return false; } catch { return true; } })()`,
       ),
       true,
     );

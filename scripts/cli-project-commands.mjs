@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 
 export async function launchApplication() {
   const executable =
-    process.env.SIDECUT_APP_EXECUTABLE ??
+    process.env.RAEE_APP_EXECUTABLE ??
     (/^(?:raE\.E|raee|sidecut)(?:\.exe)?$/i.test(basename(process.execPath))
       ? process.execPath
       : undefined);
@@ -15,7 +15,7 @@ export async function launchApplication() {
     !(await stat(executable).catch(() => null))?.isFile()
   ) {
     const error = new Error(
-      "No running editor was found. Set SIDECUT_APP_EXECUTABLE to an installed raE.E executable, or start raE.E first.",
+      "No running editor was found. Set RAEE_APP_EXECUTABLE to an installed raE.E executable, or start raE.E first.",
     );
     error.exitCode = 3;
     throw error;

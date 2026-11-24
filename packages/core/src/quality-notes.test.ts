@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { pageNotes, lowRateNotes, deadAirNotes, screenProject, isScroll } from "./quality-notes";
 import { wireFile } from "./service-edits";
 import type { FrameStats } from "./quality-check";

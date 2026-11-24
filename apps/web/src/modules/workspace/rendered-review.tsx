@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { RiChat3Line } from "@remixicon/react";
-import { decodeProjectFile } from "@sidecut/contracts/project";
-import { ReviewStore } from "@sidecut/platform-browser/review-store";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldLabel, FieldDescription, FieldError } from "@sidecut/ui/components/field";
+import { decodeProjectFile } from "@raee/contracts/project";
+import { ReviewStore } from "@raee/platform-browser/review-store";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { MediaSection } from "./media-section";
 import { ReviewPlayer } from "./review-player";
 import { reviewFeedbackCSV, reviewMarker } from "./review-feedback";
 import { validReviewRange } from "./rendered-review-range";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 type Version = Awaited<ReturnType<ReviewStore["listVersions"]>>[number];
 type Thread = Awaited<ReturnType<ReviewStore["listThreads"]>>[number];

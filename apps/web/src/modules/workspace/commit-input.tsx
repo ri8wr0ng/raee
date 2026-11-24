@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Input } from "@sidecut/ui/components/input";
+import { Input } from "@raee/ui/components/input";
 
 const SCRUB_PIXELS_PER_STEP = 4;
 

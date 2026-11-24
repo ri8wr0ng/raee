@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vite-plus/test";
 import { createLUTLoader } from "./lut";
-import { sampleCube } from "@sidecut/core/cube-lut";
+import { sampleCube } from "@raee/core/cube-lut";
 import type { LocalResource } from "./storage";
 describe("local LUT loader", () => {
   it("reports missing files and refreshes a cached same-name replacement", async () => {

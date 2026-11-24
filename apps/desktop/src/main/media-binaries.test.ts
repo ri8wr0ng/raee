@@ -8,9 +8,9 @@ it("resolves installed native binaries without PATH and retains host overrides",
   expect(isAbsolute(binaries.ffmpeg)).toBe(true);
   expect(isAbsolute(binaries.ffprobe)).toBe(true);
   await Promise.all([access(binaries.ffmpeg), access(binaries.ffprobe)]);
-  expect(
-    mediaBinaries({ SIDECUT_FFMPEG: "/custom/ffmpeg", SIDECUT_FFPROBE: "/custom/ffprobe" }),
-  ).toEqual({ ffmpeg: "/custom/ffmpeg", ffprobe: "/custom/ffprobe" });
+  expect(mediaBinaries({ RAEE_FFMPEG: "/custom/ffmpeg", RAEE_FFPROBE: "/custom/ffprobe" })).toEqual(
+    { ffmpeg: "/custom/ffmpeg", ffprobe: "/custom/ffprobe" },
+  );
 });
 
 it("resolves packaged executables outside ASAR and honors overrides", () => {
@@ -19,7 +19,7 @@ it("resolves packaged executables outside ASAR and honors overrides", () => {
     ffmpeg: join("/resources", "media", `ffmpeg${suffix}`),
     ffprobe: join("/resources", "media", `ffprobe${suffix}`),
   });
-  expect(mediaBinaries({ SIDECUT_FFMPEG: "/custom/ffmpeg" }, "/resources").ffmpeg).toBe(
+  expect(mediaBinaries({ RAEE_FFMPEG: "/custom/ffmpeg" }, "/resources").ffmpeg).toBe(
     "/custom/ffmpeg",
   );
 });

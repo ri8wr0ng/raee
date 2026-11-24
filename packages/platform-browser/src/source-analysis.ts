@@ -1,4 +1,4 @@
-import type { MediaItem } from "@sidecut/contracts/project";
+import type { MediaItem } from "@raee/contracts/project";
 import { audioIdentity } from "./audio-analysis";
 import { derivedCache } from "./derived-cache";
 import { LocalMediaReader } from "./preview";

@@ -26,7 +26,7 @@ export function EditorSessionProvider({ children }: { children: ReactNode }) {
       if (!disconnected) stop = connectRendererOperations(session);
     });
     // Fonts imported in earlier sessions stay on this device.
-    void import("@sidecut/platform-browser/text").then(({ restoreFonts }) => restoreFonts());
+    void import("@raee/platform-browser/text").then(({ restoreFonts }) => restoreFonts());
     const leave = (event: BeforeUnloadEvent) => {
       const state = session.getSnapshot();
       if (

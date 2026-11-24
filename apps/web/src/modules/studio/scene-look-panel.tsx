@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { LIVE_BACKGROUNDS, type LiveAssets, type LiveOverlay } from "@sidecut/core/live-assets";
-import { paintLiveBackground } from "@sidecut/platform-browser/live-assets";
-import { Button } from "@sidecut/ui/components/button";
+import { LIVE_BACKGROUNDS, type LiveAssets, type LiveOverlay } from "@raee/core/live-assets";
+import { paintLiveBackground } from "@raee/platform-browser/live-assets";
+import { Button } from "@raee/ui/components/button";
 import { Radio, RadioGroup } from "@ui-sdk/react/radio";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@sidecut/ui/components/select";
-import { Slider } from "@sidecut/ui/components/slider";
-import { Switch } from "@sidecut/ui/components/switch";
-import { Textarea } from "@sidecut/ui/components/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@raee/ui/components/select";
+import { Slider } from "@raee/ui/components/slider";
+import { Switch } from "@raee/ui/components/switch";
+import { Textarea } from "@raee/ui/components/textarea";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible";
 import { Toggle } from "@ui-sdk/react/toggle";
 import {

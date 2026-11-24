@@ -7,12 +7,12 @@ import { join, resolve, isAbsolute } from "node:path";
 import assert from "node:assert/strict";
 
 const root = resolve(import.meta.dirname, "../.."),
-  profile = process.env.SIDECUT_NATIVE_TEST_PROFILE;
+  profile = process.env.RAEE_NATIVE_TEST_PROFILE;
 assert.ok(profile && isAbsolute(profile));
-const stage = process.env.SIDECUT_NATIVE_TEST_STAGE;
+const stage = process.env.RAEE_NATIVE_TEST_STAGE;
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-delete process.env.SIDECUT_RENDERER_URL;
+delete process.env.RAEE_RENDERER_URL;
 const require = createRequire(join(root, "apps/desktop/package.json"));
 const processes = require("node:child_process"),
   originalSpawn = processes.spawn;
@@ -142,7 +142,7 @@ async function verify() {
     await until(async () => {
       try {
         return await evaluate(
-          "Boolean(document.querySelector('.editor-workspace') && window.sidecutDesktop)",
+          "Boolean(document.querySelector('.editor-workspace') && window.raeeDesktop)",
         );
       } catch {
         return false;
@@ -183,7 +183,7 @@ async function verify() {
         `[...(${section}).querySelectorAll('button')].find(button => button.textContent.trim() === 'Stop recording').click()`,
       );
       const ready = await until(async () =>
-        (await evaluate("window.sidecutDesktop.nativeRecordingList()")).find(
+        (await evaluate("window.raeeDesktop.nativeRecordingList()")).find(
           (item) => item.status === "ready",
         ),
       );
@@ -200,11 +200,11 @@ async function verify() {
       report.checks.noHostPathsOnWire = !JSON.stringify(ready).includes(profile);
       assert.equal(report.checks.noHostPathsOnWire, true);
       const microphone = await evaluate(`(async () => {
-        const mic = (await window.sidecutDesktop.nativeRecordingDevices()).find(device => device.kind === 'microphone');
-        return window.sidecutDesktop.nativeRecordingStart({projectID:'microphone-fixture',source:'microphone',deviceID:mic.id,encoder:'software'});
+        const mic = (await window.raeeDesktop.nativeRecordingDevices()).find(device => device.kind === 'microphone');
+        return window.raeeDesktop.nativeRecordingStart({projectID:'microphone-fixture',source:'microphone',deviceID:mic.id,encoder:'software'});
       })()`);
       await new Promise((done) => setTimeout(done, 1500));
-      const audio = await evaluate("window.sidecutDesktop.nativeRecordingStop()");
+      const audio = await evaluate("window.raeeDesktop.nativeRecordingStop()");
       assert.equal(audio.status, "ready", audio.error ?? "microphone failed");
       report.checks.microphoneOnly = await inspect(
         join(profile, "native-recordings", microphone.id, "recording.mp4"),
@@ -215,7 +215,7 @@ async function verify() {
       );
       assert.ok(report.checks.microphoneOnly.duration > 0);
       const partial = await evaluate(
-        `window.sidecutDesktop.nativeRecordingStart({projectID:'recovery-fixture',source:'screen',encoder:'software'})`,
+        `window.raeeDesktop.nativeRecordingStart({projectID:'recovery-fixture',source:'screen',encoder:'software'})`,
       );
       await new Promise((done) => setTimeout(done, 2200));
       assert.ok(
@@ -227,12 +227,12 @@ async function verify() {
       capture.kill();
       report.checks.captureKilledForRecovery = true;
     } else {
-      const rows = await evaluate("window.sidecutDesktop.nativeRecordingList()");
+      const rows = await evaluate("window.raeeDesktop.nativeRecordingList()");
       const interrupted = rows.find((item) => item.id === report.recoveryID);
       assert.ok(["interrupted", "error"].includes(interrupted?.status));
       report.checks.recoveredStatus = interrupted.status;
       const ready = await evaluate(
-        `window.sidecutDesktop.nativeRecordingRetry(${JSON.stringify(report.recoveryID)})`,
+        `window.raeeDesktop.nativeRecordingRetry(${JSON.stringify(report.recoveryID)})`,
       );
       assert.equal(ready.status, "ready", ready.error ?? "retry failed");
       report.checks.recoveredOutput = await inspect(

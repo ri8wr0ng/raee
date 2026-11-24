@@ -13,7 +13,7 @@ const savedSchema = Schema.Struct({
 });
 export type CompanionProfile = typeof profileSchema.Type;
 
-/** Procedural avatars are SideCut-owned; restoring a library never activates it. */
+/** Procedural avatars are raE.E-owned; restoring a library never activates it. */
 export class LiveCompanion {
   private profiles = new Map<string, CompanionProfile>();
   private active: string | null = null;

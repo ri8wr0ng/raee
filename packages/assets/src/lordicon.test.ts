@@ -1,6 +1,6 @@
 import { it, expect } from "vite-plus/test";
 import { lordiconProvider } from "./stubs.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 it("108.12 Lordicon preserves stub status and cannot start a request", async () => {
   const p = lordiconProvider();
   expect(p.info.status.state).toBe("stub");

@@ -1,5 +1,5 @@
 import { ClientOnly, HeadContent, Link, Scripts, createRootRoute } from "@tanstack/react-router";
-import appCss from "@sidecut/ui/globals.css?url";
+import appCss from "@raee/ui/globals.css?url";
 import { CloudProvider } from "@/modules/cloud/cloud-provider";
 import { CloudRouteGuard } from "@/modules/cloud/cloud-route-guard";
 import { EditorSessionProvider } from "@/modules/workspace/editor-session";

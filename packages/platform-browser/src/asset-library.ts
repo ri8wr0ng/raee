@@ -1,8 +1,8 @@
 import type { DurableStorage } from "./sqlite-client";
 import { encodeStored, decodeStored } from "./storage-codec";
 import { migrateLibrary } from "./legacy-storage";
-import { decodeAsset, searchAssets, type Asset } from "@sidecut/contracts/assets";
-import { parseCube } from "@sidecut/core/cube-lut";
+import { decodeAsset, searchAssets, type Asset } from "@raee/contracts/assets";
+import { parseCube } from "@raee/core/cube-lut";
 import { openAnimatedImage, openLottie } from "./animation";
 import { importFont } from "./text";
 

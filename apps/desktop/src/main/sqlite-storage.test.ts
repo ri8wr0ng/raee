@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { NativeStorage, openSQLite } from "./sqlite-storage.ts";
 import { NativeProjectStore } from "./project-store.ts";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import {
   encodeStored,
   decodeStored,
@@ -13,7 +13,7 @@ import {
 
 describe("SQLite durability and legacy migration", () => {
   it.each(["delete", "wal"])("preserves a newer %s database when refusing access", async (mode) => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-future-sqlite-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-future-sqlite-"));
     const path = join(root, "sidecut.sqlite");
     try {
       const fixture = new DatabaseSync(path);
@@ -59,7 +59,7 @@ describe("SQLite durability and legacy migration", () => {
       }
       expect(await readFile(path)).toEqual(before);
     } finally {
-      expect(root.startsWith(join(tmpdir(), "sidecut-future-sqlite-"))).toBe(true);
+      expect(root.startsWith(join(tmpdir(), "raee-future-sqlite-"))).toBe(true);
       await rm(root, { recursive: true, force: true });
     }
   });
@@ -108,7 +108,7 @@ describe("SQLite durability and legacy migration", () => {
   });
 
   it("imports JSON once, keeps originals intact, and persists newer edits after restart", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-sqlite-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-sqlite-"));
     const path = join(root, "current.tandem");
     const legacy = JSON.stringify({ revision: 0, project: { id: "legacy", name: "Legacy" } });
     await writeFile(path, legacy);
@@ -142,7 +142,7 @@ describe("SQLite durability and legacy migration", () => {
   });
 
   it("does not mark a failed legacy import complete and succeeds after repair", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-sqlite-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-sqlite-"));
     const path = join(root, "current.tandem"),
       store = new NativeProjectStore(path);
     try {
@@ -175,7 +175,7 @@ describe("SQLite durability and legacy migration", () => {
   });
 
   it("recovers a missing legacy snapshot from its valid backup", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-sqlite-"));
+    const root = await mkdtemp(join(tmpdir(), "raee-sqlite-"));
     const path = join(root, "current.tandem"),
       store = new NativeProjectStore(path);
     try {
@@ -198,7 +198,7 @@ describe("SQLite durability and legacy migration", () => {
   });
 
   it("preserves File metadata, nested bytes, and user objects without exposing host snapshots or paths", async () => {
-    const root = await mkdtemp(join(tmpdir(), "sidecut-sqlite-")),
+    const root = await mkdtemp(join(tmpdir(), "raee-sqlite-")),
       storage = new NativeStorage(root);
     try {
       const value = {
@@ -236,7 +236,7 @@ describe("SQLite durability and legacy migration", () => {
 });
 
 it("streams files larger than 256 MiB, seals them, and aborts failed writes", async () => {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-storage-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-storage-"));
   const storage = new NativeStorage(root);
   try {
     const id = await storage.begin();

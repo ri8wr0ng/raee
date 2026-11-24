@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { placeWords, validateTranscript, type Transcript } from "./transcript";
 
 const transcript: Transcript = {

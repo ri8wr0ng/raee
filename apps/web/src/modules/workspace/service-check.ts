@@ -1,18 +1,18 @@
-import { screenProject, pageNotes, deadAirNotes, lowRateNotes } from "@sidecut/core/quality-notes";
+import { screenProject, pageNotes, deadAirNotes, lowRateNotes } from "@raee/core/quality-notes";
 import type { BrowserProjectSession } from "./browser-session";
 import {
   modelProblems,
   frameProblems,
   frameStats,
   type FrameStats,
-} from "@sidecut/core/quality-check";
-import { speechEnergy, speechLevels, auditCut } from "@sidecut/core/cut-audit";
-import { speechTracks, speechMap, mediaIDOf, type Range } from "@sidecut/core/speech";
-import { queryClips, QueryError } from "@sidecut/core/project-queries";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { paintPicture } from "@sidecut/platform-browser/picture";
-import { createLUTLoader } from "@sidecut/platform-browser/lut";
-import { readMono } from "@sidecut/platform-browser/source-analysis";
+} from "@raee/core/quality-check";
+import { speechEnergy, speechLevels, auditCut } from "@raee/core/cut-audit";
+import { speechTracks, speechMap, mediaIDOf, type Range } from "@raee/core/speech";
+import { queryClips, QueryError } from "@raee/core/project-queries";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
+import { paintPicture } from "@raee/platform-browser/picture";
+import { createLUTLoader } from "@raee/platform-browser/lut";
+import { readMono } from "@raee/platform-browser/source-analysis";
 export async function checkService(
   session: BrowserProjectSession,
   request: Record<string, unknown>,

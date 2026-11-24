@@ -1,16 +1,16 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { RiMicLine } from "@remixicon/react";
-import { Time } from "@sidecut/contracts/time";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import { Time } from "@raee/contracts/time";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import {
   Dialog,
   DialogTrigger,
@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import {
   findPauses,
   planCaptions,
@@ -29,12 +29,12 @@ import {
   DEFAULT_PAUSE_MINIMUM,
   REFERENCE_SPEECH_RULES,
   type TightenRequest,
-} from "@sidecut/core/speech";
+} from "@raee/core/speech";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 const TABS = [
   ["search", "Search"],

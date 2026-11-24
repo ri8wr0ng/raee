@@ -1,7 +1,7 @@
 // Drawing ported from TandemRender/TextRenderer.swift with Canvas 2D in place of Core Text.
 // Notice: tests/fixtures/tandem/TANDEM-LICENSE.
-import type { RGBA } from "@sidecut/core/text";
-import { isSystemFont } from "@sidecut/core/text";
+import type { RGBA } from "@raee/core/text";
+import { isSystemFont } from "@raee/core/text";
 import tiltWarpLatin from "@fontsource/tilt-warp/files/tilt-warp-latin-400-normal.woff2?url";
 import tiltWarpLatinExt from "@fontsource/tilt-warp/files/tilt-warp-latin-ext-400-normal.woff2?url";
 import { derivedCache } from "./derived-cache";
@@ -43,7 +43,7 @@ const css = (c: RGBA) =>
 
 // MARK: Fonts
 
-/** Fonts that ship with SideCut because a built-in preset names them (OFL-1.1, Fontsource). */
+/** Fonts that ship with raE.E because a built-in preset names them (OFL-1.1, Fontsource). */
 const BUNDLED: Record<string, { url: string; unicodeRange?: string }[]> = {
   "tilt warp": [
     {

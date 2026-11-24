@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator, replayJournal } from "./coordinator";
 const fixture = () =>
   decodeProjectFile({
@@ -12,7 +12,7 @@ const fixture = () =>
           path: "beep.wav",
           kind: "audio",
           duration: 1,
-          attribution: "Synthetic SideCut fixture",
+          attribution: "Synthetic raE.E fixture",
         },
       ],
       videoTracks: [

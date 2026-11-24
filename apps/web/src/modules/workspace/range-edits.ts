@@ -1,5 +1,5 @@
-import type { Project } from "@sidecut/contracts/project";
-import type { EditCommandInput } from "@sidecut/contracts/commands";
+import type { Project } from "@raee/contracts/project";
+import type { EditCommandInput } from "@raee/contracts/commands";
 /** Ported from Tandem's TimelineEdits.liftRange/extractRange; see the fixture MIT notice. */
 export function rangeEdit(project: Project, from: number, to: number, ripple: boolean) {
   if (!Number.isFinite(from) || !Number.isFinite(to) || from < 0 || to <= from)

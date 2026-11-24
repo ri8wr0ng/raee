@@ -2,7 +2,7 @@ import { describe, it, expect } from "vite-plus/test";
 import data from "../../../tests/fixtures/tandem/providers/svgl.json";
 import { mockEnvironment } from "./test-support.ts";
 import { svglProvider } from "./svgl.ts";
-import { decodeProviderQuery } from "@sidecut/contracts/providers";
+import { decodeProviderQuery } from "@raee/contracts/providers";
 describe("108.07 SVGL", () => {
   it("expands theme and wordmark variants without duplicating files", async () => {
     const { env } = mockEnvironment(data, "browser");

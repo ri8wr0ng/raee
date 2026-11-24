@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { lstat, open, realpath, readdir, rm, writeFile } from "node:fs/promises";
 import { join, relative, isAbsolute } from "node:path";
-import type { NativeRecording, NativeRecordingAsset } from "@sidecut/contracts/native-recording";
+import type { NativeRecording, NativeRecordingAsset } from "@raee/contracts/native-recording";
 import type { NativeStorage } from "./sqlite-storage.ts";
 import type { NativeRecorder } from "./native-recorder.ts";
 

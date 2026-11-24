@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@sidecut/ui/components/field";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@raee/ui/components/field";
 import {
   Dialog,
   DialogContent,
@@ -9,13 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
-import { BUILT_IN_TEMPLATES } from "@sidecut/core/templates";
+} from "@raee/ui/components/dialog";
+import { BUILT_IN_TEMPLATES } from "@raee/core/templates";
 import { RiLayoutMasonryLine } from "@remixicon/react";
 import { useEditorSession } from "./editor-session";
 import { ToolTip } from "./tool-tip";
 import "./dialogs.css";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 
 export function TemplateDialog() {
   const { session, snapshot, editor } = useEditorSession();

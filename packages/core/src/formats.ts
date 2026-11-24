@@ -1,7 +1,7 @@
 // Ported from TandemCore/Editing.swift (setFormatLayout, adoptFormat), TandemCore/Layout.swift,
 // TandemRender/LayerMath.swift and TandemAPI/Short.swift. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip, Project } from "@sidecut/contracts/project";
-import type { EditCommand } from "@sidecut/contracts/commands";
+import type { Clip, Project } from "@raee/contracts/project";
+import type { EditCommand } from "@raee/contracts/commands";
 import { replace, requireClip, unlocked, type EditContext } from "./timeline-editing";
 
 type Json = Record<string, unknown>;

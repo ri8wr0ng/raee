@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import type { Clip } from "@sidecut/contracts/project";
-import { pictureTime } from "@sidecut/core/render-plan";
-import { LocalMediaReader } from "@sidecut/platform-browser/preview";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
+import type { Clip } from "@raee/contracts/project";
+import { pictureTime } from "@raee/core/render-plan";
+import { LocalMediaReader } from "@raee/platform-browser/preview";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
 import {
   Dialog,
   DialogContent,
@@ -11,17 +11,17 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldDescription,
   FieldError,
-} from "@sidecut/ui/components/field";
+} from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import "./dialogs.css";
-import { Checkbox } from "@sidecut/ui/components/checkbox";
+import { Checkbox } from "@raee/ui/components/checkbox";
 
 export function RegionZoomDialog({ clip, disabled }: { clip: Clip; disabled: boolean }) {
   const { session, snapshot, editor } = useEditorSession();

@@ -4,7 +4,7 @@ import {
   encodeProjectFile,
   type ProjectFile,
   type ProjectFileSchema,
-} from "@sidecut/contracts/project";
+} from "@raee/contracts/project";
 import { queryClips, queryTracks, QueryError } from "./project-queries";
 import { object as requiredObject } from "./import-builder";
 import { projectDuration } from "./render-plan";

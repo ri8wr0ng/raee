@@ -14,8 +14,8 @@
     "components": "@/components",
     "hooks": "@/hooks",
     "lib": "@/lib",
-    "utils": "@sidecut/ui/lib/utils",
-    "ui": "@sidecut/ui/components"
+    "utils": "@raee/ui/lib/utils",
+    "ui": "@raee/ui/components"
   },
   "rtl": false,
   "menuColor": "inverted-translucent",

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vite-plus/test";
 import { zipSync, strToU8 } from "fflate";
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { createArchive, openArchive, readZip } from "./archive";
 import { importEDL, importFilmora } from "./interchange";
 import { assetUses, recordAssetUse, projectCredits } from "./asset-use";
-import { decodeAsset } from "@sidecut/contracts/assets";
+import { decodeAsset } from "@raee/contracts/assets";
 
 describe("portable interchange", () => {
   it("retains library credits, licence copies and relative LUT paths", () => {

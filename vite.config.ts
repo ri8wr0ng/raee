@@ -1,8 +1,8 @@
 import { defineConfig } from "vite-plus";
-import lint from "@sidecut/config/oxlint/base";
-import webLint from "@sidecut/config/oxlint/web";
-import desktopLint from "@sidecut/config/oxlint/desktop";
-import fmt from "@sidecut/config/oxfmt/base";
+import lint from "@raee/config/oxlint/base";
+import webLint from "@raee/config/oxlint/web";
+import desktopLint from "@raee/config/oxlint/desktop";
+import fmt from "@raee/config/oxfmt/base";
 
 const ignored = [
   "**/node_modules/**",

@@ -1,5 +1,5 @@
 import { Component, Suspense, lazy, type ReactNode } from "react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import { AppPage } from "@/modules/shell/app-shell";
 
 const CloudTeams = lazy(() => import("./teams-panel"));

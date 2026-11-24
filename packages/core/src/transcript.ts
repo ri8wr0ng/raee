@@ -1,6 +1,6 @@
 // Ported from TandemMedia/WordPlacement.swift. See tests/fixtures/tandem/TANDEM-LICENSE.
-import type { Clip } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Clip } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 
 export interface TranscriptWord {
   text: string;

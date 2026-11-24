@@ -79,7 +79,7 @@ export function prepareRenderCommand(parsed) {
           input.output = name + ".png";
         }
       }
-      if (operation === "screenshot" && input.output == null) input.output = "sidecut-window.png";
+      if (operation === "screenshot" && input.output == null) input.output = "raee-window.png";
       return input;
     },
     text: flags.has("json") ? undefined : (r) => renderText(operation, r),

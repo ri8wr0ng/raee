@@ -1,6 +1,6 @@
 import { Schema } from "effect";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { Project } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { Project } from "@raee/contracts/project";
 import { framePlan } from "./render-plan";
 import { projectLiveAssets } from "./live-assets";
 

@@ -55,16 +55,16 @@ describe("server environment", () => {
   });
 
   it("keeps desktop renderer overrides restricted to local HTTP", () => {
-    expect(createDesktopEnv({}).SIDECUT_RENDERER_URL).toBeUndefined();
-    expect(
-      createDesktopEnv({ SIDECUT_RENDERER_URL: "http://127.0.0.1:3000" }).SIDECUT_RENDERER_URL,
-    ).toBe("http://127.0.0.1:3000");
+    expect(createDesktopEnv({}).RAEE_RENDERER_URL).toBeUndefined();
+    expect(createDesktopEnv({ RAEE_RENDERER_URL: "http://127.0.0.1:3000" }).RAEE_RENDERER_URL).toBe(
+      "http://127.0.0.1:3000",
+    );
     for (const url of [
       "https://localhost:3000",
       "http://remote.example",
       "file:///tmp/index.html",
     ]) {
-      expect(() => createDesktopEnv({ SIDECUT_RENDERER_URL: url })).toThrow();
+      expect(() => createDesktopEnv({ RAEE_RENDERER_URL: url })).toThrow();
     }
   });
 });

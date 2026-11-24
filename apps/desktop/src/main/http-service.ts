@@ -1,9 +1,9 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { QueryError } from "@sidecut/core/project-queries";
-import { EditError } from "@sidecut/core/coordinator";
+import { QueryError } from "@raee/core/project-queries";
+import { EditError } from "@raee/core/coordinator";
 import type { ProjectAPI } from "./project-api.ts";
-import { serviceFields } from "@sidecut/core/service-requests";
+import { serviceFields } from "@raee/core/service-requests";
 
 export class LocalHTTPService {
   readonly token = randomBytes(32).toString("hex");

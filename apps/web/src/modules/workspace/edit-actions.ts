@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useEditorSession } from "./editor-session";
-import type { Project } from "@sidecut/contracts/project";
-import { Time } from "@sidecut/contracts/time";
+import type { Project } from "@raee/contracts/project";
+import { Time } from "@raee/contracts/time";
 import { shortcut, protectsEditing, ownsKey } from "./keyboard";
 import { copyClips, pasteClips, type ClipClipboard } from "./clipboard";
 import { projectDuration, stepFrame, atFrame } from "./timeline-model";
 import { playheadTrim } from "./playhead-trim";
 import { toggleClipKeyframes } from "./keyframe-shortcut";
 import { rangeEdit } from "./range-edits";
-import { diffEdits } from "@sidecut/core/service-edits";
+import { diffEdits } from "@raee/core/service-edits";
 import { defaultTransitionSound } from "./transition-sound-controls";
 
 export function selectionWithLinks(project: Project, ids: readonly string[]): string[] {

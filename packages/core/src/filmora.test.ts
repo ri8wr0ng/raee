@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { strToU8, strFromU8, zipSync } from "fflate";
 import { importFilmora } from "./interchange";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 import { framePlan } from "./render-plan";
 import { keyframeValue } from "./keyframes";

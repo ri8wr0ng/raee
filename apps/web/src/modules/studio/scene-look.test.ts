@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { DEFAULT_LIVE_ASSETS, type LiveAssets, type LiveOverlay } from "@sidecut/core/live-assets";
+import { DEFAULT_LIVE_ASSETS, type LiveAssets, type LiveOverlay } from "@raee/core/live-assets";
 import { lookForScene, programLook } from "./scene-look";
 
 const overlay = (id: string, text: string, enabled = true): LiveOverlay => ({

@@ -1,7 +1,7 @@
-import type { ProjectFile } from "@sidecut/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 import { joinThroughEdits } from "./through-edits";
-import { Time } from "@sidecut/contracts/time";
+import { Time } from "@raee/contracts/time";
 import {
   speechMap,
   searchSpeech,

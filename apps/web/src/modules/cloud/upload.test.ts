@@ -236,6 +236,31 @@ it("passes an existing mediaId through so the upload becomes a new version", asy
   expect(result).toEqual({ mediaId: "media_existing", versionId: "version_1" });
 });
 
+it("forwards hidden to beginUpload only when set", async () => {
+  const h = harness();
+
+  await uploadToCloud({
+    file: new Blob([new Uint8Array(10)]),
+    name: "lut",
+    teamId: "team_1",
+    client: h.client,
+    putPart: h.putPart,
+    storage: new MemoryStorage(),
+    hidden: true,
+  });
+  await uploadToCloud({
+    file: new Blob([new Uint8Array(10)]),
+    name: "clip",
+    teamId: "team_1",
+    client: h.client,
+    putPart: h.putPart,
+    storage: new MemoryStorage(),
+  });
+
+  expect(h.begins[0]).toMatchObject({ hidden: true });
+  expect(h.begins[1]).not.toHaveProperty("hidden");
+});
+
 it("resumes after a network failure: same requestId, stored parts skipped, their bytes counted", async () => {
   const h = harness();
   const storage = new MemoryStorage();

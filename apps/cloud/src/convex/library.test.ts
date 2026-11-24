@@ -191,7 +191,8 @@ describe("cloud library and immutable versions", () => {
     ).rejects.toThrow("conflicts");
     await upload(versionId);
     await t.mutation(internal.versions.uploaded, { versionId });
-    expect((await a.query(api.versions.list, { mediaId }))[0]?.status).toBe("processing");
+    expect((await a.query(api.versions.list, { mediaId }))[0]?.status).toBe("ready");
+    expect(await t.run((ctx) => ctx.db.get(mediaId))).toMatchObject({ readyVersionId: versionId });
   });
 
   it("streams a recording of unknown length, then seals its final size exactly once", async () => {
@@ -231,7 +232,10 @@ describe("cloud library and immutable versions", () => {
     );
     await t.mutation(internal.versions.uploaded, { versionId });
     const [version] = await a.query(api.versions.list, { mediaId });
-    expect(version).toMatchObject({ status: "processing", open: false, expectedBytes: 11 });
+    expect(version).toMatchObject({ status: "ready", open: false, expectedBytes: 11 });
+    expect(await t.run((ctx) => ctx.db.get(mediaId))).toMatchObject({
+      readyVersionId: version?._id,
+    });
     expect(await a.query(internal.versions.source, { mediaId })).toMatchObject({
       key: version?.objectKey,
       name: "Render",
@@ -245,6 +249,8 @@ describe("cloud library and immutable versions", () => {
     const { t, a, teamId, mediaId, begin, upload } = await setup();
     const first = await begin("one");
     await upload(first);
+    // uploaded marks the version ready; return it to processing so `processed` can run.
+    await t.run((ctx) => ctx.db.patch(first, { status: "processing" }));
     const firstKey = `${teamId}/${mediaId}/1/attempt-1/playback.mp4`;
     await t.mutation(internal.versions.processed, {
       versionId: first,
@@ -253,6 +259,11 @@ describe("cloud library and immutable versions", () => {
     });
     const second = await begin("two");
     await upload(second);
+    // uploaded also moved readyVersionId to the newer version; restore the processing state.
+    await t.run(async (ctx) => {
+      await ctx.db.patch(second, { status: "processing" });
+      await ctx.db.patch(mediaId, { readyVersionId: first });
+    });
     await t.mutation(internal.versions.processed, {
       versionId: second,
       attempt: 1,

@@ -1,4 +1,4 @@
-import { decodeProjectFile } from "@sidecut/contracts/project";
+import { decodeProjectFile } from "@raee/contracts/project";
 import { ProjectCoordinator } from "./coordinator";
 export type ObjectValue = Record<string, unknown>;
 export function object(value: unknown): ObjectValue {

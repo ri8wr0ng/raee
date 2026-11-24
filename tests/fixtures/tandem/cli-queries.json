@@ -53,5 +53,5 @@
     },
     "text": "\"hello\" on the timeline, 1 time:\n  00:01.000-00:02.000  ...Before [hello] after...  clips c  (cut runs through it)\nIn the source but not on the timeline:\n  m at 00:03.000-00:04.000 (file time)  ... [hello] later...\nNot searched, no transcript yet: missing."
   },
-  "notice": "Synthetic pinned contract expectations; TANDEM-LICENSE applies. SideCut app names and transport extensions are documented separately."
+  "notice": "Synthetic pinned contract expectations; TANDEM-LICENSE applies. raE.E app names and transport extensions are documented separately."
 }

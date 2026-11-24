@@ -15,7 +15,7 @@ afterEach(async () => {
   for (const close of cleanup.reverse().splice(0)) await close();
 });
 async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "sidecut-api-test-"));
+  const root = await mkdtemp(join(tmpdir(), "raee-api-test-"));
   cleanup.push(() => rm(root, { recursive: true, force: true }));
   const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
   await host.start();

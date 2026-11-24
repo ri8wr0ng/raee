@@ -2,9 +2,9 @@ import { open, readFile, unlink, mkdir, rename } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { decodeProjectFile, encodeProjectFile } from "@sidecut/contracts/project";
-import type { ProjectFile } from "@sidecut/contracts/project";
-import { replayJournal, ProjectCoordinator } from "@sidecut/core/coordinator";
+import { decodeProjectFile, encodeProjectFile } from "@raee/contracts/project";
+import type { ProjectFile } from "@raee/contracts/project";
+import { replayJournal, ProjectCoordinator } from "@raee/core/coordinator";
 import { openSQLite } from "./sqlite-storage.ts";
 
 const read = async (path: string) =>

@@ -1,7 +1,7 @@
 import { audioIdentity } from "./audio-analysis";
 import { derivedCache } from "./derived-cache";
 import { LocalMediaReader } from "./preview";
-import { matteFrameIndex, type Cutout } from "@sidecut/core/cutout";
+import { matteFrameIndex, type Cutout } from "@raee/core/cutout";
 import { storeFrame, readFrame, removeFrames, type CachedFrame } from "./frame-store";
 import { readPreference } from "./preferences";
 import { RVM_MODEL, type MattingBackend } from "./matting-models";

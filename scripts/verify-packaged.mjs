@@ -20,14 +20,14 @@ const executable =
       : process.platform === "linux"
         ? join(release, `linux${process.arch === "arm64" ? "-arm64" : ""}-unpacked`, "raee")
         : join(release, "win-unpacked/raE.E.exe");
-const profile = await mkdtemp(join(tmpdir(), "sidecut-packaged-smoke-侧剪 "));
+const profile = await mkdtemp(join(tmpdir(), "raee-packaged-smoke-侧剪 "));
 const output = join(profile, "result.json");
 const env = { ...process.env };
 for (const name of [
   "ELECTRON_RUN_AS_NODE",
-  "SIDECUT_RENDERER_URL",
-  "SIDECUT_FFMPEG",
-  "SIDECUT_FFPROBE",
+  "RAEE_RENDERER_URL",
+  "RAEE_FFMPEG",
+  "RAEE_FFPROBE",
   "FFMPEG_BIN",
 ])
   delete env[name];
@@ -79,7 +79,7 @@ try {
   assert.equal(result.packaged, true);
   assert.equal(result.platform, process.platform);
   assert.equal(result.arch, process.arch);
-  assert.equal(result.support?.report?.format, "sidecut-support");
+  assert.equal(result.support?.report?.format, "raee-support");
   assert.equal(result.support.contentExcluded, true);
   for (const check of [
     "downloaded",
@@ -155,8 +155,8 @@ try {
   result.sqlite = { format: "SQLite format 3", legacyPreserved: true, reopened: true };
   const cliScript =
     process.platform === "darwin"
-      ? resolve(dirname(executable), "../Resources/cli/sidecut-cli.mjs")
-      : join(dirname(executable), "resources/cli/sidecut-cli.mjs");
+      ? resolve(dirname(executable), "../Resources/cli/raee-cli.mjs")
+      : join(dirname(executable), "resources/cli/raee-cli.mjs");
   const cliOutput = await new Promise((complete, reject) => {
     const child = spawn(executable, [cliScript, "--help"], {
       env: { ...env, ELECTRON_RUN_AS_NODE: "1" },
@@ -180,6 +180,6 @@ try {
   await writeFile(evidence, JSON.stringify(result, null, 2) + "\n");
   console.log(JSON.stringify(result, null, 2));
 } finally {
-  assert.ok(profile.startsWith(join(tmpdir(), "sidecut-packaged-smoke-侧剪 ")));
+  assert.ok(profile.startsWith(join(tmpdir(), "raee-packaged-smoke-侧剪 ")));
   await rm(profile, { recursive: true, force: true });
 }

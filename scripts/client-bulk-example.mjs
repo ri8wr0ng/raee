@@ -1,4 +1,4 @@
-// Run `vp run --filter @sidecut/client build` before this Node 24 example.
+// Run `vp run --filter @raee/client build` before this Node 24 example.
 import { openProjectClient, ServiceError } from "../packages/client/dist/node.mjs";
 const client = await openProjectClient();
 const status = await client.status();

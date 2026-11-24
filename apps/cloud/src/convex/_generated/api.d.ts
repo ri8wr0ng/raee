@@ -13,6 +13,7 @@ import type * as accounts from "../accounts.js";
 import type * as billing from "../billing.js";
 import type * as library from "../library.js";
 import type * as model from "../model.js";
+import type * as projects from "../projects.js";
 import type * as publishJobs from "../publishJobs.js";
 import type * as publishPack from "../publishPack.js";
 import type * as shareAccess from "../shareAccess.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   library: typeof library;
   model: typeof model;
+  projects: typeof projects;
   publishJobs: typeof publishJobs;
   publishPack: typeof publishPack;
   shareAccess: typeof shareAccess;

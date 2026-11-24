@@ -1,10 +1,10 @@
 import { expect, it } from "vite-plus/test";
-import { decodeAsset } from "@sidecut/contracts/assets";
-import type { LibraryEntry } from "@sidecut/platform-browser/asset-library";
-import { BrowserAssetProviders } from "@sidecut/platform-browser/asset-providers";
+import { decodeAsset } from "@raee/contracts/assets";
+import type { LibraryEntry } from "@raee/platform-browser/asset-library";
+import { BrowserAssetProviders } from "@raee/platform-browser/asset-providers";
 import { libraryAssetDetails, generationServiceRequest } from "./service-assets";
-import { serviceRequest } from "@sidecut/core/service-requests";
-import { starterAssets } from "@sidecut/platform-browser/starter";
+import { serviceRequest } from "@raee/core/service-requests";
+import { starterAssets } from "@raee/platform-browser/starter";
 import contract from "../../../../../tests/fixtures/tandem/asset-actions.json";
 
 it("matches the pinned starter metadata counts without downloading files", () => {

@@ -6,11 +6,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import assert from "node:assert/strict";
 const root = resolve(import.meta.dirname, "../.."),
-  profile = mkdtempSync(join(tmpdir(), "sidecut-jobs-")),
-  destination = mkdtempSync(join(tmpdir(), "sidecut-archive-output-"));
+  profile = mkdtempSync(join(tmpdir(), "raee-jobs-")),
+  destination = mkdtempSync(join(tmpdir(), "raee-archive-output-"));
 app.setPath("userData", profile);
 app.setAppPath(join(root, "apps/desktop"));
-process.env.SIDECUT_RENDERER_URL = "http://127.0.0.1:4270";
+process.env.RAEE_RENDERER_URL = "http://127.0.0.1:4270";
 const evidence = { platform: process.platform };
 let resultCode = 0;
 const wait = async (predicate) => {

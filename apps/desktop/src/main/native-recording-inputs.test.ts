@@ -80,6 +80,20 @@ describe("native capture inputs", () => {
     ).toMatchObject({ video: false, audio: true, args: expect.arrayContaining(["0:a:0"]) });
   });
 
+  it("pipes renderer WebM for the program source without devices or a platform check", async () => {
+    expect(assembleNativeInputs({ ...request, source: "program" }, [])).toEqual({
+      args: ["-thread_queue_size", "512", "-f", "webm", "-i", "pipe:0"],
+      video: true,
+      audio: true,
+      pipe: true,
+    });
+    await expect(nativeInputs("unused", { ...request, source: "program" })).resolves.toMatchObject({
+      pipe: true,
+      video: true,
+      audio: true,
+    });
+  });
+
   it("rejects missing, stale, wrong-kind and ambiguous selections", () => {
     const [camera, mic] = parseNativeDevices(listing);
     assert.ok(camera && mic);
@@ -101,7 +115,7 @@ describe("native capture inputs", () => {
 
   it("rejects unsupported platforms or an unavailable enumerator", async () => {
     if (process.platform === "win32")
-      await expect(nativeDevices("sidecut-no-such-ffmpeg")).rejects.toThrow(/Could not start/);
+      await expect(nativeDevices("raee-no-such-ffmpeg")).rejects.toThrow(/Could not start/);
     else {
       await expect(nativeDevices("unused")).rejects.toThrow(/only supported on Windows/);
       await expect(nativeInputs("unused", { ...request, source: "screen" })).rejects.toThrow(

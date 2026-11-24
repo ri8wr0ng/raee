@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { RiKeyboardBoxLine } from "@remixicon/react";
-import { Button } from "@sidecut/ui/components/button";
+import { Button } from "@raee/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@sidecut/ui/components/dialog";
+} from "@raee/ui/components/dialog";
 import { useEditorView, useEditorSession } from "./editor-session";
 import { protectsEditing, parseKeymap } from "./keyboard";
-import { Input } from "@sidecut/ui/components/input";
-import { FieldLabel } from "@sidecut/ui/components/field";
+import { Input } from "@raee/ui/components/input";
+import { FieldLabel } from "@raee/ui/components/field";
 
 type Row = { label: string; keys: string[][]; premiereOnly?: boolean };
 

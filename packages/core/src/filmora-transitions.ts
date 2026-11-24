@@ -1,6 +1,6 @@
 // Ported from TandemImport/Filmora at 735a9b8. See tests/fixtures/tandem/TANDEM-LICENSE.
-import { Time, flicksPerFrame } from "@sidecut/contracts/time";
-import type { Transition, Project } from "@sidecut/contracts/project";
+import { Time, flicksPerFrame } from "@raee/contracts/time";
+import type { Transition, Project } from "@raee/contracts/project";
 import { object, number, type ObjectValue } from "./import-builder";
 
 export type FilmoraEdge = { name: string; duration: number; spansCut: boolean; offCentre: boolean };

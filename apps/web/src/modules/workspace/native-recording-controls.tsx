@@ -5,20 +5,21 @@ import type {
   NativeRecording,
   NativeRecordingRequest,
   NativeStreamStatus,
-} from "@sidecut/contracts/native-recording";
-import { Button } from "@sidecut/ui/components/button";
-import { Input } from "@sidecut/ui/components/input";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@sidecut/ui/components/field";
+} from "@raee/contracts/native-recording";
+import { Button } from "@raee/ui/components/button";
+import { Input } from "@raee/ui/components/input";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@raee/ui/components/field";
 import { useEditorSession } from "./editor-session";
 import { nativeBridge } from "./host-coordinator";
 import { MediaSection } from "./media-section";
-import { OptionSelect, SelectItem } from "@sidecut/ui/components/option-select";
+import { OptionSelect, SelectItem } from "@raee/ui/components/option-select";
 import { describeQuality, useOutputQuality, videoBitrate } from "@/modules/studio/output-quality";
 
 export function NativeRecordingControls() {
   const { snapshot } = useEditorSession();
   const bridge = nativeBridge();
-  const [source, setSource] = useState<NativeRecordingRequest["source"]>("screen");
+  const [source, setSource] =
+    useState<Exclude<NativeRecordingRequest["source"], "program">>("screen");
   const [encoder, setEncoder] = useState<NativeRecordingRequest["encoder"]>("auto");
   const [deviceID, setDeviceID] = useState("");
   const [microphoneID, setMicrophoneID] = useState("");
