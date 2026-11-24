@@ -98,3 +98,13 @@ Every Studio take streams to origin-private storage as it records, as a folder o
 The cloud library has its own `/library` page; Team keeps members and invitations.
 
 Live output stays in the desktop app, which streams through the native recorder. Studio scenes are not streamed yet.
+
+## Cloud projects
+
+Library → Projects saves the project open in the editor to the team and opens saved projects on any device. Deploy the Convex functions again after updating (`projects` table, `media.hidden`).
+
+- The project document and every stored file are uploaded through the normal multipart upload, so there is no size cap beyond the 50 GB per file limit. Footage shows in the library. The project document, LUTs, fonts and other project-only files are uploaded as hidden media and don't show in the library.
+- Saving again reuses files whose key, name, type and size are unchanged, and uploads changed ones as new versions.
+- Each device remembers which cloud project and revision it last saved or opened (`raee.cloud.project.<local project ID>` in localStorage). If someone saved a newer revision from another device, the save is refused and the user can save as a new project instead.
+- Opening downloads everything to the device and creates a new local project, so it never replays an older local journal.
+- Viewers can open projects but can't save or remove them.

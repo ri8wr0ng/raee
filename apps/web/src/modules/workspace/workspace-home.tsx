@@ -17,10 +17,12 @@ import {
   RiFolderReceivedLine,
   RiDownload2Line,
   RiArchiveLine,
+  RiUploadCloud2Line,
   RiPulseLine,
   RiCheckDoubleLine,
 } from "@remixicon/react";
-import { Button } from "@raee/ui/components/button";
+import { Button, buttonVariants } from "@raee/ui/components/button";
+import { useCloud } from "@/modules/cloud/cloud-context";
 import { Alert, AlertTitle, AlertDescription } from "@raee/ui/components/alert";
 import { Tip, TooltipProvider } from "@raee/ui/components/tooltip";
 import { ExportDialog } from "./export-dialog";
@@ -81,6 +83,7 @@ function PanelRail({
 
 export function WorkspaceHome() {
   const { session, snapshot, editor } = useEditorSession();
+  const cloudAvailable = useCloud().available;
   const keymap = useEditorView((state) => state.keymap);
   const keymapOverrides = useEditorView((state) => state.keymapOverrides);
   const projectPicker = useRef<HTMLInputElement>(null);
@@ -403,6 +406,21 @@ export function WorkspaceHome() {
                   <span className="editor-button-label">Archive project</span>
                 </Button>
               </Tip>
+              {cloudAvailable && (
+                <Tip label="Save or open cloud projects">
+                  <Link
+                    to="/library"
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "sm",
+                      className: "editor-topbar-collapse",
+                    })}
+                  >
+                    <RiUploadCloud2Line data-icon="inline-start" aria-hidden="true" />
+                    <span className="editor-button-label">Cloud projects</span>
+                  </Link>
+                </Tip>
+              )}
             </div>
             <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
           </div>

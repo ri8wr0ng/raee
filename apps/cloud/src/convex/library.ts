@@ -95,6 +95,7 @@ export const list = query({
       .filter(
         (m) =>
           m.archived === (args.archived ?? false) &&
+          m.hidden !== true &&
           (!args.folderId || m.folderId === args.folderId) &&
           m.name.toLowerCase().includes(search),
       )
@@ -137,6 +138,7 @@ export const page = query({
             .eq("archived", archived);
           return args.folderId ? scoped.eq("folderId", args.folderId) : scoped;
         })
+        .filter((q) => q.neq(q.field("hidden"), true))
         .paginate(args.paginationOpts);
     const records = ctx.db.query("media");
     const scoped = args.folderId
@@ -154,7 +156,10 @@ export const page = query({
         : records.withIndex("by_team_archived", (q) =>
             q.eq("teamId", args.teamId).eq("archived", archived),
           );
-    return scoped.order(args.sort === "name" ? "asc" : "desc").paginate(args.paginationOpts);
+    return scoped
+      .filter((q) => q.neq(q.field("hidden"), true))
+      .order(args.sort === "name" ? "asc" : "desc")
+      .paginate(args.paginationOpts);
   },
 });
 
@@ -174,6 +179,7 @@ export const bulk = mutation({
     for (const id of new Set(args.mediaIds)) {
       const media = await mediaAccess(ctx, id, true);
       if (media.teamId !== args.teamId) throw new ConvexError("Media unavailable.");
+      if (media.hidden === true) throw new ConvexError("Media unavailable.");
       await ctx.db.patch(
         id,
         args.operation === "move"

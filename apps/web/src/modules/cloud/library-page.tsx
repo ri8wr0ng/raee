@@ -7,11 +7,15 @@ import { AppPage } from "@/modules/shell/app-shell";
 import { useActiveTeam } from "./active-team";
 import { currentReturnTo, useCloud } from "./cloud-provider";
 import { CloudLibrary } from "./library-panel";
+import { CloudProjects } from "./cloud-projects";
 
 export function LibraryPage() {
   const { configured } = useCloud();
   return (
-    <AppPage title="Library" description="Your team's cloud files. Open any of them in the editor.">
+    <AppPage
+      title="Library"
+      description="Your team's cloud projects and files. Open any of them in the editor."
+    >
       {configured ? (
         <TeamLibrary />
       ) : (
@@ -59,11 +63,21 @@ function TeamLibrary() {
           />
         </label>
       )}
-      <CloudLibrary
-        key={current.team._id}
+      <CloudProjects
+        key={`projects-${current.team._id}`}
         teamId={current.team._id}
         readOnly={current.role === "viewer"}
       />
+      <section className="grid gap-3" aria-labelledby="cloud-files-title">
+        <h2 id="cloud-files-title" className="text-base font-semibold">
+          Files
+        </h2>
+        <CloudLibrary
+          key={current.team._id}
+          teamId={current.team._id}
+          readOnly={current.role === "viewer"}
+        />
+      </section>
     </div>
   );
 }

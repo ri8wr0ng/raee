@@ -8,6 +8,7 @@ import type * as versions from "./convex/versions";
 import type * as storage from "./convex/storage";
 import type * as shares from "./convex/shares";
 import type * as shareAccess from "./convex/shareAccess";
+import type * as projects from "./convex/projects";
 
 // Typed public references also work before a hosted deployment generates bindings.
 export const api: FilterApi<
@@ -20,6 +21,7 @@ export const api: FilterApi<
     storage: typeof storage;
     shares: typeof shares;
     shareAccess: typeof shareAccess;
+    projects: typeof projects;
   }>,
   FunctionReference<"query" | "mutation" | "action", "public">
 > = {
@@ -30,6 +32,12 @@ export const api: FilterApi<
     get: makeFunctionReference("publishJobs:get"),
     resume: makeFunctionReference("publishJobs:resume"),
     cancel: makeFunctionReference("publishJobs:cancel"),
+  },
+  projects: {
+    save: makeFunctionReference("projects:save"),
+    list: makeFunctionReference("projects:list"),
+    get: makeFunctionReference("projects:get"),
+    archive: makeFunctionReference("projects:archive"),
   },
   accounts: {
     status: makeFunctionReference("accounts:status"),

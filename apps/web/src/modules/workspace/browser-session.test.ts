@@ -699,6 +699,42 @@ describe("persistent browser session", () => {
     expect(value.getSnapshot().project.media[0]!.path).toBe("media/0-source.wav");
   });
 
+  it("hands its files to a cloud save and opens a cloud copy as a new project", async () => {
+    const value = session();
+    await value.start();
+    const file = decodeProjectFile({
+      revision: 0,
+      project: {
+        id: "prj_cloud",
+        name: "Cloud cut",
+        media: [{ id: "med_cloud", path: "C:/footage/take.wav", kind: "audio" }],
+      },
+    });
+    await value.openProject(new File([encodeProjectFile(file)], "cloud.tandem"));
+    await expect(value.cloudProject()).rejects.toThrow("isn't stored on this device");
+    resources.set("med_cloud", {
+      file: new File(["take bytes"], "take.wav", { type: "audio/wav" }),
+      state: "available",
+      detail: "",
+    });
+    const local = await value.cloudProject();
+    expect(local).toMatchObject({
+      projectID: "prj_cloud",
+      name: "Cloud cut",
+      mediaIDs: ["med_cloud"],
+    });
+    expect(local.resources.map((entry) => entry.key)).toEqual(["med_cloud"]);
+
+    resources.clear();
+    const opened = await value.openCloudProject(local.json, [
+      { key: "med_cloud", file: new File(["downloaded"], "take.wav", { type: "audio/wav" }) },
+    ]);
+    expect(opened).not.toBe("prj_cloud");
+    expect(value.getSnapshot().project.id).toBe(opened);
+    expect(value.getSnapshot().project.media[0]!.path).toBe("C:/footage/take.wav");
+    expect(await (await value.resource("med_cloud"))!.file.text()).toBe("downloaded");
+  });
+
   it("opens Filmora folder metadata and leaves the current project intact on malformed import", async () => {
     const value = session();
     await value.start();
