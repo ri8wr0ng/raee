@@ -146,8 +146,8 @@ function DesktopAuth({
       isLoading: state.loading,
       user: state.user,
       signIn: async () => {
-        const next = await nativeBridge()?.cloudAuthSignIn?.(config);
-        if (next) setState(next);
+        // The subscription owns the state; the reply can predate the final "not loading" update.
+        await nativeBridge()?.cloudAuthSignIn?.(config);
       },
       signOut: () => void nativeBridge()?.cloudAuthSignOut?.(),
       getAccessToken: async (forceRefresh) =>

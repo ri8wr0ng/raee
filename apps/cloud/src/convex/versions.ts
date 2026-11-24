@@ -318,13 +318,33 @@ export const uploaded = internalMutation({
       parts.reduce((sum, p) => sum + p.bytes, 0) !== version.expectedBytes
     )
       throw new ConvexError("Upload incomplete.");
-    // No processing worker yet: the original upload serves as playback, so the version is ready at once.
-    await ctx.db.patch(version._id, { status: "ready", playbackKey: version.objectKey });
-    const media = await ctx.db.get(version.mediaId);
-    if (!media) throw new ConvexError("Media unavailable.");
-    const current = media.readyVersionId ? await ctx.db.get(media.readyVersionId) : null;
-    if (!current || current.number < version.number)
-      await ctx.db.patch(media._id, { readyVersionId: version._id });
+    await markReady(ctx, version);
+  },
+});
+
+// No processing worker yet: the original upload serves as playback, so the version is ready at once.
+async function markReady(ctx: MutationCtx, version: Doc<"mediaVersions">) {
+  await ctx.db.patch(version._id, { status: "ready", playbackKey: version.objectKey });
+  const media = await ctx.db.get(version.mediaId);
+  if (!media) throw new ConvexError("Media unavailable.");
+  const current = media.readyVersionId ? await ctx.db.get(media.readyVersionId) : null;
+  if (!current || current.status !== "ready" || current.number < version.number)
+    await ctx.db.patch(media._id, { readyVersionId: version._id });
+}
+
+/**
+ * One-off after deploying: uploads completed before versions became ready at once are still
+ * "processing". Run `npx convex run versions:backfillReady` until it returns 0.
+ */
+export const backfillReady = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const stuck = await ctx.db
+      .query("mediaVersions")
+      .withIndex("by_status", (q) => q.eq("status", "processing"))
+      .take(100);
+    for (const version of stuck) await markReady(ctx, version);
+    return stuck.length;
   },
 });
 
@@ -407,7 +427,8 @@ export const original = internalQuery({
   args: { mediaId: v.id("media"), versionId: v.optional(v.id("mediaVersions")) },
   handler: async (ctx, args) => {
     const media = await mediaAccess(ctx, args.mediaId);
-    if (media.archived) throw new ConvexError("Media archived.");
+    // A pinned version (a saved project's file) stays downloadable after the library archives it.
+    if (media.archived && !args.versionId) throw new ConvexError("Media archived.");
     const id = args.versionId ?? media.readyVersionId;
     const version = id ? await ctx.db.get(id) : null;
     if (

@@ -122,6 +122,9 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
     try {
       const project = await session.cloudProject();
       const found = !asNew && linked ? await record(linked.projectId) : null;
+      // Checked again by the server; refusing here avoids uploading files for a save that fails.
+      if (found && linked?.revision !== undefined && found.revision !== linked.revision)
+        throw new Error("This project was saved from another device since you opened it.");
       // The revision this device last saved or opened, so a newer save elsewhere isn't overwritten.
       const existing = found && { ...found, revision: linked?.revision ?? found.revision };
       const result = await saveProjectToCloud({

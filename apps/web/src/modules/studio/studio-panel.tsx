@@ -421,11 +421,12 @@ export default function StudioPanel({
   }, [busy, onBusy]);
   useEffect(() => () => onBusy(false), [onBusy]);
   const uploadedId = program.kind === "uploaded" ? program.mediaId : null;
+  // While the program is still on air, opening the take waits until the stream ends.
   useEffect(() => {
-    if (!uploadedId) return;
+    if (!uploadedId || onAir) return;
     setStatus("Saved to the cloud. Opening it in the editor…");
     void navigate({ to: "/edit/$mediaId", params: { mediaId: uploadedId } });
-  }, [uploadedId, navigate]);
+  }, [uploadedId, onAir, navigate]);
   useEffect(() => {
     let alive = true;
     // Anything on disk at startup was left by an earlier visit: stopped but not added, or cut off.
@@ -723,8 +724,9 @@ export default function StudioPanel({
       // sources arranged before any scene existed move into the first scene.
       if (!existing) {
         const from = selectedRef.current;
-        if (from) for (const placement of arrangement.of(from)) duplicateInto(id, placement);
-        else {
+        if (from) {
+          if (!blank) for (const placement of arrangement.of(from)) duplicateInto(id, placement);
+        } else {
           arrangement.copy(PRE_SCENE, id);
           arrangement.drop(PRE_SCENE);
         }

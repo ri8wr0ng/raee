@@ -92,22 +92,28 @@ it("saves a new project, links it to this device and reports what was sent", asy
   });
 });
 
-it("updates the linked project from the revision this device knows, and offers a new copy on conflict", async () => {
+it("updates the linked project, and refuses before uploading when another device saved since", async () => {
   calls.rows = [row];
-  writeProjectLink("prj_local", { projectId: "proj_1", teamId: "team_1", revision: 2 });
-  calls.save.mockRejectedValueOnce(
-    new Error("This project was saved from another device since you opened it."),
-  );
-  render(<CloudProjects teamId={"team_1" as never} readOnly={false} />);
+  writeProjectLink("prj_local", { projectId: "proj_1", teamId: "team_1", revision: 3 });
+  calls.save.mockResolvedValue({ projectId: "proj_1", revision: 4, uploaded: 1, reused: 1 });
+  const view = render(<CloudProjects teamId={"team_1" as never} readOnly={false} />);
   expect(screen.getByText("In the editor")).toBeTruthy();
   await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  await screen.findByText(/1 file uploaded, 1 already there/);
+  expect(calls.save.mock.calls[0]![0].existing).toMatchObject({ _id: "proj_1", revision: 3 });
+  view.unmount();
+
+  calls.save.mockClear();
+  writeProjectLink("prj_local", { projectId: "proj_1", teamId: "team_1", revision: 2 });
+  render(<CloudProjects teamId={"team_1" as never} readOnly={false} />);
+  await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
   await screen.findByText(/saved from another device/);
-  expect(calls.save.mock.calls[0]![0].existing).toMatchObject({ _id: "proj_1", revision: 2 });
+  expect(calls.save).not.toHaveBeenCalled();
 
   calls.save.mockResolvedValue({ projectId: "proj_2", revision: 1, uploaded: 0, reused: 2 });
   await userEvent.click(screen.getByRole("button", { name: "Save as a new project" }));
   await screen.findByText(/All files were already in the cloud\./);
-  expect(calls.save.mock.calls[1]![0].existing).toBeNull();
+  expect(calls.save.mock.calls[0]![0].existing).toBeNull();
 });
 
 it("confirms before opening, then opens the download as a new local project", async () => {

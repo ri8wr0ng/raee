@@ -111,6 +111,25 @@ describe("cloud auth", () => {
     expect(getSecret()).toBe("refresh-2");
   });
 
+  it("does not bring a session back when a refresh finishes after sign-out", async () => {
+    let answer!: (value: Response) => void;
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response({ user, access_token: jwt(1_800_000_000), refresh_token: "refresh-1" }),
+      )
+      .mockReturnValueOnce(new Promise<Response>((resolve) => (answer = resolve)));
+    const { controller, getSecret } = setup(fetch);
+    await controller.signIn({ clientId: "client_abc123" });
+    const refreshing = controller.getAccessToken({ forceRefresh: true });
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    await controller.signOut();
+    answer(response({ user, access_token: jwt(1_900_000_000), refresh_token: "refresh-2" }));
+    expect(await refreshing).toBeNull();
+    expect(getSecret()).toBeNull();
+    expect(controller.state().user).toBeNull();
+  });
+
   it("refreshes a cached token within 60 seconds of expiry", async () => {
     const fetch = vi
       .fn()
@@ -138,6 +157,28 @@ describe("cloud auth", () => {
     expect(await controller.getAccessToken({ forceRefresh: true })).toBeNull();
     expect(controller.state().user).toBeNull();
     expect(getSecret()).toBeNull();
+  });
+
+  it("does not restore a saved session when sign-out happens first", async () => {
+    let secret: string | null = "persisted";
+    let answer!: (value: Response) => void;
+    const fetch = vi.fn().mockReturnValue(new Promise<Response>((resolve) => (answer = resolve)));
+    const controller = createCloudAuth({
+      fetch,
+      openExternal: async () => {},
+      createServer: (handler) => createServer(handler),
+      readSecret: async () => secret,
+      writeSecret: async (value) => {
+        secret = value;
+      },
+      now: Date.now,
+    });
+    const configured = controller.configure({ clientId: "client_abc123" });
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    await controller.signOut();
+    answer(response({ user, access_token: jwt(1_800_000_000), refresh_token: "rotated" }));
+    expect(await configured).toMatchObject({ user: null, loading: false });
+    expect(secret).toBeNull();
   });
 
   it("restores a saved session on first configure", async () => {

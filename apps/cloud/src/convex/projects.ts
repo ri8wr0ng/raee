@@ -37,6 +37,11 @@ export const save = mutation({
     )
       throw new ConvexError("Invalid project resources.");
 
+    const project = args.projectId ? await ctx.db.get(args.projectId) : null;
+    if (args.projectId && (!project || project.teamId !== args.teamId || project.archived))
+      throw new ConvexError("Project unavailable.");
+    // Files this project already saved stay usable after the library archives them.
+    const kept = new Set(project?.resources.map((resource) => resource.versionId));
     const files = [args.document, ...args.resources];
     const versions = new Map(
       await Promise.all(
@@ -56,17 +61,14 @@ export const save = mutation({
         version.status !== "ready"
       )
         throw new ConvexError("A project file is not uploaded yet.");
-      if (media.archived)
+      if (media.archived && !kept.has(file.versionId))
         throw new ConvexError(
           `${media.name} is archived in the library. Restore it, then save again.`,
         );
     }
 
     const updatedAt = Date.now();
-    if (args.projectId) {
-      const project = await ctx.db.get(args.projectId);
-      if (!project || project.teamId !== args.teamId || project.archived)
-        throw new ConvexError("Project unavailable.");
+    if (project) {
       if (args.baseRevision !== undefined && args.baseRevision !== project.revision)
         throw new ConvexError("This project was saved from another device since you opened it.");
       const revision = project.revision + 1;

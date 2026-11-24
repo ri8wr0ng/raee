@@ -151,6 +151,43 @@ describe("cloud projects", () => {
     );
   });
 
+  it("keeps files archived in the library usable by projects that already saved them", async () => {
+    const { t, a, projectArgs, makeFile } = await setup();
+    const { projectId } = await a.mutation(api.projects.save, projectArgs);
+    const lut = projectArgs.resources[0]!;
+    await t.run((ctx) => ctx.db.patch(lut.mediaId, { archived: true }));
+    await expect(
+      a.mutation(api.projects.save, { ...projectArgs, projectId, baseRevision: 1 }),
+    ).resolves.toMatchObject({ revision: 2 });
+    await expect(
+      a.query(internal.versions.original, { mediaId: lut.mediaId, versionId: lut.versionId }),
+    ).resolves.toMatchObject({ number: 1 });
+    await expect(a.query(internal.versions.original, { mediaId: lut.mediaId })).rejects.toThrow(
+      "archived",
+    );
+    const other = await makeFile("other");
+    await t.run((ctx) => ctx.db.patch(other.mediaId, { archived: true }));
+    await expect(
+      a.mutation(api.projects.save, {
+        ...projectArgs,
+        resources: [{ ...lut, key: "other", ...other }],
+      }),
+    ).rejects.toThrow("archived in the library");
+  });
+
+  it("backfills versions left processing by older uploads", async () => {
+    const { t, makeFile } = await setup();
+    const file = await makeFile("legacy");
+    await t.run(async (ctx) => {
+      await ctx.db.patch(file.versionId, { status: "processing" });
+      await ctx.db.patch(file.mediaId, { readyVersionId: undefined });
+    });
+    expect(await t.mutation(internal.versions.backfillReady, {})).toBe(1);
+    expect(await t.mutation(internal.versions.backfillReady, {})).toBe(0);
+    const media = await t.run((ctx) => ctx.db.get(file.mediaId));
+    expect(media?.readyVersionId).toBe(file.versionId);
+  });
+
   it("hides archived projects from the list", async () => {
     const { a, teamId, projectArgs } = await setup();
     const { projectId } = await a.mutation(api.projects.save, projectArgs);

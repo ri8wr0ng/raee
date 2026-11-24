@@ -1,7 +1,6 @@
 import { expect, it } from "vite-plus/test";
 import type { DownloadOptions } from "./add-to-project";
 import {
-  clearProjectLink,
   openCloudProject,
   readProjectLink,
   saveProjectToCloud,
@@ -354,7 +353,4 @@ it("round-trips a project link through storage and survives invalid JSON", () =>
   expect(readProjectLink("local_3", storage)).toBeNull();
   storage.setItem("raee.cloud.project.local_4", JSON.stringify({ projectId: 1 }));
   expect(readProjectLink("local_4", storage)).toBeNull();
-
-  clearProjectLink("local_1", storage);
-  expect(readProjectLink("local_1", storage)).toBeNull();
 });

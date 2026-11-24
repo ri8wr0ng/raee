@@ -270,16 +270,3 @@ export function writeProjectLink(
     // Storage is full or blocked: the link is a convenience, not required for saving.
   }
 }
-
-export function clearProjectLink(
-  localProjectID: string,
-  storage?: Pick<Storage, "removeItem">,
-): void {
-  const store = storage ?? linkStorage();
-  if (!store) return;
-  try {
-    store.removeItem(linkPrefix + localProjectID);
-  } catch {
-    // Nothing to clean up when storage is unavailable.
-  }
-}

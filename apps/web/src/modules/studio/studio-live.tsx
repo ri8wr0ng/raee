@@ -71,7 +71,6 @@ export function StudioLive({
       active.stop();
       await stopped;
     }
-    for (const track of active?.stream.getTracks() ?? []) track.stop();
     await sending.current.catch(() => {});
     await nativeBridge()
       ?.nativeRecordingStop?.()

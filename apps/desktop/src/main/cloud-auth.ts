@@ -93,10 +93,19 @@ export function createCloudAuth(deps: CloudAuthDeps) {
       throw Object.assign(new Error("WorkOS authentication failed."), { status: response.status });
     return (await response.json()) as AuthResponse;
   };
+  // Bumped by sign-out; work started before it must not write a session back.
+  let generation = 0;
+  // Writes run in order, so a sign-out's clear always lands after a refresh already writing.
+  let writes: Promise<void> = Promise.resolve();
+  const writeSecret = (value: string | null) =>
+    (writes = writes.then(
+      () => deps.writeSecret(value),
+      () => deps.writeSecret(value),
+    ));
   const clear = async () => {
     user = null;
     accessToken = null;
-    await deps.writeSecret(null);
+    await writeSecret(null);
     publish();
   };
   const setTokens = async (result: AuthResponse) => {
@@ -104,24 +113,27 @@ export function createCloudAuth(deps: CloudAuthDeps) {
       throw new Error("WorkOS returned invalid tokens.");
     user = parseUser(result.user);
     accessToken = result.access_token;
-    await deps.writeSecret(result.refresh_token);
+    await writeSecret(result.refresh_token);
     publish();
   };
   const restore = async () => {
+    const started = generation;
     loading = true;
     publish();
     try {
+      // A sign-out's clear in progress must land before the saved token is read.
+      await writes.catch(() => {});
       const secret = await deps.readSecret();
-      if (secret && config)
-        await setTokens(
-          await authenticate({
-            client_id: config.clientId,
-            grant_type: "refresh_token",
-            refresh_token: secret,
-          }),
-        );
+      if (secret && config && started === generation) {
+        const result = await authenticate({
+          client_id: config.clientId,
+          grant_type: "refresh_token",
+          refresh_token: secret,
+        });
+        if (started === generation) await setTokens(result);
+      }
     } catch {
-      await clear();
+      if (started === generation) await clear();
     } finally {
       loading = false;
       publish();
@@ -235,20 +247,27 @@ export function createCloudAuth(deps: CloudAuthDeps) {
     if (!config) return null;
     if (!refresh)
       refresh = (async () => {
+        const started = generation;
         try {
+          // Waits for a sign-out's clear in progress, so it can't read the old token.
+          await writes.catch(() => {});
           const secret = await deps.readSecret();
+          if (started !== generation) return null;
           if (!secret) return null;
           const result = await authenticate({
             client_id: config!.clientId,
             grant_type: "refresh_token",
             refresh_token: secret,
           });
+          // Signed out while this was in flight: don't bring the session back.
+          if (started !== generation) return null;
           await setTokens(result);
           return accessToken;
         } catch (error) {
           if (
-            (error as { status?: number }).status === 400 ||
-            (error as { status?: number }).status === 401
+            started === generation &&
+            ((error as { status?: number }).status === 400 ||
+              (error as { status?: number }).status === 401)
           )
             await clear();
           return null;
@@ -259,6 +278,7 @@ export function createCloudAuth(deps: CloudAuthDeps) {
     return refresh;
   };
   const signOut = async () => {
+    generation += 1;
     pendingSignIn?.();
     pendingSignIn = undefined;
     loading = false;

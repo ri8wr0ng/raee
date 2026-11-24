@@ -74,7 +74,11 @@ describe("recording upload", () => {
     const { value, sent } = target();
     let release!: () => void;
     const gate = new Promise<void>((resolve) => (release = resolve));
-    const upload = new RecordingUpload({ ...value, online: () => gate });
+    const upload = new RecordingUpload({
+      ...value,
+      online: () => gate,
+      wait: () => new Promise(() => {}),
+    });
     upload.push(chunk(5));
     const done = upload.finish();
     await Promise.resolve();
@@ -91,6 +95,28 @@ describe("recording upload", () => {
     expect(upload.failed).toBe(false);
     upload.push(chunk(PART_BYTES));
     expect(upload.failed).toBe(true);
+    await expect(upload.finish()).rejects.toThrow("too far behind");
+  });
+
+  it("does not hang when the online event never fires", async () => {
+    const { value, finished } = target();
+    const upload = new RecordingUpload({ ...value, online: () => new Promise(() => {}) });
+    upload.push(chunk(5));
+    await expect(upload.finish()).resolves.toBeUndefined();
+    expect(finished).toEqual([[5, 1]]);
+  });
+
+  it("keeps the take local when the cloud can't finish before the deadline", async () => {
+    const { value, finished } = target();
+    const upload = new RecordingUpload({
+      ...value,
+      partUrl: () => new Promise(() => {}),
+      finishDeadline: 10,
+    });
+    upload.push(chunk(5));
+    await expect(upload.finish()).rejects.toThrow("didn't finish in time");
+    expect(upload.failed).toBe(true);
+    expect(finished).toEqual([]);
   });
 
   it("rejects an empty recording and pushes after finishing", async () => {

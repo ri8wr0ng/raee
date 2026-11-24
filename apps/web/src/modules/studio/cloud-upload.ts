@@ -3,6 +3,10 @@ export const PART_BYTES = 8 * 1024 * 1024;
 /** Tries per part. Backoff grows to 15 s, so a part keeps trying for about two and a half minutes. */
 const ATTEMPTS = 14;
 const MAX_WAIT_MS = 15_000;
+/** A request that hangs (for example while Convex waits to reconnect) counts as a failed try. */
+const REQUEST_TIMEOUT_MS = 120_000;
+/** After recording stops, the cloud copy gets this long to finish before the take stays local. */
+export const FINISH_DEADLINE_MS = 3 * 60_000;
 /** Recorded bytes waiting to upload. Past this the take stays on the device only. */
 export const MAX_BACKLOG_BYTES = 256 * 1024 * 1024;
 
@@ -18,7 +22,21 @@ export type CloudUploadTarget = {
   wait?: (ms: number) => Promise<void>;
   /** Resolves when the network looks usable again. Defaults to the browser's online event. */
   online?: () => Promise<void>;
+  /** Overrides FINISH_DEADLINE_MS, for tests. */
+  finishDeadline?: number;
 };
+
+function within<T>(
+  promise: Promise<T>,
+  ms = REQUEST_TIMEOUT_MS,
+  message = "The cloud stopped responding.",
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
 
 function browserOnline(): Promise<void> {
   if (typeof navigator === "undefined" || navigator.onLine !== false) return Promise.resolve();
@@ -82,11 +100,25 @@ export class RecordingUpload {
   async finish() {
     if (this.#closed) throw new Error("The upload is already finished.");
     this.#closed = true;
-    if (this.#pendingBytes) this.#send(this.#take(this.#pendingBytes));
-    await this.#queue;
+    // An upload that already gave up must not keep the take waiting on parts still in flight.
     if (this.#failure) throw this.#failure;
-    if (!this.#parts) throw new Error("The recording is empty.");
-    await this.#target.finish(this.#recordedBytes, this.#parts);
+    if (this.#pendingBytes) this.#send(this.#take(this.#pendingBytes));
+    try {
+      await within(
+        (async () => {
+          await this.#queue;
+          if (this.#failure) throw this.#failure;
+          if (!this.#parts) throw new Error("The recording is empty.");
+          await within(this.#target.finish(this.#recordedBytes, this.#parts));
+        })(),
+        this.#target.finishDeadline ?? FINISH_DEADLINE_MS,
+        "The cloud upload didn't finish in time.",
+      );
+    } catch (error) {
+      // Parts still retrying stop at their next check.
+      this.#failure ??= error;
+      throw error;
+    }
   }
 
   #take(bytes: number) {
@@ -121,9 +153,12 @@ export class RecordingUpload {
     const online = this.#target.online ?? browserOnline;
     for (let attempt = 1; ; attempt++) {
       try {
-        await online();
+        // Bounded, so a network that never returns still ends in a failure and the disk copy closes.
+        await Promise.race([online(), wait(MAX_WAIT_MS)]);
         if (this.#failure) throw this.#failure;
-        await this.#target.put(await this.#target.partUrl(part), body);
+        const url = await within(this.#target.partUrl(part));
+        if (this.#failure) throw this.#failure;
+        await within(this.#target.put(url, body));
         return;
       } catch (error) {
         if (attempt >= ATTEMPTS || this.#failure) throw error;
