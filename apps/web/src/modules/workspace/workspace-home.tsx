@@ -91,6 +91,8 @@ export function WorkspaceHome() {
   unsafeRef.current = unsafeToLeave;
   const leaveBlocker = useBlocker({
     shouldBlockFn: () => unsafeRef.current,
+    // Defaults to true, which would block every reload. The editor session handles tab close.
+    enableBeforeUnload: false,
     withResolver: true,
   });
   const cloudAvailable = useCloud().available;

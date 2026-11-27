@@ -21,7 +21,7 @@ export function EditFromCloud({ mediaId, from }: { mediaId: string; from?: "stud
   return (
     <AppPage
       title="Open from cloud"
-      description="Adds the original file to this project and places it at the end of the timeline."
+      description="Get the original file from your team's library and edit it here."
     >
       {configured ? (
         <Download mediaId={mediaId as GenericId<"media">} from={from} />
