@@ -12,7 +12,7 @@ const instructions =
   "raE.E edits local projects through one authoritative owner, starting a hidden desktop host for closed projects. Read status/timeline before editing. Use expectedRevision on mutations, label edits, and apply idempotencyKey for retries. Helpers preview unless apply:true. Resolve comments with removeMarker. Provider downloads/paid generation require explicit opt-in. Do not retry other mutations after a lost reply. Tools return readable text by default; json:true returns raw data. Read warnings and documented adapter limits.";
 
 /** Forwards export progress as MCP progress notifications while the export call runs. */
-async function watchExportProgress(host, extra, signal) {
+async function watchExportProgress(host, extra, signal, output) {
   // MCP names request metadata `_meta`.
   // eslint-disable-next-line no-underscore-dangle
   const progressToken = extra._meta?.progressToken;
@@ -22,7 +22,8 @@ async function watchExportProgress(host, extra, signal) {
       const job = event?.kind === "export" ? event.export : undefined;
       if (!job || typeof job !== "object") continue;
       if (exportId === undefined) {
-        if (job.state !== "running") continue;
+        // The host labels each job with its output, so another export's events are skipped.
+        if (job.state !== "running" || job.output !== output) continue;
         exportId = job.id;
       }
       if (job.id !== exportId) continue;
@@ -137,6 +138,7 @@ async function main() {
             host,
             extra,
             extra.signal ? AbortSignal.any([extra.signal, exportAbort.signal]) : exportAbort.signal,
+            String(input.output ?? tool.operation),
           )
         : undefined;
       // The done/failed message comes from the call itself, so it can't race the event stream.
@@ -155,11 +157,7 @@ async function main() {
         await exportWatch;
       }
       await notify("info", `Export done: ${result.path ?? input.output ?? ""}`.trim());
-      const output = toolResult(tool.operation, result, json);
-      if (exportWatching)
-        for (const item of output.content)
-          if (item.type === "text") item.text = `Export done.\n${item.text}`;
-      return output;
+      return toolResult(tool.operation, result, json);
     } catch (error) {
       return {
         isError: true,

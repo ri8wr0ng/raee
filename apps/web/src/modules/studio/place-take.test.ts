@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 import { decodeProjectFile } from "@raee/contracts/project";
 import type { BrowserProjectSession } from "@/modules/workspace/browser-session";
-import { addTakeToProject } from "./place-take";
+import { addTakeToProject, focusPlacedTake } from "./place-take";
 
 describe("addTakeToProject", () => {
   it("returns the media id and timeline placement time", async () => {
@@ -43,5 +43,32 @@ describe("addTakeToProject", () => {
       at: 5,
       mediaID: "media-1",
     });
+  });
+});
+
+describe("focusPlacedTake", () => {
+  it("selects placed clips and seeks when placed on timeline, and does neither when added to media", () => {
+    const session = {
+      getSnapshot: () => ({
+        project: {
+          videoTracks: [{ clips: [{ id: "c1", content: { media: { mediaID: "m1" } } }] }],
+          audioTracks: [],
+        },
+      }),
+    } as never;
+    const seek = vi.fn();
+    const selectMany = vi.fn();
+    const editor = { getState: () => ({ seek, selectMany }) } as never;
+
+    focusPlacedTake(session, editor, { where: "timeline", at: 5, mediaID: "m1" });
+    expect(selectMany).toHaveBeenCalledWith(["c1"]);
+    expect(seek).toHaveBeenCalledTimes(1);
+
+    seek.mockClear();
+    selectMany.mockClear();
+
+    focusPlacedTake(session, editor, { where: "media", at: 5, mediaID: "m1" });
+    expect(selectMany).not.toHaveBeenCalled();
+    expect(seek).not.toHaveBeenCalled();
   });
 });

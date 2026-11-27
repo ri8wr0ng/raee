@@ -233,6 +233,8 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
   const progress = work?.progress;
   const percent = progress?.total ? (progress.loaded / progress.total) * 100 : 0;
   const projectName = snapshot.project.name || "Untitled";
+  const saving = snapshot.saveState === "saving" || snapshot.saveState === "error";
+  const openBlocked = Boolean(work) || snapshot.busy || snapshot.readOnly || saving;
 
   return (
     <section className="cloud-projects grid gap-3" aria-labelledby="cloud-projects-title">
@@ -307,7 +309,7 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
                 size="sm"
                 variant="ghost"
                 onClick={() => linkedRow && setConfirm({ kind: "open", project: linkedRow })}
-                disabled={!linkedRow}
+                disabled={!linkedRow || openBlocked}
               >
                 Open cloud version
               </Button>
@@ -347,18 +349,8 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={
-                    Boolean(work) ||
-                    snapshot.busy ||
-                    snapshot.readOnly ||
-                    snapshot.saveState === "saving" ||
-                    snapshot.saveState === "error"
-                  }
-                  title={
-                    snapshot.saveState === "saving" || snapshot.saveState === "error"
-                      ? "Wait for this project to finish saving."
-                      : undefined
-                  }
+                  disabled={openBlocked}
+                  title={saving ? "Wait for this project to finish saving." : undefined}
                   onClick={() => setConfirm({ kind: "open", project })}
                 >
                   Open
@@ -403,6 +395,14 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
                   variant={confirm.kind === "remove" ? "destructive" : "default"}
                   onClick={() => {
                     const { kind, project } = confirm;
+                    if (kind === "open" && openBlocked) {
+                      setConfirm(null);
+                      setNotice({
+                        kind: "error",
+                        message: "Wait for this project to finish saving, then open it again.",
+                      });
+                      return;
+                    }
                     setConfirm(null);
                     void (kind === "open" ? runOpen(project) : runRemove(project));
                   }}

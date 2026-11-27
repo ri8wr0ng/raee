@@ -1,5 +1,7 @@
+import { Time } from "@raee/contracts/time";
 import { projectDuration } from "@raee/core/render-plan";
 import type { BrowserProjectSession } from "@/modules/workspace/browser-session";
+import type { useEditorSession } from "@/modules/workspace/editor-session";
 import type { TakeMark } from "./take-store";
 
 /**
@@ -35,3 +37,25 @@ export const placedMessage = (name: string, where: "timeline" | "media") =>
   where === "timeline"
     ? `${name} was added to Project media and placed at the end of the timeline.`
     : `${name} was added to Project media.`;
+
+export function focusPlacedTake(
+  session: BrowserProjectSession,
+  editor: ReturnType<typeof useEditorSession>["editor"],
+  result: Awaited<ReturnType<typeof addTakeToProject>>,
+) {
+  if (result.where !== "timeline") return;
+  editor.getState().seek(Time.fromSeconds(result.at));
+  const { videoTracks, audioTracks } = session.getSnapshot().project;
+  const ids = [...videoTracks, ...audioTracks].flatMap((track) =>
+    track.clips
+      .filter(
+        (clip) =>
+          clip.content.media &&
+          typeof clip.content.media === "object" &&
+          "mediaID" in clip.content.media &&
+          clip.content.media.mediaID === result.mediaID,
+      )
+      .map((clip) => clip.id),
+  );
+  editor.getState().selectMany(ids);
+}

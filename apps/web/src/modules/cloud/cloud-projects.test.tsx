@@ -11,6 +11,7 @@ import type * as CloudProject from "./cloud-project";
 const calls = vi.hoisted(() => ({
   rows: [] as unknown[] | undefined,
   revision: 8,
+  saveState: "saved" as "saved" | "saving" | "error",
   record: null as unknown,
   save: vi.fn(),
   open: vi.fn(),
@@ -41,7 +42,7 @@ vi.mock("../workspace/editor-session", () => ({
       project: { id: "prj_local", name: "Launch video" },
       readOnly: false,
       busy: false,
-      saveState: "saved",
+      saveState: calls.saveState,
       revision: calls.revision,
     },
   }),
@@ -72,6 +73,7 @@ beforeEach(() => {
   localStorage.clear();
   calls.rows = [];
   calls.revision = 8;
+  calls.saveState = "saved";
   calls.record = record;
   for (const fn of [
     calls.save,
@@ -133,6 +135,18 @@ it("offers to open the linked cloud version after a save conflict", async () => 
   expect(openCloud).toBeTruthy();
   await userEvent.click(openCloud);
   expect(await screen.findByText(/Open “Launch video”\?/)).toBeTruthy();
+});
+
+it("disables Open cloud version during a conflict when saveState is error", async () => {
+  calls.rows = [row];
+  writeProjectLink("prj_local", { projectId: "proj_1", teamId: "team_1", revision: 2 });
+  const view = render(<CloudProjects teamId={"team_1" as never} readOnly={false} />);
+  await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  await screen.findByRole("button", { name: "Open cloud version" });
+  calls.saveState = "error";
+  view.rerender(<CloudProjects teamId={"team_1" as never} readOnly={false} />);
+  const openCloud = screen.getByRole("button", { name: "Open cloud version" }) as HTMLButtonElement;
+  expect(openCloud.disabled).toBe(true);
 });
 
 it("confirms before opening, then opens the download as a new local project", async () => {

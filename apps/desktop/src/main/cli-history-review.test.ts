@@ -283,6 +283,15 @@ it("allows review exports and lets wait review finish after Mark reviewed", asyn
   await expect(
     api.handle("export", { output: "review.webm", preset: "review" }),
   ).resolves.toMatchObject({ path: expect.any(String) });
+  // Clips default to the review preset, so one without a preset isn't blocked either.
+  await expect(
+    api.handle("clip", { output: "clip.webm", start: 0, end: 1 }),
+  ).resolves.toMatchObject({
+    path: expect.any(String),
+  });
+  await expect(api.handle("export", { output: "final.mp4" })).rejects.toMatchObject({
+    code: "review-required",
+  });
   const waiting = api.handle("wait", { what: "review", timeout: 5 });
   await host.flush();
   const snapshot = host.snapshot();

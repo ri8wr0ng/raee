@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Time } from "@raee/contracts/time";
 import { useCloudAuth } from "./cloud-auth";
 import { useAction, useConvexAuth } from "convex/react";
 import type { GenericId } from "convex/values";
@@ -9,7 +8,7 @@ import { Button } from "@raee/ui/components/button";
 import { Progress } from "@raee/ui/components/progress";
 import { AppPage } from "@/modules/shell/app-shell";
 import { megabytes } from "@/modules/studio/cloud-upload";
-import { addTakeToProject } from "@/modules/studio/place-take";
+import { addTakeToProject, focusPlacedTake } from "@/modules/studio/place-take";
 import { findCloudTake, removeTake, takeFile, type TakeInfo } from "@/modules/studio/take-store";
 import { useEditorSession } from "@/modules/workspace/editor-session";
 import { currentReturnTo, useCloud } from "./cloud-provider";
@@ -101,7 +100,7 @@ function Download({ mediaId, from }: { mediaId: GenericId<"media">; from?: "stud
             await removeTake(local.fileName);
             return imported;
           });
-          focusImport(session, editor, result);
+          focusPlacedTake(session, editor, result);
           if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
           return;
         }
@@ -121,7 +120,7 @@ function Download({ mediaId, from }: { mediaId: GenericId<"media">; from?: "stud
         const result = await importOnce(mediaId, () =>
           addTakeToProject(session, file, source.marks),
         );
-        focusImport(session, editor, result);
+        focusPlacedTake(session, editor, result);
         if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
       } catch (cause) {
         if (abort.signal.aborted) return;
@@ -189,28 +188,6 @@ function Download({ mediaId, from }: { mediaId: GenericId<"media">; from?: "stud
   if (phase.name === "importing")
     return <p role="status">Adding {phase.fileName} to the project…</p>;
   return <p role="status">Finding the file…</p>;
-}
-
-function focusImport(
-  session: ReturnType<typeof useEditorSession>["session"],
-  editor: ReturnType<typeof useEditorSession>["editor"],
-  result: ImportResult,
-) {
-  if (result.where !== "timeline") return;
-  editor.getState().seek(Time.fromSeconds(result.at));
-  const { videoTracks, audioTracks } = session.getSnapshot().project;
-  const ids = [...videoTracks, ...audioTracks].flatMap((track) =>
-    track.clips
-      .filter(
-        (clip) =>
-          clip.content.media &&
-          typeof clip.content.media === "object" &&
-          "mediaID" in clip.content.media &&
-          clip.content.media.mediaID === result.mediaID,
-      )
-      .map((clip) => clip.id),
-  );
-  editor.getState().selectMany(ids);
 }
 
 function importOnce(mediaId: string, run: () => Promise<ImportResult>): Promise<ImportResult> {
