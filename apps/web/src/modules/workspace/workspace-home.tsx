@@ -481,6 +481,16 @@ export function WorkspaceHome() {
             </AlertDescription>
             <Button
               size="sm"
+              variant="ghost"
+              onClick={() => {
+                setPanelHidden("media", false);
+                setSideTab("history");
+              }}
+            >
+              Show in History
+            </Button>
+            <Button
+              size="sm"
               variant="outline"
               disabled={locked || snapshot.saveState !== "saved"}
               onClick={() => run(() => session.markReviewed())}

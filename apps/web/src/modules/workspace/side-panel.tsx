@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { MediaBin } from "./media-bin";
 import { CommentsPanel } from "./comments-panel";
 import { HistoryPanel } from "./history-panel";
+import { useEditorSession } from "./editor-session";
 import { assistantBridge } from "./assistant-bridge";
 import { SIDE_TABS, type SideTab } from "./panel-sizes";
 
@@ -28,6 +29,8 @@ export function SidePanel({
   run: (action: () => unknown) => void;
   hideButton: ReactNode;
 }) {
+  const { snapshot } = useEditorSession();
+  const pending = snapshot.reviewPendingCount ?? 0;
   // Check the desktop bridge after mount so hydration matches the prerendered browser markup.
   const [hasAssistant, setHasAssistant] = useState(false);
   useEffect(() => setHasAssistant(Boolean(assistantBridge())), []);
@@ -44,6 +47,11 @@ export function SidePanel({
         {visibleTabs.map((id) => (
           <TabsTab key={id} id={`side-tab-${id}`} value={id}>
             {TAB_LABEL[id]}
+            {id === "history" && pending > 0 && (
+              <span className="editor-side-tab-badge" aria-label={`${pending} to review`}>
+                {pending}
+              </span>
+            )}
           </TabsTab>
         ))}
       </TabsList>

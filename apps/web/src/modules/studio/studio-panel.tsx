@@ -276,6 +276,7 @@ export default function StudioPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [takePlaced, setTakePlaced] = useState(false);
   const [frame, setFrame] = useState<string | null>(null);
   const [previewFrame, setPreviewFrame] = useState<string | null>(null);
   const [name, setName] = useState("Scene 1");
@@ -423,6 +424,8 @@ export default function StudioPanel({
   const uploadedId = program.kind === "uploaded" ? program.mediaId : null;
   // While the program is still on air, opening the take waits until the stream ends.
   useEffect(() => {
+    if (uploadedId && onAir)
+      setStatus("Saved to the cloud. It opens in the editor when the stream ends, or open it now.");
     if (!uploadedId || onAir) return;
     setStatus("Saved to the cloud. Opening it in the editor…");
     void navigate({ to: "/edit/$mediaId", params: { mediaId: uploadedId } });
@@ -1574,6 +1577,7 @@ export default function StudioPanel({
   const startRecording = () =>
     attempt(async () => {
       setStatus("");
+      setTakePlaced(false);
       await capture.current!.start();
     }, "Recording could not start.");
   const addClip = (file: File) =>
@@ -1587,7 +1591,10 @@ export default function StudioPanel({
       await capture.current!.importTake(async (target) => {
         where = await addTakeToProject(session, target.file, target.marks);
       });
-      if (where) setStatus(placedMessage(takeName, where));
+      if (where) {
+        setStatus(placedMessage(takeName, where));
+        setTakePlaced(true);
+      }
     }, "Import failed. Download the file or retry.");
   const dropRecovered = (fileName: string) => {
     void removeTake(fileName);
@@ -1703,6 +1710,28 @@ export default function StudioPanel({
         <p role="status" aria-live="polite" className="text-muted-foreground empty:hidden">
           {loading ? "Opening saved scenes…" : status || captureNotice}
         </p>
+        {(takePlaced || (uploadedId && onAir)) && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                void navigate(
+                  uploadedId
+                    ? { to: "/edit/$mediaId", params: { mediaId: uploadedId } }
+                    : { to: "/" },
+                )
+              }
+            >
+              Open in editor
+            </Button>
+            {uploadedId && (
+              <Button size="sm" variant="ghost" onClick={() => void navigate({ to: "/library" })}>
+                View in Library
+              </Button>
+            )}
+          </div>
+        )}
         <Section title="Go">
           <RadioGroup
             aria-label="Output"
@@ -1957,6 +1986,7 @@ export default function StudioPanel({
                         const where = await addTakeToProject(session, file, item.marks);
                         dropRecovered(item.fileName);
                         setStatus(placedMessage(file.name, where));
+                        setTakePlaced(true);
                       }, "The take could not be added. Download it or retry.")
                     }
                   >

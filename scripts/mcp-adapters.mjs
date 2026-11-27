@@ -24,6 +24,12 @@ export const definitions = reference.tools.map((tool) => {
       minimum: 0,
       description: "Reject insertion if the project revision changed.",
     };
+  // Exports wait for agent edits to be reviewed; agents can wait for that like any other work.
+  if (tool.name === "wait") {
+    definition.inputSchema.properties.what.enum.push("review");
+    definition.inputSchema.properties.what.description +=
+      " review waits until the user marks agent edits reviewed (exports need that).";
+  }
   definition.description = `${tool.title} through the running raE.E desktop host. Returns readable text by default; json:true returns raw service data. Read warnings for adapter capability limits.`;
   return definition;
 });

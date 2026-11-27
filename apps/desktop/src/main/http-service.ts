@@ -288,8 +288,12 @@ export class LocalHTTPService {
         );
       else if (error instanceof EditError)
         fail(
-          error.code === "stale-revision" ? 409 : 400,
-          error.code === "stale-revision" ? "staleRevision" : "invalid",
+          ["stale-revision", "review-required"].includes(error.code) ? 409 : 400,
+          error.code === "stale-revision"
+            ? "staleRevision"
+            : error.code === "review-required"
+              ? "reviewRequired"
+              : "invalid",
           error.message,
           error.code === "stale-revision"
             ? JSON.parse(this.api.project.snapshot().json).revision

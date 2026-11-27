@@ -24,7 +24,7 @@ export function queryHelp(topic) {
       "segments [list | save NAME | insert NAME] [options]\nsave NAME --clips ID,ID | --from TIME --to TIME [--field ID=LABEL ...] [--replace]\ninsert NAME --at TIME [--value KEY=TEXT ...] [--mode place|overwrite|insert] [--expect REVISION]",
     comments: "comments [resolve ID ... | resolve --all] [--label TEXT] [--json]",
     sync: "sync [DELAY | FILE ...] [--media ID ...] [--default] [--to REFERENCE] [--no-place] [--dry-run] [--expect REVISION] [--json]",
-    wait: "wait [transcript|matte|proxy|jobs|export] [--media ID ...] [--timeout SECONDS] [--json]",
+    wait: "wait [transcript|matte|proxy|jobs|export|review] [--media ID ...] [--timeout SECONDS] [--json]",
     transcribe:
       "transcribe MEDIA_OR_CLIP ... [--wait | --no-wait] [--timeout SECONDS] [--label TEXT] [--json]",
     diff: "diff [REVISION_OR_FILE] [--since REVISION_OR_FILE] [--json]",
