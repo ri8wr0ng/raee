@@ -10,13 +10,13 @@ export async function addTakeToProject(
   session: BrowserProjectSession,
   file: File,
   marks: readonly TakeMark[],
-): Promise<"timeline" | "media"> {
+): Promise<{ where: "timeline" | "media"; at: number; mediaID: string }> {
   const [mediaID] = await session.importFiles([file]);
   if (!mediaID) throw new Error(`${file.name} could not be added to the project.`);
   const state = session.getSnapshot();
   const media = state.project.media.find((item) => item.id === mediaID);
   if (state.mediaAvailability[mediaID]?.state !== "available" || !media?.duration?.seconds)
-    return "media";
+    return { where: "media", at: 0, mediaID };
   const at = projectDuration(state.project).seconds;
   session.apply({
     label: `Place ${file.name}`,
@@ -28,7 +28,7 @@ export async function addTakeToProject(
       })),
     ],
   });
-  return "timeline";
+  return { where: "timeline", at, mediaID };
 }
 
 export const placedMessage = (name: string, where: "timeline" | "media") =>

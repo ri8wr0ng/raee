@@ -428,7 +428,11 @@ export default function StudioPanel({
       setStatus("Saved to the cloud. It opens in the editor when the stream ends, or open it now.");
     if (!uploadedId || onAir) return;
     setStatus("Saved to the cloud. Opening it in the editor…");
-    void navigate({ to: "/edit/$mediaId", params: { mediaId: uploadedId } });
+    void navigate({
+      to: "/edit/$mediaId",
+      params: { mediaId: uploadedId },
+      search: { from: "studio" },
+    });
   }, [uploadedId, onAir, navigate]);
   useEffect(() => {
     let alive = true;
@@ -1592,7 +1596,7 @@ export default function StudioPanel({
         where = await addTakeToProject(session, target.file, target.marks);
       });
       if (where) {
-        setStatus(placedMessage(takeName, where));
+        setStatus(placedMessage(takeName, where.where));
         setTakePlaced(true);
       }
     }, "Import failed. Download the file or retry.");
@@ -1718,7 +1722,11 @@ export default function StudioPanel({
               onClick={() =>
                 void navigate(
                   uploadedId
-                    ? { to: "/edit/$mediaId", params: { mediaId: uploadedId } }
+                    ? {
+                        to: "/edit/$mediaId",
+                        params: { mediaId: uploadedId },
+                        search: { from: "studio" },
+                      }
                     : { to: "/" },
                 )
               }
@@ -1985,7 +1993,7 @@ export default function StudioPanel({
                         const file = await takeFile(item.fileName);
                         const where = await addTakeToProject(session, file, item.marks);
                         dropRecovered(item.fileName);
-                        setStatus(placedMessage(file.name, where));
+                        setStatus(placedMessage(file.name, where.where));
                         setTakePlaced(true);
                       }, "The take could not be added. Download it or retry.")
                     }

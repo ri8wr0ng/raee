@@ -4,7 +4,7 @@ import {
   writePreference,
 } from "@raee/platform-browser/preferences";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useBlocker } from "@tanstack/react-router";
 import {
   RiArrowGoBackLine,
   RiArrowGoForwardLine,
@@ -20,9 +20,11 @@ import {
   RiUploadCloud2Line,
   RiPulseLine,
   RiCheckDoubleLine,
+  RiRecordCircleLine,
 } from "@remixicon/react";
 import { Button, buttonVariants } from "@raee/ui/components/button";
 import { useCloud } from "@/modules/cloud/cloud-context";
+import { CloudLinkStatus } from "@/modules/cloud/cloud-link-status";
 import { Alert, AlertTitle, AlertDescription } from "@raee/ui/components/alert";
 import { Tip, TooltipProvider } from "@raee/ui/components/tooltip";
 import { ExportDialog } from "./export-dialog";
@@ -83,6 +85,14 @@ function PanelRail({
 
 export function WorkspaceHome() {
   const { session, snapshot, editor } = useEditorSession();
+  // The session outlives this page, so only an unfinished or failed save is worth stopping for.
+  const unsafeToLeave = snapshot.saveState === "saving" || snapshot.saveState === "error";
+  const unsafeRef = useRef(unsafeToLeave);
+  unsafeRef.current = unsafeToLeave;
+  const leaveBlocker = useBlocker({
+    shouldBlockFn: () => unsafeRef.current,
+    withResolver: true,
+  });
   const cloudAvailable = useCloud().available;
   const keymap = useEditorView((state) => state.keymap);
   const keymapOverrides = useEditorView((state) => state.keymapOverrides);
@@ -274,6 +284,7 @@ export function WorkspaceHome() {
                       ? "Saving..."
                       : "Save failed"}
             </span>
+            {cloudAvailable && <CloudLinkStatus />}
           </div>
           <div className="editor-topbar-actions">
             <div className="editor-toolbar-group">
@@ -406,6 +417,19 @@ export function WorkspaceHome() {
                   <span className="editor-button-label">Archive project</span>
                 </Button>
               </Tip>
+              <Tip label="Record a take into this project">
+                <Link
+                  to="/studio"
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "editor-topbar-collapse",
+                  })}
+                >
+                  <RiRecordCircleLine data-icon="inline-start" aria-hidden="true" />
+                  <span className="editor-button-label">Record</span>
+                </Link>
+              </Tip>
               {cloudAvailable && (
                 <Tip label="Save or open cloud projects">
                   <Link
@@ -426,6 +450,24 @@ export function WorkspaceHome() {
           </div>
         </header>
 
+        {leaveBlocker.status === "blocked" && (
+          <Alert role="alert" className="editor-notice" data-tone="error">
+            <AlertTitle>
+              {snapshot.saveState === "error" ? "This project didn't save" : "Still saving"}
+            </AlertTitle>
+            <AlertDescription>
+              {snapshot.saveState === "error"
+                ? "Your latest changes aren't saved yet. Retry the save before you leave so you don't lose them."
+                : "Wait a moment for the project to finish saving before you leave."}
+            </AlertDescription>
+            <Button size="sm" onClick={() => leaveBlocker.reset?.()}>
+              Stay
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => leaveBlocker.proceed?.()}>
+              Leave anyway
+            </Button>
+          </Alert>
+        )}
         {layoutProtected && (
           <Alert role="status" className="editor-notice">
             <AlertTitle>Temporary layout</AlertTitle>

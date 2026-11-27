@@ -10,6 +10,7 @@ import type * as CloudProject from "./cloud-project";
 
 const calls = vi.hoisted(() => ({
   rows: [] as unknown[] | undefined,
+  revision: 8,
   record: null as unknown,
   save: vi.fn(),
   open: vi.fn(),
@@ -31,12 +32,17 @@ vi.mock("convex/react", () => ({
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => calls.navigate }));
 vi.mock("../workspace/editor-session", () => ({
   useEditorSession: () => ({
-    session: { cloudProject: calls.cloudProject, openCloudProject: calls.openCloudProject },
+    session: {
+      cloudProject: calls.cloudProject,
+      openCloudProject: calls.openCloudProject,
+      getSnapshot: () => ({ revision: calls.revision }),
+    },
     snapshot: {
       project: { id: "prj_local", name: "Launch video" },
       readOnly: false,
       busy: false,
       saveState: "saved",
+      revision: calls.revision,
     },
   }),
 }));
@@ -65,6 +71,7 @@ const record = {
 beforeEach(() => {
   localStorage.clear();
   calls.rows = [];
+  calls.revision = 8;
   calls.record = record;
   for (const fn of [
     calls.save,
@@ -89,6 +96,7 @@ it("saves a new project, links it to this device and reports what was sent", asy
     projectId: "proj_9",
     teamId: "team_1",
     revision: 1,
+    localRevision: 8,
   });
 });
 
@@ -116,6 +124,17 @@ it("updates the linked project, and refuses before uploading when another device
   expect(calls.save.mock.calls[0]![0].existing).toBeNull();
 });
 
+it("offers to open the linked cloud version after a save conflict", async () => {
+  calls.rows = [row];
+  writeProjectLink("prj_local", { projectId: "proj_1", teamId: "team_1", revision: 2 });
+  render(<CloudProjects teamId={"team_1" as never} readOnly={false} />);
+  await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  const openCloud = await screen.findByRole("button", { name: "Open cloud version" });
+  expect(openCloud).toBeTruthy();
+  await userEvent.click(openCloud);
+  expect(await screen.findByText(/Open “Launch video”\?/)).toBeTruthy();
+});
+
 it("confirms before opening, then opens the download as a new local project", async () => {
   calls.rows = [row];
   calls.open.mockResolvedValue({ json: "{}", resources: [] });
@@ -131,6 +150,7 @@ it("confirms before opening, then opens the download as a new local project", as
     projectId: "proj_1",
     teamId: "team_1",
     revision: 3,
+    localRevision: 8,
   });
 });
 
