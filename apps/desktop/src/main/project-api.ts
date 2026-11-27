@@ -1124,8 +1124,12 @@ export class ProjectAPI {
       if (["apply", "undo", "redo", "history", "diff", "restore"].includes(operation))
         return this.edit(operation, request);
       if (["export", "clip"].includes(operation)) {
-        // Same preset resolution as the renderer: clips default to review, exports don't.
-        if (serviceExportPlan(this.file().project, request, operation).preset !== "review") {
+        // Read the preset name the way serviceExportPlan does (clips default to review), before
+        // any format checks, so a pending review is reported first.
+        const preset = String(request.preset ?? (operation === "clip" ? "review" : ""))
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+        if (preset !== "review" && preset !== "review720p") {
           const n = this.project.reviewPending().length;
           if (n > 0)
             throw new EditError(

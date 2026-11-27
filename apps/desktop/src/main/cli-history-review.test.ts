@@ -292,6 +292,10 @@ it("allows review exports and lets wait review finish after Mark reviewed", asyn
   await expect(api.handle("export", { output: "final.mp4" })).rejects.toMatchObject({
     code: "review-required",
   });
+  // Pending review is reported before format problems (this project has no portrait format).
+  await expect(
+    api.handle("export", { output: "short.mp4", preset: "short" }),
+  ).rejects.toMatchObject({ code: "review-required" });
   const waiting = api.handle("wait", { what: "review", timeout: 5 });
   await host.flush();
   const snapshot = host.snapshot();

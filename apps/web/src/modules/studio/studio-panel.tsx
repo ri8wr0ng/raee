@@ -1716,7 +1716,8 @@ export default function StudioPanel({
         <p role="status" aria-live="polite" className="text-muted-foreground empty:hidden">
           {loading ? "Opening saved scenes…" : status || captureNotice}
         </p>
-        {placedTake && (
+        {/* Leaving mid-stream hits Studio's leave guard, so wait until the stream ends. */}
+        {placedTake && !onAir && (
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
