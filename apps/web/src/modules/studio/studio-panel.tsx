@@ -57,7 +57,7 @@ import { useEditorSession } from "@/modules/workspace/editor-session";
 import { nativeBridge } from "@/modules/workspace/host-coordinator";
 import { megabytes, type UploadProgress } from "./cloud-upload";
 import { StudioLive } from "./studio-live";
-import { addTakeToProject, placedMessage } from "./place-take";
+import { addTakeToProject, focusPlacedTake, placedMessage } from "./place-take";
 import {
   TakeWriter,
   listTakes,
@@ -213,7 +213,7 @@ export default function StudioPanel({
   onBusy: (busy: boolean) => void;
   cloud: StudioCloud;
 }) {
-  const { session, snapshot } = useEditorSession();
+  const { session, snapshot, editor } = useEditorSession();
   const navigate = useNavigate();
   const liveChat = useLiveChatController();
   const liveChatRef = useRef(liveChat.chat);
@@ -276,6 +276,9 @@ export default function StudioPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [placedTake, setPlacedTake] = useState<Awaited<ReturnType<typeof addTakeToProject>> | null>(
+    null,
+  );
   const [frame, setFrame] = useState<string | null>(null);
   const [previewFrame, setPreviewFrame] = useState<string | null>(null);
   const [name, setName] = useState("Scene 1");
@@ -423,9 +426,15 @@ export default function StudioPanel({
   const uploadedId = program.kind === "uploaded" ? program.mediaId : null;
   // While the program is still on air, opening the take waits until the stream ends.
   useEffect(() => {
+    if (uploadedId && onAir)
+      setStatus("Saved to the cloud. It opens in the editor when the stream ends.");
     if (!uploadedId || onAir) return;
     setStatus("Saved to the cloud. Opening it in the editor…");
-    void navigate({ to: "/edit/$mediaId", params: { mediaId: uploadedId } });
+    void navigate({
+      to: "/edit/$mediaId",
+      params: { mediaId: uploadedId },
+      search: { from: "studio" },
+    });
   }, [uploadedId, onAir, navigate]);
   useEffect(() => {
     let alive = true;
@@ -695,25 +704,25 @@ export default function StudioPanel({
       if (!current) return;
       const id = existing?.id ?? crypto.randomUUID();
       const look = existing ? current.project(existing.id).liveAssets : undefined;
-      const editor = session.getSnapshot().project;
+      const editorProject = session.getSnapshot().project;
       // A blank scene keeps the project's settings and media but none of the editor's timeline,
       // so it shows only its background, overlays and the sources added here.
       const base = blank
         ? {
-            ...editor,
-            videoTracks: editor.videoTracks.map((track) => ({
+            ...editorProject,
+            videoTracks: editorProject.videoTracks.map((track) => ({
               ...track,
               clips: [],
               transitions: [],
             })),
-            audioTracks: editor.audioTracks.map((track) => ({
+            audioTracks: editorProject.audioTracks.map((track) => ({
               ...track,
               clips: [],
               transitions: [],
             })),
             markers: [],
           }
-        : editor;
+        : editorProject;
       current.save({
         id,
         name: existing?.name ?? name,
@@ -1574,6 +1583,7 @@ export default function StudioPanel({
   const startRecording = () =>
     attempt(async () => {
       setStatus("");
+      setPlacedTake(null);
       await capture.current!.start();
     }, "Recording could not start.");
   const addClip = (file: File) =>
@@ -1587,7 +1597,10 @@ export default function StudioPanel({
       await capture.current!.importTake(async (target) => {
         where = await addTakeToProject(session, target.file, target.marks);
       });
-      if (where) setStatus(placedMessage(takeName, where));
+      if (where) {
+        setStatus(placedMessage(takeName, where.where));
+        setPlacedTake(where);
+      }
     }, "Import failed. Download the file or retry.");
   const dropRecovered = (fileName: string) => {
     void removeTake(fileName);
@@ -1703,6 +1716,21 @@ export default function StudioPanel({
         <p role="status" aria-live="polite" className="text-muted-foreground empty:hidden">
           {loading ? "Opening saved scenes…" : status || captureNotice}
         </p>
+        {/* Leaving mid-stream hits Studio's leave guard, so wait until the stream ends. */}
+        {placedTake && !onAir && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                focusPlacedTake(session, editor, placedTake);
+                void navigate({ to: "/" });
+              }}
+            >
+              Open in editor
+            </Button>
+          </div>
+        )}
         <Section title="Go">
           <RadioGroup
             aria-label="Output"
@@ -1956,7 +1984,8 @@ export default function StudioPanel({
                         const file = await takeFile(item.fileName);
                         const where = await addTakeToProject(session, file, item.marks);
                         dropRecovered(item.fileName);
-                        setStatus(placedMessage(file.name, where));
+                        setStatus(placedMessage(file.name, where.where));
+                        setPlacedTake(where);
                       }, "The take could not be added. Download it or retry.")
                     }
                   >

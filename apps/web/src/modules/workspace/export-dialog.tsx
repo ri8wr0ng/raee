@@ -1,4 +1,5 @@
 import { useRef, useState, useSyncExternalStore } from "react";
+import { RiCheckDoubleLine } from "@remixicon/react";
 import { Button } from "@raee/ui/components/button";
 import {
   Dialog,
@@ -30,6 +31,7 @@ export function ExportDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { session, snapshot, editor } = useEditorSession();
+  const reviewPending = snapshot.reviewPendingCount ?? 0;
   const range = useEditorView((state) => state.range);
   const rangeSelect = useRef<HTMLButtonElement>(null);
   const [encoding, setEncoding] = useState<"webm" | "h264" | "hevc">("webm");
@@ -37,6 +39,7 @@ export function ExportDialog({
     [useRange, setUseRange] = useState(false),
     [preset, setPreset] = useState<ExportPreset | "wav">("webm"),
     [error, setError] = useState<string | null>(null);
+  const reviewBlocked = reviewPending > 0 && preset !== "review";
   const entries = useSyncExternalStore(
     session.exports.subscribe,
     session.exports.getSnapshot,
@@ -273,9 +276,32 @@ export function ExportDialog({
         <p role="status">
           Exports run in order. Video dimensions follow the selected canvas, format or preset.
         </p>
+        {reviewPending > 0 && (
+          <div className="editor-export-review" role="status" data-blocked={reviewBlocked}>
+            <RiCheckDoubleLine aria-hidden="true" />
+            <span>
+              {reviewPending === 1 ? "1 agent edit batch" : `${reviewPending} agent edit batches`}{" "}
+              need review before you can export. Check them in History, then mark them reviewed.
+              Review exports still work.
+            </span>
+            <Button
+              size="xs"
+              variant="outline"
+              disabled={snapshot.readOnly || snapshot.busy || snapshot.saveState !== "saved"}
+              onClick={() => {
+                setError(null);
+                void Promise.resolve(session.markReviewed()).catch((cause) =>
+                  setError(cause instanceof Error ? cause.message : String(cause)),
+                );
+              }}
+            >
+              Mark reviewed
+            </Button>
+          </div>
+        )}
         <DialogFooter>
           <Button
-            disabled={Boolean(issue) || snapshot.readOnly || entries.length >= 5}
+            disabled={Boolean(issue) || snapshot.readOnly || entries.length >= 5 || reviewBlocked}
             onClick={() => {
               try {
                 setError(null);

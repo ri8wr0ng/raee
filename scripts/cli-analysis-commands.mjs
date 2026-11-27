@@ -246,6 +246,10 @@ export function analysisText(operation, r) {
     return lines.join("\n");
   }
   if (operation === "wait") {
+    if (typeof r.reviewed === "boolean")
+      return r.reviewed
+        ? `Review complete at revision ${r.revision}.`
+        : `Still waiting: ${r.pending} agent edit batch${r.pending === 1 ? "" : "es"} to review.`;
     if (!r.finished.length && !r.pending.length)
       return {
         jobs: "No background jobs running.",

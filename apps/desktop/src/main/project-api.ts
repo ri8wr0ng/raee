@@ -121,6 +121,29 @@ export class ProjectAPI {
       pending,
     };
   }
+  private async waitReview(request: Record<string, unknown>, signal: AbortSignal) {
+    const started = Date.now(),
+      timeout = Math.min(86400, Math.max(0, Number(request.timeout ?? 600)));
+    while (true) {
+      signal.throwIfAborted();
+      const pending = this.project.reviewPending().length,
+        revision = this.file().revision;
+      if (!pending || Date.now() - started >= timeout * 1000)
+        return { reviewed: pending === 0, pending, revision };
+      await new Promise<void>((complete, reject) => {
+        const abort = () => {
+          clearTimeout(timer);
+          reject(new QueryError("unavailable", "Wait cancelled."));
+        };
+        const timer = setTimeout(() => {
+          signal.removeEventListener("abort", abort);
+          complete();
+        }, 250);
+        signal.addEventListener("abort", abort, { once: true });
+        if (signal.aborted) abort();
+      });
+    }
+  }
   private mediaRoot: string | null = null;
   private readonly started = new Date().toISOString();
   private port: number | undefined;
@@ -851,6 +874,8 @@ export class ProjectAPI {
       }
       if (operation === "wait" && request.what === "export")
         return this.waitExports(request, signal);
+      if (operation === "wait" && request.what === "review")
+        return this.waitReview(request, signal);
       if (operation === "sync") {
         const file = this.file(),
           generation = this.project.snapshot().generation;
@@ -1099,6 +1124,19 @@ export class ProjectAPI {
       if (["apply", "undo", "redo", "history", "diff", "restore"].includes(operation))
         return this.edit(operation, request);
       if (["export", "clip"].includes(operation)) {
+        // Read the preset name the way serviceExportPlan does (clips default to review), before
+        // any format checks, so a pending review is reported first.
+        const preset = String(request.preset ?? (operation === "clip" ? "review" : ""))
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+        if (preset !== "review" && preset !== "review720p") {
+          const n = this.project.reviewPending().length;
+          if (n > 0)
+            throw new EditError(
+              "review-required",
+              `${n} agent edit batch${n === 1 ? "" : "es"} must be reviewed before exporting. Ask the user to review them in the History panel and click Mark reviewed, then call wait with what:"review" and retry. Exports with preset "review" are still allowed.`,
+            );
+        }
         const id = randomUUID(),
           job = {
             kind: "export",

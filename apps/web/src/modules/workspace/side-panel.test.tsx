@@ -8,6 +8,9 @@ import type { SideTab } from "./panel-sizes";
 import { SidePanel } from "./side-panel";
 
 // The panels need an editor session; the tab wiring is what is under test.
+vi.mock("./editor-session", () => ({
+  useEditorSession: () => ({ snapshot: { reviewPendingCount: 0 } }),
+}));
 vi.mock("./media-bin", () => ({ MediaBin: () => <p>media content</p> }));
 vi.mock("./comments-panel", () => ({ CommentsPanel: () => <p>comments content</p> }));
 vi.mock("./history-panel", () => ({ HistoryPanel: () => <p>history content</p> }));

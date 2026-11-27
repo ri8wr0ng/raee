@@ -217,7 +217,12 @@ export async function openCloudProject(options: {
 }
 
 // `revision` is the cloud revision this device last saved or opened, used to catch saves made elsewhere.
-export type ProjectLink = { projectId: string; teamId: string; revision?: number };
+export type ProjectLink = {
+  projectId: string;
+  teamId: string;
+  revision?: number;
+  localRevision?: number;
+};
 
 const linkPrefix = "raee.cloud.project.";
 
@@ -247,11 +252,14 @@ export function readProjectLink(
   try {
     const value: unknown = JSON.parse(raw);
     if (typeof value !== "object" || value === null) return null;
-    const { projectId, teamId, revision } = value as Record<string, unknown>;
+    const { projectId, teamId, revision, localRevision } = value as Record<string, unknown>;
     if (typeof projectId !== "string" || typeof teamId !== "string") return null;
-    return Number.isSafeInteger(revision)
-      ? { projectId, teamId, revision: revision as number }
-      : { projectId, teamId };
+    return {
+      projectId,
+      teamId,
+      ...(Number.isSafeInteger(revision) ? { revision: revision as number } : {}),
+      ...(Number.isSafeInteger(localRevision) ? { localRevision: localRevision as number } : {}),
+    };
   } catch {
     return null;
   }

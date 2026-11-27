@@ -307,6 +307,37 @@
   flex: 1;
   min-width: 0;
 }
+.editor-side-tab-badge {
+  margin-inline-start: 6px;
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.editor-export-review {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+.editor-export-review[data-blocked="true"] {
+  border-color: color-mix(in oklab, var(--accent-live) 50%, var(--border));
+}
+.editor-export-review > span {
+  flex: 1;
+}
+.editor-export-review > svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
 .editor-side-note-line {
   padding: 8px 12px;
   color: var(--muted-foreground);

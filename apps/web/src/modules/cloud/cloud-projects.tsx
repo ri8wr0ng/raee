@@ -120,11 +120,14 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
     setNotice(null);
     setWork({ kind: "saving", progress: null });
     try {
+      const localRevision = session.getSnapshot().revision;
       const project = await session.cloudProject();
       const found = !asNew && linked ? await record(linked.projectId) : null;
       // Checked again by the server; refusing here avoids uploading files for a save that fails.
       if (found && linked?.revision !== undefined && found.revision !== linked.revision)
-        throw new Error("This project was saved from another device since you opened it.");
+        throw new Error(
+          "This project was saved from another device since you opened it. Save yours as a new project, or open the cloud version (your local changes will be replaced).",
+        );
       // The revision this device last saved or opened, so a newer save elsewhere isn't overwritten.
       const existing = found && { ...found, revision: linked?.revision ?? found.revision };
       const result = await saveProjectToCloud({
@@ -154,6 +157,7 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
         projectId: result.projectId,
         teamId,
         revision: result.revision,
+        localRevision,
       });
       setNotice({
         kind: "saved",
@@ -192,7 +196,12 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
       });
       abort.signal.throwIfAborted();
       const localProjectID = await session.openCloudProject(opened.json, opened.resources);
-      writeProjectLink(localProjectID, { projectId: found._id, teamId, revision: found.revision });
+      writeProjectLink(localProjectID, {
+        projectId: found._id,
+        teamId,
+        revision: found.revision,
+        localRevision: session.getSnapshot().revision,
+      });
       void navigate({ to: "/" });
     } catch (cause) {
       if (abort.signal.aborted || isAbortError(cause))
@@ -224,6 +233,8 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
   const progress = work?.progress;
   const percent = progress?.total ? (progress.loaded / progress.total) * 100 : 0;
   const projectName = snapshot.project.name || "Untitled";
+  const saving = snapshot.saveState === "saving" || snapshot.saveState === "error";
+  const openBlocked = Boolean(work) || snapshot.busy || snapshot.readOnly || saving;
 
   return (
     <section className="cloud-projects grid gap-3" aria-labelledby="cloud-projects-title">
@@ -290,9 +301,19 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
         <div role="alert" className="grid justify-items-start gap-2 text-sm">
           <p className="text-destructive">{notice.message}</p>
           {notice.conflict && (
-            <Button size="sm" variant="outline" onClick={() => void runSave(true)}>
-              Save as a new project
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => void runSave(true)}>
+                Save as a new project
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => linkedRow && setConfirm({ kind: "open", project: linkedRow })}
+                disabled={!linkedRow || openBlocked}
+              >
+                Open cloud version
+              </Button>
+            </div>
           )}
         </div>
       )}
@@ -328,7 +349,8 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={Boolean(work) || snapshot.busy || snapshot.readOnly}
+                  disabled={openBlocked}
+                  title={saving ? "Wait for this project to finish saving." : undefined}
                   onClick={() => setConfirm({ kind: "open", project })}
                 >
                   Open
@@ -373,6 +395,14 @@ export function CloudProjects({ teamId, readOnly }: { teamId: TeamId; readOnly: 
                   variant={confirm.kind === "remove" ? "destructive" : "default"}
                   onClick={() => {
                     const { kind, project } = confirm;
+                    if (kind === "open" && openBlocked) {
+                      setConfirm(null);
+                      setNotice({
+                        kind: "error",
+                        message: "Wait for this project to finish saving, then open it again.",
+                      });
+                      return;
+                    }
                     setConfirm(null);
                     void (kind === "open" ? runOpen(project) : runRemove(project));
                   }}

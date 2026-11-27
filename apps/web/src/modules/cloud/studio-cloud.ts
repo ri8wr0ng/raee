@@ -1,4 +1,5 @@
 import { useAction, useMutation } from "convex/react";
+import { useNavigate } from "@tanstack/react-router";
 import { api } from "@raee/cloud/api";
 import { useActiveTeam } from "./active-team";
 import { useCloudAuth } from "./cloud-auth";
@@ -34,6 +35,7 @@ export const LOCAL_ONLY: StudioCloud = {
 
 /** Call only inside CloudProvider when cloud is configured. */
 export function useStudioCloud(): StudioCloud {
+  const navigate = useNavigate();
   const { isLoading, isAuthenticated, teams, current } = useActiveTeam();
   const create = useMutation(api.library.create);
   const beginStream = useMutation(api.versions.beginStream);
@@ -50,7 +52,12 @@ export function useStudioCloud(): StudioCloud {
       action: { label: "Sign in", run: () => void signIn({ returnTo: "/studio" }).catch(() => {}) },
     };
   if (!teams) return { state: "unavailable", reason: "Loading your teams…" };
-  if (!current) return { state: "unavailable", reason: "Create or join a team on Team first." };
+  if (!current)
+    return {
+      state: "unavailable",
+      reason: "Create or join a team to save takes to the cloud.",
+      action: { label: "Open Team", run: () => void navigate({ to: "/team" }) },
+    };
   if (current.role === "viewer")
     return {
       state: "unavailable",

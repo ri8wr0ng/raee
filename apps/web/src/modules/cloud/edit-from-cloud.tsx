@@ -8,22 +8,22 @@ import { Button } from "@raee/ui/components/button";
 import { Progress } from "@raee/ui/components/progress";
 import { AppPage } from "@/modules/shell/app-shell";
 import { megabytes } from "@/modules/studio/cloud-upload";
-import { addTakeToProject } from "@/modules/studio/place-take";
-import { findCloudTake, removeTake, takeFile } from "@/modules/studio/take-store";
+import { addTakeToProject, focusPlacedTake } from "@/modules/studio/place-take";
+import { findCloudTake, removeTake, takeFile, type TakeInfo } from "@/modules/studio/take-store";
 import { useEditorSession } from "@/modules/workspace/editor-session";
 import { currentReturnTo, useCloud } from "./cloud-provider";
 import { recordingMetadata } from "./recording-metadata";
 import { downloadToFile } from "./add-to-project";
 
-export function EditFromCloud({ mediaId }: { mediaId: string }) {
+export function EditFromCloud({ mediaId, from }: { mediaId: string; from?: "studio" | undefined }) {
   const { configured } = useCloud();
   return (
     <AppPage
       title="Open from cloud"
-      description="Adds the original file to this project and places it at the end of the timeline."
+      description="Get the original file from your team's library and edit it here."
     >
       {configured ? (
-        <Download mediaId={mediaId as GenericId<"media">} />
+        <Download mediaId={mediaId as GenericId<"media">} from={from} />
       ) : (
         <p>Cloud is not configured for this app. Open files from this device in Edit.</p>
       )}
@@ -33,7 +33,8 @@ export function EditFromCloud({ mediaId }: { mediaId: string }) {
 
 // One import per file at a time. The effect below can run again (StrictMode, a token refresh)
 // while an import is still writing to the project; this keeps it from adding the file twice.
-const importing = new Map<string, Promise<void>>();
+type ImportResult = Awaited<ReturnType<typeof addTakeToProject>>;
+const importing = new Map<string, Promise<ImportResult>>();
 
 type Phase =
   | { name: "waiting" }
@@ -41,18 +42,40 @@ type Phase =
   | { name: "importing"; fileName: string }
   | { name: "failed"; error: string };
 
-function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
+function Download({ mediaId, from }: { mediaId: GenericId<"media">; from?: "studio" | undefined }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signIn } = useCloudAuth();
   const sourceUrl = useAction(api.storage.sourceUrl);
-  const { session, snapshot } = useEditorSession();
+  const { session, snapshot, editor } = useEditorSession();
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>({ name: "waiting" });
   const [attempt, setAttempt] = useState(0);
+  const [confirmed, setConfirmed] = useState(from === "studio");
+  const [localResult, setLocalResult] = useState<{ mediaId: string; take: TakeInfo | null }>();
+  const local = localResult?.mediaId === mediaId ? localResult.take : undefined;
   const projectLoading = snapshot.saveState === "loading";
 
   useEffect(() => {
-    if (isLoading || !isAuthenticated || projectLoading) return;
+    let active = true;
+    void findCloudTake(mediaId)
+      .catch(() => undefined)
+      .then((take) => {
+        if (active) setLocalResult({ mediaId, take: take ?? null });
+      });
+    return () => {
+      active = false;
+    };
+  }, [mediaId]);
+
+  useEffect(() => {
+    if (
+      (isLoading && !local) ||
+      projectLoading ||
+      !confirmed ||
+      local === undefined ||
+      (!local && !isAuthenticated)
+    )
+      return;
     const abort = new AbortController();
     void (async () => {
       try {
@@ -66,13 +89,18 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
           return;
         }
         // A take recorded on this device is still on disk: open it without downloading.
-        const local = await findCloudTake(mediaId).catch(() => undefined);
         if (local) {
           setPhase({ name: "importing", fileName: local.fileName });
-          await importOnce(mediaId, async () => {
-            await addTakeToProject(session, await takeFile(local.fileName), local.marks);
+          const result = await importOnce(mediaId, async () => {
+            const imported = await addTakeToProject(
+              session,
+              await takeFile(local.fileName),
+              local.marks,
+            );
             await removeTake(local.fileName);
+            return imported;
           });
+          focusPlacedTake(session, editor, result);
           if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
           return;
         }
@@ -89,7 +117,10 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
         });
         if (abort.signal.aborted) return;
         setPhase({ name: "importing", fileName });
-        await importOnce(mediaId, () => addTakeToProject(session, file, source.marks));
+        const result = await importOnce(mediaId, () =>
+          addTakeToProject(session, file, source.marks),
+        );
+        focusPlacedTake(session, editor, result);
         if (!abort.signal.aborted) void navigate({ to: "/", replace: true });
       } catch (cause) {
         if (abort.signal.aborted) return;
@@ -100,10 +131,37 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
       }
     })();
     return () => abort.abort();
-  }, [attempt, isAuthenticated, isLoading, mediaId, navigate, projectLoading, session, sourceUrl]);
+  }, [
+    attempt,
+    confirmed,
+    editor,
+    isAuthenticated,
+    isLoading,
+    local,
+    mediaId,
+    navigate,
+    projectLoading,
+    session,
+    sourceUrl,
+  ]);
 
   if (isLoading || projectLoading) return <p role="status">Getting ready…</p>;
-  if (!isAuthenticated)
+  if (!confirmed) {
+    const name = snapshot.project.name || "Untitled";
+    return (
+      <div className="grid justify-items-start gap-3">
+        <p>This adds the file to “{name}” and places it at the end of the timeline.</p>
+        <div className="flex gap-2">
+          <Button onClick={() => setConfirmed(true)}>Add to “{name}”</Button>
+          <Button variant="outline" onClick={() => void navigate({ to: "/library" })}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (local === undefined) return <p role="status">Finding the file…</p>;
+  if (!local && !isAuthenticated)
     return (
       <div className="grid justify-items-start gap-3">
         <p>Sign in to open this file from your team's library.</p>
@@ -132,12 +190,10 @@ function Download({ mediaId }: { mediaId: GenericId<"media"> }) {
   return <p role="status">Finding the file…</p>;
 }
 
-function importOnce(mediaId: string, run: () => Promise<unknown>): Promise<void> {
+function importOnce(mediaId: string, run: () => Promise<ImportResult>): Promise<ImportResult> {
   const existing = importing.get(mediaId);
   if (existing) return existing;
-  const task = run()
-    .then(() => {})
-    .finally(() => importing.delete(mediaId));
+  const task = run().finally(() => importing.delete(mediaId));
   importing.set(mediaId, task);
   return task;
 }

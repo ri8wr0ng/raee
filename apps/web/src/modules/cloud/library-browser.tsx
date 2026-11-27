@@ -216,6 +216,25 @@ export function LibraryBrowser({
                   Open in editor
                 </Button>
               )}
+              {onEdit && item.archived && !readOnly && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  aria-label={`Restore ${item.name} and open it in the editor`}
+                  onClick={() =>
+                    void run(async () => {
+                      await bulk({ mediaIds: [item._id], operation: "restore" });
+                      onEdit(item._id);
+                    }, "File restored.")
+                  }
+                >
+                  Restore and edit
+                </Button>
+              )}
+              {onEdit && item.archived && readOnly && (
+                <span className="text-xs text-muted-foreground">Ask an editor to restore it</span>
+              )}
             </li>
           ))}
         </ul>

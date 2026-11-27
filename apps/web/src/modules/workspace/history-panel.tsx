@@ -56,6 +56,7 @@ export function HistoryPanel({
   hideButton?: ReactNode;
 }) {
   const { session, snapshot } = useEditorSession();
+  const [agentsOnly, setAgentsOnly] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 30_000);
@@ -72,8 +73,9 @@ export function HistoryPanel({
     if (awaiting.size >= pending) break;
     if (!LOCAL_AUTHORS.includes(entry.author)) awaiting.add(entry.id);
   }
+  const shown = agentsOnly ? entries.filter((e) => !LOCAL_AUTHORS.includes(e.author)) : entries;
   const groups: { label: string; entries: HistoryEntry[] }[] = [];
-  for (const entry of entries) {
+  for (const entry of shown) {
     const label = dayLabel(entry.date ? new Date(entry.date) : null, now);
     const last = groups.at(-1);
     if (last?.label === label) last.entries.push(entry);
@@ -85,6 +87,14 @@ export function HistoryPanel({
       <div className="editor-panel-heading">
         <h2 id="history-title">History</h2>
         {entries.length > 0 && <span>{entries.length}</span>}
+        <Button
+          size="xs"
+          variant={agentsOnly ? "secondary" : "ghost"}
+          aria-pressed={agentsOnly}
+          onClick={() => setAgentsOnly((v) => !v)}
+        >
+          Agents only
+        </Button>
         <Tip
           label={snapshot.undoLabel ? `Undo ${snapshot.undoLabel}` : "Nothing to undo"}
           shortcut="Ctrl+Z"
@@ -153,66 +163,71 @@ export function HistoryPanel({
           </Empty>
         ) : (
           <>
-            {groups.map((group) => (
-              <div
-                key={group.label}
-                className="editor-side-group"
-                role="group"
-                aria-label={group.label}
-              >
-                <h3>{group.label}</h3>
-                <ul className="editor-side-list">
-                  {group.entries.map((entry) => {
-                    const local = LOCAL_AUTHORS.includes(entry.author);
-                    const date = entry.date ? new Date(entry.date) : null;
-                    const current = entry.revision !== null && entry.revision === snapshot.revision;
-                    return (
-                      <li
-                        key={entry.id}
-                        className="editor-side-row editor-history-row"
-                        data-kind={entry.kind}
-                        data-current={current}
-                        data-review={awaiting.has(entry.id)}
-                        aria-current={current ? "step" : undefined}
-                      >
-                        <span className="editor-history-icon" data-agent={!local}>
-                          {local ? (
-                            <RiUser3Line aria-hidden="true" />
-                          ) : (
-                            <RiRobot2Line aria-hidden="true" />
-                          )}
-                        </span>
-                        <span className="editor-history-body">
-                          <span className="editor-side-text">{entry.label}</span>
-                          <span className="editor-side-meta">
-                            {entry.kind !== "edit" && (
-                              <span className="editor-side-kind">
-                                {entry.kind === "undo" ? "Undo" : "Redo"}
-                              </span>
-                            )}
-                            {(entry.kind === "edit" || !local) && (
-                              <span>{local ? "You" : entry.author}</span>
-                            )}
-                            {date && (
-                              <Tip label={fullFormat.format(date)}>
-                                <time dateTime={entry.date}>{relativeTime(date, now)}</time>
-                              </Tip>
-                            )}
-                            {entry.revision !== null && <span>r{entry.revision}</span>}
-                            {current && <span className="editor-side-kind">Current</span>}
-                            {awaiting.has(entry.id) && (
-                              <span className="editor-side-kind" data-tone="review">
-                                To review
-                              </span>
+            {agentsOnly && shown.length === 0 ? (
+              <p className="editor-side-note-line">No agent changes yet.</p>
+            ) : (
+              groups.map((group) => (
+                <div
+                  key={group.label}
+                  className="editor-side-group"
+                  role="group"
+                  aria-label={group.label}
+                >
+                  <h3>{group.label}</h3>
+                  <ul className="editor-side-list">
+                    {group.entries.map((entry) => {
+                      const local = LOCAL_AUTHORS.includes(entry.author);
+                      const date = entry.date ? new Date(entry.date) : null;
+                      const current =
+                        entry.revision !== null && entry.revision === snapshot.revision;
+                      return (
+                        <li
+                          key={entry.id}
+                          className="editor-side-row editor-history-row"
+                          data-kind={entry.kind}
+                          data-current={current}
+                          data-review={awaiting.has(entry.id)}
+                          aria-current={current ? "step" : undefined}
+                        >
+                          <span className="editor-history-icon" data-agent={!local}>
+                            {local ? (
+                              <RiUser3Line aria-hidden="true" />
+                            ) : (
+                              <RiRobot2Line aria-hidden="true" />
                             )}
                           </span>
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
+                          <span className="editor-history-body">
+                            <span className="editor-side-text">{entry.label}</span>
+                            <span className="editor-side-meta">
+                              {entry.kind !== "edit" && (
+                                <span className="editor-side-kind">
+                                  {entry.kind === "undo" ? "Undo" : "Redo"}
+                                </span>
+                              )}
+                              {(entry.kind === "edit" || !local) && (
+                                <span>{local ? "You" : entry.author}</span>
+                              )}
+                              {date && (
+                                <Tip label={fullFormat.format(date)}>
+                                  <time dateTime={entry.date}>{relativeTime(date, now)}</time>
+                                </Tip>
+                              )}
+                              {entry.revision !== null && <span>r{entry.revision}</span>}
+                              {current && <span className="editor-side-kind">Current</span>}
+                              {awaiting.has(entry.id) && (
+                                <span className="editor-side-kind" data-tone="review">
+                                  To review
+                                </span>
+                              )}
+                            </span>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))
+            )}
             {!history.complete && (
               <p className="editor-side-note-line">
                 Showing recent undo steps only; this project has no saved edit journal.

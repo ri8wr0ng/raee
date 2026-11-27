@@ -3,13 +3,49 @@ import { readFile } from "node:fs/promises";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { discoverHost, hostCall } from "./host-client.mjs";
+import { discoverHost, hostCall, watchHost } from "./host-client.mjs";
 import { findProject, verifyProjectOwner } from "./cli-foundation.mjs";
 import { definitions, prepareTool, toolResult, clientAuthor } from "./mcp-adapters.mjs";
 import { acquireProjectHost } from "./headless-host.mjs";
 
 const instructions =
   "raE.E edits local projects through one authoritative owner, starting a hidden desktop host for closed projects. Read status/timeline before editing. Use expectedRevision on mutations, label edits, and apply idempotencyKey for retries. Helpers preview unless apply:true. Resolve comments with removeMarker. Provider downloads/paid generation require explicit opt-in. Do not retry other mutations after a lost reply. Tools return readable text by default; json:true returns raw data. Read warnings and documented adapter limits.";
+
+/** Forwards export progress as MCP progress notifications while the export call runs. */
+async function watchExportProgress(host, extra, signal, output) {
+  // MCP names request metadata `_meta`.
+  // eslint-disable-next-line no-underscore-dangle
+  const progressToken = extra._meta?.progressToken;
+  let exportId;
+  try {
+    for await (const event of watchHost(host, { signal })) {
+      const job = event?.kind === "export" ? event.export : undefined;
+      if (!job || typeof job !== "object") continue;
+      if (exportId === undefined) {
+        // The host labels each job with its output, so another export's events are skipped.
+        if (job.state !== "running" || job.output !== output) continue;
+        exportId = job.id;
+      }
+      if (job.id !== exportId) continue;
+      if (progressToken !== undefined && typeof job.progress === "number") {
+        await extra
+          .sendNotification({
+            method: "notifications/progress",
+            params: {
+              progressToken,
+              progress: Math.round(job.progress * 100),
+              total: 100,
+              message: `Exporting ${job.output}`,
+            },
+          })
+          .catch(() => {});
+      }
+      if (job.state === "done" || job.state === "failed") return;
+    }
+  } catch {
+    // Event stream failures must never fail the tool call.
+  }
+}
 
 async function main() {
   const options = new Map();
@@ -25,7 +61,7 @@ async function main() {
   }
   const server = new Server(
     { name: "raee", version: "0.1.0" },
-    { capabilities: { tools: {} }, instructions },
+    { capabilities: { tools: {}, logging: {} }, instructions },
   );
   const hosts = new Map();
   server.onclose = () => {
@@ -95,11 +131,33 @@ async function main() {
         host ??= acquired.endpoint;
       }
       const author = options.get("--author") ?? clientAuthor(server.getClientVersion()?.name);
-      return toolResult(
-        tool.operation,
-        await hostCall(host, tool.operation, input, extra.signal, author),
-        json,
-      );
+      const exportWatching = ["export", "clip"].includes(tool.operation);
+      const exportAbort = new AbortController();
+      const exportWatch = exportWatching
+        ? watchExportProgress(
+            host,
+            extra,
+            extra.signal ? AbortSignal.any([extra.signal, exportAbort.signal]) : exportAbort.signal,
+            String(input.output ?? tool.operation),
+          )
+        : undefined;
+      // The done/failed message comes from the call itself, so it can't race the event stream.
+      const notify = (level, data) =>
+        exportWatching
+          ? server.sendLoggingMessage({ level, logger: "raee", data }).catch(() => {})
+          : undefined;
+      let result;
+      try {
+        result = await hostCall(host, tool.operation, input, extra.signal, author);
+      } catch (error) {
+        await notify("error", `Export failed: ${error.message ?? "unknown error"}`);
+        throw error;
+      } finally {
+        exportAbort.abort();
+        await exportWatch;
+      }
+      await notify("info", `Export done: ${result.path ?? input.output ?? ""}`.trim());
+      return toolResult(tool.operation, result, json);
     } catch (error) {
       return {
         isError: true,

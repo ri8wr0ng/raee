@@ -46,6 +46,7 @@ it("speaks MCP over stdio with 43 pinned tools and the studio extension, shared 
     [...inventory.tools, "studio"].sort(),
   );
   expect(client.getInstructions()).toContain("expectedRevision");
+  expect(client.getServerCapabilities()).toMatchObject({ tools: {}, logging: {} });
   const status = CallToolResultSchema.parse(
     await client.callTool({ name: "status", arguments: {} }),
   );

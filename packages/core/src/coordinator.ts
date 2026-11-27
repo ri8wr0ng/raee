@@ -32,7 +32,7 @@ type Json = typeof Schema.Json.Type;
 
 export class EditError extends Error {
   constructor(
-    readonly code: "invalid" | "stale-revision" | "validation" | "busy",
+    readonly code: "invalid" | "stale-revision" | "validation" | "busy" | "review-required",
     message: string,
     readonly objectID?: string,
   ) {

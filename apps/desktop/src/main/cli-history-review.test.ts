@@ -7,6 +7,7 @@ import { createServer } from "node:http";
 import { decodeProjectFile } from "@raee/contracts/project";
 import { reviewQuery } from "@raee/core/service-review";
 import { parseArguments } from "../../../../scripts/cli-foundation.mjs";
+import { analysisText } from "../../../../scripts/cli-analysis-commands.mjs";
 import { prepareQueryCommand, queryText } from "../../../../scripts/cli-query-commands.mjs";
 import contract from "../../../../tests/fixtures/tandem/cli-history-review.json";
 import { HostProjectService } from "./project-service.ts";
@@ -231,4 +232,84 @@ it("returns exit 1 for invalid validation in text and JSON without mutating the 
   expect(json.code).toBe(1);
   expect(JSON.parse(json.out)).toMatchObject({ ok: false, revision: 7 });
   expect(JSON.stringify(file)).toBe(before);
+});
+
+it("blocks non-review exports until agent edits are marked reviewed", async () => {
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-export-review-"));
+  cleanup.push(() => rm(root, { recursive: true, force: true }));
+  const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
+  await host.start();
+  cleanup.push(() => host.close());
+  const api = new ProjectAPI(host),
+    server = new LocalHTTPService(api),
+    endpoint = await server.start();
+  cleanup.push(() => server.close());
+  await api.handle("apply", {
+    label: "Agent suggestion",
+    commands: [{ updateProject: { patch: { name: "Suggested" } } }],
+  });
+  const response = await fetch(`http://127.0.0.1:${endpoint.port}/v1/export`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${endpoint.token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ output: "out.mp4", preset: "final" }),
+  });
+  expect(response.status).toBe(409);
+  expect(await response.json()).toMatchObject({
+    error: {
+      code: "reviewRequired",
+      message:
+        '1 agent edit batch must be reviewed before exporting. Ask the user to review them in the History panel and click Mark reviewed, then call wait with what:"review" and retry. Exports with preset "review" are still allowed.',
+    },
+  });
+});
+
+it("allows review exports and lets wait review finish after Mark reviewed", async () => {
+  const root = await mkdtemp(join(tmpdir(), "raee-cli-wait-review-"));
+  cleanup.push(() => rm(root, { recursive: true, force: true }));
+  const host = new HostProjectService(new NativeProjectStore(join(root, "current.tandem")));
+  await host.start();
+  cleanup.push(() => host.close());
+  const api = new ProjectAPI(host, undefined, {
+    run: async () => ({ data: "", container: "webm", duration: 0 }),
+    screenshot: async () => new Uint8Array(),
+  });
+  await api.handle("apply", {
+    label: "Agent suggestion",
+    commands: [{ updateProject: { patch: { name: "Suggested" } } }],
+  });
+  await expect(
+    api.handle("export", { output: "review.webm", preset: "review" }),
+  ).resolves.toMatchObject({ path: expect.any(String) });
+  // Clips default to the review preset, so one without a preset isn't blocked either.
+  await expect(
+    api.handle("clip", { output: "clip.webm", start: 0, end: 1 }),
+  ).resolves.toMatchObject({
+    path: expect.any(String),
+  });
+  await expect(api.handle("export", { output: "final.mp4" })).rejects.toMatchObject({
+    code: "review-required",
+  });
+  // Pending review is reported before format problems (this project has no portrait format).
+  await expect(
+    api.handle("export", { output: "short.mp4", preset: "short" }),
+  ).rejects.toMatchObject({ code: "review-required" });
+  const waiting = api.handle("wait", { what: "review", timeout: 5 });
+  await host.flush();
+  const snapshot = host.snapshot();
+  host.request(
+    JSON.stringify({
+      type: "markReviewed",
+      projectID: JSON.parse(snapshot.json).project.id,
+      generation: snapshot.generation,
+      revision: JSON.parse(snapshot.json).revision,
+    }),
+  );
+  const result = (await waiting) as { reviewed: boolean; pending: number; revision: number };
+  expect(result).toMatchObject({ reviewed: true, pending: 0 });
+  expect(analysisText("wait", result)).toBe(
+    `Review complete at revision ${JSON.parse(host.snapshot().json).revision}.`,
+  );
 });
